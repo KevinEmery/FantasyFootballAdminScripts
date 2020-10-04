@@ -8,6 +8,7 @@ import sys
 # the same information
 user_id_to_username = {}
 
+
 # Container class to hold the status
 class Player:
     def __init__(self, name: str, player_id: str, position: str,
@@ -26,7 +27,7 @@ class Player:
 
 class InactiveRoster:
     def __init__(self, user_name: str, league_name: str,
-               inactives: List[Player]):
+                 inactives: List[Player]):
         self.user_name = user_name
         self.league_name = league_name
         self.inactives = inactives
@@ -115,26 +116,26 @@ def find_inactives_for_league_and_week(league: League, week: int,
         if tmp_inactives:
             inactive_rosters.append(
                 InactiveRoster(roster_id_to_username[matchup.get("roster_id")],
-                    league.get_league().get("name"), tmp_inactives))
+                               league.get_league().get("name"), tmp_inactives))
 
     return inactive_rosters
+
 
 def parse_user_provided_flags() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-y",
-                    "--year",
-                    help="The year to run the analysis on",
-                    type=int,
-                    default=2020) 
+                        "--year",
+                        help="The year to run the analysis on",
+                        type=int,
+                        default=2020)
     parser.add_argument("username",
-                    help="User account used to pull all of the leagues",
-                    type=str)
-    parser.add_argument("week",
-                    help="The week to run analysis on",
-                    type=int)
+                        help="User account used to pull all of the leagues",
+                        type=str)
+    parser.add_argument("week", help="The week to run analysis on", type=int)
 
     return parser.parse_args()
+
 
 def main(argv):
     args = parse_user_provided_flags()
