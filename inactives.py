@@ -89,7 +89,6 @@ def find_all_inactive_players(all_players: Dict[int, Players]) -> List[Player]:
 
 def find_inactives_for_league_and_week(league: League, week: int,
                                        inactives: List[Player]):
-    print("Processing " + league.get_league().get("name"))
     rosters = league.get_rosters()
 
     # Short circuit to avoid problems if the league is empty
