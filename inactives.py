@@ -149,6 +149,11 @@ def main(argv):
     inactive_offensive_players = list(
         filter(lambda player: player.position in ["QB", "WR", "RB", "TE"],
                inactive_players))
+               
+    # Empty starting slots fill in as id 0, so add an entry for that 
+    # 0th player in order to report the empty spot
+    inactive_offensive_players.append(
+        Player("Missing Player", "0", "None", "MISSING"))
 
     # Retrieve all of the leagues
     admin_user = User(user)
