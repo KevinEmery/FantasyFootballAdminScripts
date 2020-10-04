@@ -294,7 +294,7 @@ def main(argv):
     args = parse_user_provided_flags()
 
     # Convert the computed args into our more-verbose local fields
-    account_username = args.user
+    account_username = args.username
     league_year = args.year
     starting_week = args.start
     ending_week = args.end
