@@ -4,6 +4,18 @@ from typing import Callable, Dict, List
 import argparse
 import sys
 
+BYE_WEEKS_2020 = {
+    4: ["PIT", "TEN"],
+    5: ["DET", "GB"],
+    6: ["LV", "NE", "NO", "SEA"],
+    7: ["BAL", "IND", "JAX", "MIN"],
+    8: ["ARI", "DEN", "HOU", "WAS"],
+    9: ["CIN", "CLE", "LAR", "PHI"],
+    10: ["ATL", "DAL", "KC", "LAC"],
+    11: ["BUF", "CHI", "MIA", "NYG", "NYJ", "SF"],
+    13: ["CAR", "TB"]
+}
+
 # Map storing the user id and username, to avoid multiple server calls for
 # the same information
 user_id_to_username = {}
@@ -12,11 +24,12 @@ user_id_to_username = {}
 # Container class to hold the status
 class Player:
     def __init__(self, name: str, player_id: str, position: str,
-                 injury_status: str):
+                 injury_status: str, team: str):
         self.name = name
         self.player_id = player_id
         self.position = position
         self.injury_status = injury_status
+        self.team = team
 
     def __str__(self):
         template = "{name}, {position} - {injury_status}"
@@ -72,19 +85,34 @@ def is_league_inactive(rosters) -> bool:
     return True
 
 
-def find_all_inactive_players(all_players: Dict[int, Players]) -> List[Player]:
-    # Iterate over the set of players, and pick out the subset that are injured
+def find_all_inactive_players_for_week(all_players: Dict[int, Players],
+                                       week: int) -> List[Player]:
+    # Iterate over the set of players, and pick out the subset that are inactive for any reason
 
-    injured_players = []
+    inactive_players = []
+    teams_on_bye = []
+
+    if week in BYE_WEEKS_2020.keys():
+        teams_on_bye = BYE_WEEKS_2020.get(week)
 
     for player_id, player_data in all_players.items():
         status = player_data.get("injury_status")
-        if status is not None and not status == "Questionable" and not status == "COV":
-            injured_players.append(
-                Player(player_data.get("full_name"), player_id,
-                       player_data.get("position"), status))
+        team = player_data.get("team")
+        player_inactive = False
 
-    return injured_players
+        if team in teams_on_bye:
+            player_inactive = True
+            status = "BYE"
+        elif status is not None and not status == "Questionable":
+            player_inactive = True
+
+        if player_inactive:
+            inactive_players.append(
+                Player(player_data.get("full_name"), player_id,
+                       player_data.get("position"), status,
+                       player_data.get("team")))
+
+    return inactive_players
 
 
 def find_inactives_for_league_and_week(league: League, week: int,
@@ -144,15 +172,16 @@ def main(argv):
 
     # Iterate through each league, printing the report
     nfl_players = Players()
-    inactive_players = find_all_inactive_players(nfl_players.get_all_players())
+    inactive_players = find_all_inactive_players_for_week(
+        nfl_players.get_all_players(), week)
     inactive_offensive_players = list(
         filter(lambda player: player.position in ["QB", "WR", "RB", "TE"],
                inactive_players))
-               
-    # Empty starting slots fill in as id 0, so add an entry for that 
+
+    # Empty starting slots fill in as id 0, so add an entry for that
     # 0th player in order to report the empty spot
     inactive_offensive_players.append(
-        Player("Missing Player", "0", "None", "MISSING"))
+        Player("Missing Player", "0", "None", "MISSING", "NONE"))
 
     # Retrieve all of the leagues
     admin_user = User(user)
