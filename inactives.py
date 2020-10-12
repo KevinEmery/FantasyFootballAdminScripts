@@ -16,6 +16,12 @@ BYE_WEEKS_2020 = {
     13: ["CAR", "TB"]
 }
 
+# This should be used on a week-to-week basis to exclude players from the
+# report. Intent here is to clean up cases where a player was given a status
+# just before or during the game, as this doesn't represent an inactive owner.
+# NOTE: Player ids must be passed as strings
+PLAYER_IDS_TO_IGNORE = []
+
 # Map storing the user id and username, to avoid multiple server calls for
 # the same information
 user_id_to_username = {}
@@ -32,10 +38,11 @@ class Player:
         self.team = team
 
     def __str__(self):
-        template = "{name}, {position} - {injury_status}"
+        template = "{name}, {position} - {injury_status} ({id})"
         return template.format(name=self.name,
                                position=self.position,
-                               injury_status=self.injury_status)
+                               injury_status=self.injury_status,
+                               id=self.player_id)
 
 
 class InactiveRoster:
@@ -101,6 +108,8 @@ def find_all_inactive_players_for_week(all_players: Dict[int,
         status_to_ignore.append("COV")
 
     for player_id, player_data in all_players.items():
+        if player_id in PLAYER_IDS_TO_IGNORE:
+            continue
         status = player_data.get("injury_status")
         team = player_data.get("team")
         player_inactive = False
