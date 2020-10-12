@@ -85,15 +85,20 @@ def is_league_inactive(rosters) -> bool:
     return True
 
 
-def find_all_inactive_players_for_week(all_players: Dict[int, Players],
-                                       week: int) -> List[Player]:
+def find_all_inactive_players_for_week(all_players: Dict[int,
+                                                         Players], week: int,
+                                       include_covid: bool) -> List[Player]:
     # Iterate over the set of players, and pick out the subset that are inactive for any reason
 
     inactive_players = []
     teams_on_bye = []
+    status_to_ignore = ["Questionable"]
 
     if week in BYE_WEEKS_2020.keys():
         teams_on_bye = BYE_WEEKS_2020.get(week)
+
+    if not include_covid:
+        status_to_ignore.append("COV")
 
     for player_id, player_data in all_players.items():
         status = player_data.get("injury_status")
@@ -103,7 +108,7 @@ def find_all_inactive_players_for_week(all_players: Dict[int, Players],
         if team in teams_on_bye:
             player_inactive = True
             status = "BYE"
-        elif status is not None and not status == "Questionable":
+        elif status is not None and status not in status_to_ignore:
             player_inactive = True
 
         if player_inactive:
@@ -115,8 +120,8 @@ def find_all_inactive_players_for_week(all_players: Dict[int, Players],
     return inactive_players
 
 
-def find_inactives_for_league_and_week(league: League, week: int,
-                                       inactives: List[Player]):
+def find_inactive_starters_for_league_and_week(league: League, week: int,
+                                               inactives: List[Player]):
     rosters = league.get_rosters()
 
     # Short circuit to avoid problems if the league is empty
@@ -160,6 +165,15 @@ def parse_user_provided_flags() -> argparse.Namespace:
                         help="User account used to pull all of the leagues",
                         type=str)
     parser.add_argument("week", help="The week to run analysis on", type=int)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--include-covid",
+                       dest="include_covid",
+                       action="store_true",
+                       help="Include COVID players in inactives")
+    group.add_argument("--exclude-covid",
+                       dest="include_covid",
+                       action="store_false")
+    parser.set_defaults(include_covid=False)
 
     return parser.parse_args()
 
@@ -169,11 +183,12 @@ def main(argv):
     user = args.username
     year = args.year
     week = args.week
+    include_covid = args.include_covid
 
     # Iterate through each league, printing the report
     nfl_players = Players()
     inactive_players = find_all_inactive_players_for_week(
-        nfl_players.get_all_players(), week)
+        nfl_players.get_all_players(), week, include_covid)
     inactive_offensive_players = list(
         filter(lambda player: player.position in ["QB", "WR", "RB", "TE"],
                inactive_players))
@@ -194,8 +209,8 @@ def main(argv):
         add_users_to_user_map(league.get_users())
 
         inactive_rosters.extend(
-            find_inactives_for_league_and_week(league, week,
-                                               inactive_offensive_players))
+            find_inactive_starters_for_league_and_week(
+                league, week, inactive_offensive_players))
 
     for roster in inactive_rosters:
         print(roster)
