@@ -6,13 +6,13 @@ import sys
 
 BYE_WEEKS_2020 = {
     4: ["PIT", "TEN"],
-    5: ["DET", "GB"],
-    6: ["LV", "NE", "NO", "SEA"],
-    7: ["BAL", "IND", "JAX", "MIN"],
-    8: ["ARI", "DEN", "HOU", "WAS"],
+    5: ["DET", "GB", "DEN", "NE"],
+    6: ["LV", "LAC", "NO", "SEA"],
+    7: ["BAL", "IND", "MIA", "MIN"],
+    8: ["ARI", "JAX", "HOU", "WAS"],
     9: ["CIN", "CLE", "LAR", "PHI"],
-    10: ["ATL", "DAL", "KC", "LAC"],
-    11: ["BUF", "CHI", "MIA", "NYG", "NYJ", "SF"],
+    10: ["ATL", "DAL", "KC", "NYJ"],
+    11: ["BUF", "CHI", "NYG", "SF"],
     13: ["CAR", "TB"]
 }
 
