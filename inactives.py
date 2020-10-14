@@ -117,7 +117,7 @@ def find_all_inactive_players_for_week(all_players: Dict[int,
         if team in teams_on_bye:
             player_inactive = True
             status = "BYE"
-        elif status is not None and status not in status_to_ignore:
+        elif status is not None and status != "" and status not in status_to_ignore:
             player_inactive = True
 
         if player_inactive:
