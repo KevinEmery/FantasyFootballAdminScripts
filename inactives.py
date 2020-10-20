@@ -263,17 +263,14 @@ def main(argv):
     week = args.week
     include_covid = args.include_covid
 
-    # Iterate through each league, printing the report
+    # Retrieve the list of all inactive players
     nfl_players = Players()
     inactive_players = find_all_inactive_players_for_week(
         nfl_players.get_all_players(), week, include_covid)
-    inactive_offensive_players = list(
-        filter(lambda player: player.position in ["QB", "WR", "RB", "TE"],
-               inactive_players))
 
     # Empty starting slots fill in as id 0, so add an entry for that
     # 0th player in order to report the empty spot
-    inactive_offensive_players.append(
+    inactive_players.append(
         Player("Missing Player", "0", "None", "MISSING", "NONE"))
 
     # Retrieve all of the leagues
@@ -283,14 +280,16 @@ def main(argv):
 
     inactive_rosters = []
 
+    # Iterate through each league to find the inactive owners in each
     for league_object in all_leagues:
         league = League(league_object.get("league_id"))
         user_store.store_users_for_league(league)
 
         inactive_rosters.extend(
             find_inactive_starters_for_league_and_week(
-                league, week, inactive_offensive_players, user_store))
+                league, week, inactive_players, user_store))
 
+    # Print out the final inactive rosters
     for roster in inactive_rosters:
         print(roster)
 
