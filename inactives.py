@@ -1,10 +1,12 @@
-from sleeper_wrapper import League, User, Players
-from sleeper_utils import is_league_inactive
-from typing import Callable, Dict, List
-from user_store import UserStore
-
 import argparse
 import sys
+from typing import Callable, Dict, List
+
+from sleeper_wrapper import League, User, Players
+
+from sleeper_utils import is_league_inactive
+from user_store import UserStore
+
 
 BYE_WEEKS_2020 = {
     4: ["PIT", "TEN"],

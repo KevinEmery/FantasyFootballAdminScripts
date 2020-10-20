@@ -1,5 +1,6 @@
-from sleeper_wrapper import League, User
 from typing import Dict, List
+
+from sleeper_wrapper import League, User
 
 
 class UserStore:

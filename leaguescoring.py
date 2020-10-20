@@ -1,14 +1,11 @@
-# Dependencies:
-#   sleeper-api-wrapper, https://pypi.org/project/sleeper-api-wrapper/
-#       Used to facilitate all Sleeper API requests
-
-from sleeper_wrapper import League, User
-from sleeper_utils import is_league_inactive
-from typing import Callable, List
-from user_store import UserStore
-
 import argparse
 import sys
+from typing import Callable, List
+
+from sleeper_wrapper import League, User
+
+from sleeper_utils import is_league_inactive
+from user_store import UserStore
 
 
 class WeeklyScore:
