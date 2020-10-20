@@ -1,3 +1,12 @@
+"""Script used to determine what owners started inactive players
+
+This script will iterate over all of the leagues that the provided user is in,
+fetching the starting rosters and comparing the players who started for each 
+team against the list of players who were not active based on the currently 
+available data. That data is then collated and output as list of teams who
+started potentially inactive players.
+"""
+
 import argparse
 import sys
 from typing import Callable, Dict, List
@@ -6,7 +15,6 @@ from sleeper_wrapper import League, User, Players
 
 from sleeper_utils import is_league_inactive
 from user_store import UserStore
-
 
 BYE_WEEKS_2020 = {
     4: ["PIT", "TEN"],
@@ -27,8 +35,22 @@ BYE_WEEKS_2020 = {
 PLAYER_IDS_TO_IGNORE = []
 
 
-# Container class to hold the status
 class Player:
+    """Basic information about a player and their health/playing status
+
+    Attributes
+    ----------
+    name : str
+        Full name of the player
+    player_id : str
+        ID of the player in Sleeper's dataset
+    position : str
+        Primary position for the player
+    injury_status : str
+        The injury status of the player (if any)
+    team : str
+        The 2-3 letter abbreviation for the player's current team
+    """
     def __init__(self, name: str, player_id: str, position: str,
                  injury_status: str, team: str):
         self.name = name
@@ -46,6 +68,18 @@ class Player:
 
 
 class InactiveRoster:
+    """Object representing an inactive roster to be reported
+
+    Attributes
+    ----------
+    user_name : str
+        Username of the owner of the team
+    league_name : str
+        Name of the league for this team, making it easier to identify
+        the source of information
+    inactives : List[Player]
+        The list of inactive players this team has currently starting
+    """
     def __init__(self, user_name: str, league_name: str,
                  inactives: List[Player]):
         self.user_name = user_name
@@ -66,8 +100,30 @@ class InactiveRoster:
 def find_all_inactive_players_for_week(all_players: Dict[int,
                                                          Players], week: int,
                                        include_covid: bool) -> List[Player]:
-    # Iterate over the set of players, and pick out the subset that are inactive for any reason
+    """Finds a list of all inactive NFL players in a given week
 
+    This pares down the list of all NFL players into a smaller list containing
+    only the players with a non-healthy player status. Because the goal of the
+    script is to find inactive owners, Questionable is always ignored and COVID
+    statuses can be selectively ignored or included.
+
+    Parameters
+    ----------
+    all_players : Dict[int, Players]
+        Dictionary containing every player in the NFL
+    week : int
+        The week we're looking up, used to pull the teams on bye
+    include_covid : bool
+        Whether or not we should include players with the COVID status in the
+        list of inactive players
+
+    Returns
+    -------
+    List[Player]
+        A list of the all players that were deemed inactive
+    """
+
+    # Initialize the fields used for output or in determining active vs inactive
     inactive_players = []
     teams_on_bye = []
     status_to_ignore = ["Questionable"]
@@ -78,13 +134,16 @@ def find_all_inactive_players_for_week(all_players: Dict[int,
     if not include_covid:
         status_to_ignore.append("COV")
 
+    # Iterate over each player, checking their status
     for player_id, player_data in all_players.items():
         if player_id in PLAYER_IDS_TO_IGNORE:
             continue
+
         status = player_data.get("injury_status")
         team = player_data.get("team")
         player_inactive = False
 
+        # Special case byes, as the status on the actual player is irrelevant
         if team in teams_on_bye:
             player_inactive = True
             status = "BYE"
@@ -100,9 +159,31 @@ def find_all_inactive_players_for_week(all_players: Dict[int,
     return inactive_players
 
 
-def find_inactive_starters_for_league_and_week(league: League, week: int,
-                                               inactives: List[Player],
-                                               user_store: UserStore):
+def find_inactive_starters_for_league_and_week(
+        league: League, week: int, inactives: List[Player],
+        user_store: UserStore) -> List[InactiveRoster]:
+    """Finds all of the teams with inactive starters within a league
+
+    This is where the bulk of the business logic lives, iterating over each
+    player in the starting lineup to see if their inactive, and if so adding
+    that team into the final output of "inactives"
+
+    Parameters
+    ----------
+    league : League
+        League object under analysis, used to pull the starters for each team
+    week : int
+        The week we're looking at, to ensure we pull the correct starters
+    inactives : List[Player]
+        List of all inactive Players based on their current status
+    user_store : UserStore
+        Storage object used to retrieve the username for a specific team
+
+    Returns
+    -------
+    List[InactiveRoster]
+        A list of the all the rosters in the league with >0 inactive players
+    """
     rosters = league.get_rosters()
 
     # Short circuit to avoid problems if the league is empty
@@ -117,12 +198,13 @@ def find_inactive_starters_for_league_and_week(league: League, week: int,
         roster_id_to_username[roster.get(
             "roster_id")] = user_store.get_username(roster.get("owner_id"))
 
-    # Each "matchup" represents a single teams performance
+    # Each "matchup" represents a single teams performance, so look at all of them
     weekly_matchups = league.get_matchups(week)
     for matchup in weekly_matchups:
         starters = matchup.get("starters")
         tmp_inactives = []
-        # I don't like this, we should iterate over the starters and find them in the inactive list instead
+        # FIXME: This should look through the starters and check for their existence
+        #        in the list of inactives, not the other way around.
         for player in inactives:
             if player.player_id in starters:
                 tmp_inactives.append(player)
