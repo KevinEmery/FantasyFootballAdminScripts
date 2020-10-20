@@ -4,13 +4,10 @@
 
 from sleeper_wrapper import League, User
 from typing import Callable, List
+from user_store import UserStore
 
 import argparse
 import sys
-
-# Map storing the user id and username, to avoid multiple server calls for
-# the same information
-user_id_to_username = {}
 
 
 class WeeklyScore:
@@ -72,19 +69,6 @@ class SeasonScore:
                                points_for=self.points_for)
 
 
-def add_users_to_user_map(users: List[User]):
-    for user in users:
-        user_id_to_username[user.get("user_id")] = user.get("display_name")
-
-
-def get_username_from_user_id(user_id: str) -> str:
-    try:
-        return user_id_to_username[user_id]
-    except KeyError:
-        print("Error retrieving user: " + str(user_id))
-        return "No User"
-
-
 def is_league_inactive(rosters) -> bool:
     """Determines if a league is inactive based on the rosters
 
@@ -101,8 +85,8 @@ def is_league_inactive(rosters) -> bool:
     return True
 
 
-def get_weekly_scores_for_league_and_week(league: League,
-                                          week: int) -> List[WeeklyScore]:
+def get_weekly_scores_for_league_and_week(
+        league: League, week: int, user_store: UserStore) -> List[WeeklyScore]:
     """Retrieves all of the weekly scores for the league in a given week
 
     This parses through all of the league matchups, transforming the API
@@ -133,7 +117,7 @@ def get_weekly_scores_for_league_and_week(league: League,
     # Create a mapping of the roster id to the username
     for roster in rosters:
         roster_id_to_username[roster.get(
-            "roster_id")] = get_username_from_user_id(roster.get("owner_id"))
+            "roster_id")] = user_store.get_username(roster.get("owner_id"))
 
     # Each "matchup" represents a single teams performance
     weekly_matchups = league.get_matchups(week)
@@ -146,7 +130,8 @@ def get_weekly_scores_for_league_and_week(league: League,
     return weekly_scores
 
 
-def get_pf_for_entire_league(league: League) -> List[SeasonScore]:
+def get_pf_for_entire_league(league: League,
+                             user_store: UserStore) -> List[SeasonScore]:
     """Retrieves all of the season scores for the league
 
     This parses through all of the league rosters, trasnforming what's
@@ -180,7 +165,7 @@ def get_pf_for_entire_league(league: League) -> List[SeasonScore]:
             total_points_for += 0.00
 
         season_scores.append(
-            SeasonScore(get_username_from_user_id(roster.get("owner_id")),
+            SeasonScore(user_store.get_username(roster.get("owner_id")),
                         league.get_league().get("name"), total_points_for))
 
     return season_scores
@@ -312,6 +297,7 @@ def main(argv):
     # Lists containing all of the collated data
     weekly_scores = []
     seasonal_scores = []
+    user_store = UserStore()
 
     # Retrieve all of the leagues
     admin_user = User(account_username)
@@ -320,17 +306,19 @@ def main(argv):
     # Iterate over all the leagues in the account
     for league_object in all_leagues:
         league = League(league_object.get("league_id"))
-        add_users_to_user_map(league.get_users())
+        user_store.store_users_for_league(league)
 
         # Iterate over each indiviudal week, since we need to grab the max weekly score for the league
         if find_weekly:
             for week_num in range(starting_week, ending_week + 1):
                 weekly_scores.extend(
-                    get_weekly_scores_for_league_and_week(league, week_num))
+                    get_weekly_scores_for_league_and_week(
+                        league, week_num, user_store))
 
         if find_seasonal:
             # Grab the points-for in each league
-            seasonal_scores.extend(get_pf_for_entire_league(league))
+            seasonal_scores.extend(get_pf_for_entire_league(
+                league, user_store))
 
     # Sublists used for sorted results
     max_weekly_scores = []

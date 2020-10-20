@@ -1,5 +1,6 @@
 from sleeper_wrapper import League, User, Players
 from typing import Callable, Dict, List
+from user_store import UserStore
 
 import argparse
 import sys
@@ -21,10 +22,6 @@ BYE_WEEKS_2020 = {
 # just before or during the game, as this doesn't represent an inactive owner.
 # NOTE: Player ids must be passed as strings
 PLAYER_IDS_TO_IGNORE = []
-
-# Map storing the user id and username, to avoid multiple server calls for
-# the same information
-user_id_to_username = {}
 
 
 # Container class to hold the status
@@ -61,19 +58,6 @@ class InactiveRoster:
             return_string += str(player) + "\n"
 
         return return_string
-
-
-def add_users_to_user_map(users: List[User]):
-    for user in users:
-        user_id_to_username[user.get("user_id")] = user.get("display_name")
-
-
-def get_username_from_user_id(user_id: str) -> str:
-    try:
-        return user_id_to_username[user_id]
-    except KeyError:
-        print("Error retrieving user: " + str(user_id))
-        return "No User"
 
 
 def is_league_inactive(rosters) -> bool:
@@ -130,7 +114,8 @@ def find_all_inactive_players_for_week(all_players: Dict[int,
 
 
 def find_inactive_starters_for_league_and_week(league: League, week: int,
-                                               inactives: List[Player]):
+                                               inactives: List[Player],
+                                               user_store: UserStore):
     rosters = league.get_rosters()
 
     # Short circuit to avoid problems if the league is empty
@@ -143,7 +128,7 @@ def find_inactive_starters_for_league_and_week(league: League, week: int,
     # Create a mapping of the roster id to the username
     for roster in rosters:
         roster_id_to_username[roster.get(
-            "roster_id")] = get_username_from_user_id(roster.get("owner_id"))
+            "roster_id")] = user_store.get_username(roster.get("owner_id"))
 
     # Each "matchup" represents a single teams performance
     weekly_matchups = league.get_matchups(week)
@@ -210,16 +195,17 @@ def main(argv):
     # Retrieve all of the leagues
     admin_user = User(user)
     all_leagues = admin_user.get_all_leagues("nfl", year)
+    user_store = UserStore()
 
     inactive_rosters = []
 
     for league_object in all_leagues:
         league = League(league_object.get("league_id"))
-        add_users_to_user_map(league.get_users())
+        user_store.store_users_for_league(league)
 
         inactive_rosters.extend(
             find_inactive_starters_for_league_and_week(
-                league, week, inactive_offensive_players))
+                league, week, inactive_offensive_players, user_store))
 
     for roster in inactive_rosters:
         print(roster)
