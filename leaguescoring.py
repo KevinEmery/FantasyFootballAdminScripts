@@ -1,3 +1,10 @@
+"""Script used to summarize how teams are performing across a number of leagues
+
+This script will iterate over all of the leagues that the provided user is in,
+retrieving both the weekly and season-long scores for each team in each league
+and then outputing that in a pseudo-table format for external consumption.
+"""
+
 import argparse
 import sys
 from typing import Callable, List
@@ -81,6 +88,8 @@ def get_weekly_scores_for_league_and_week(
         The League object being analyzed
     week : int
         The week for which to pull matchups
+    user_store : UserStore
+        Storage object used to retrieve the username for a specific team
 
     Returns
     -------
@@ -123,6 +132,8 @@ def get_pf_for_entire_league(league: League,
     ----------
     league : League
         The League object being analyzed
+    user_store : UserStore 
+        Storage object used to retrieve the username for a specific team
 
     Returns
     -------
