@@ -70,3 +70,13 @@ optional arguments:
   --current-week        Include the 'current week' statistics (default)
   --no-current-week
 ```
+
+## Dependencies
+
+[sleeper-api-wrapper](https://github.com/SwapnikKatkoori/sleeper-api-wrapper)
+
+ - Used for all interactions with the Sleeper API
+
+## License
+
+This project is licensed under the terms of the Apache License 2.0
