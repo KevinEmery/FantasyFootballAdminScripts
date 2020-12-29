@@ -53,7 +53,7 @@ class WeeklyScore:
 
     def __str__(self):
         try:
-            template = "{username:.<20}{points:06.2f}, Week {week} ({league_name})"
+            template = "{username:.<20}{points:06.2f}, Week {week:<2} ({league_name})"
             return template.format(league_name=self.league_name,
                                    username=self.username,
                                    week=self.week,
