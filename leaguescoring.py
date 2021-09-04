@@ -21,6 +21,7 @@ and then outputing that in a pseudo-table format for external consumption.
 """
 
 import argparse
+import re
 import sys
 from typing import Callable, List
 
@@ -228,6 +229,12 @@ def parse_user_provided_flags() -> argparse.Namespace:
                         help="year to run the analysis on",
                         type=int,
                         default=2021)
+    parser.add_argument(
+        "-r",
+        "--league_regex",
+        help="Regular expression used to select which leagues to analyze",
+        type=str,
+        default=".*")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--max",
                        dest="max",
@@ -289,6 +296,7 @@ def main(argv):
     # Convert the computed args into our more-verbose local fields
     account_username = args.username
     league_year = args.year
+    league_regex = re.compile(args.league_regex)
     starting_week = args.start
     ending_week = args.end
     weekly_score_output_count = args.weekly_count
@@ -314,19 +322,24 @@ def main(argv):
     # Iterate over all the leagues in the account
     for league_object in all_leagues:
         league = League(league_object.get("league_id"))
-        user_store.store_users_for_league(league)
+        league_name = league.get_league().get("name")
 
-        # Iterate over each indiviudal week, since we need to grab the max weekly score for the league
-        if find_weekly:
-            for week_num in range(starting_week, ending_week + 1):
-                weekly_scores.extend(
-                    get_weekly_scores_for_league_and_week(
-                        league, week_num, user_store))
+        # Only look at leagues that match the provided regex
+        if league_regex.match(league_name):
 
-        if find_seasonal:
-            # Grab the points-for in each league
-            seasonal_scores.extend(get_pf_for_entire_league(
-                league, user_store))
+            user_store.store_users_for_league(league)
+
+            # Iterate over each indiviudal week, since we need to grab the max weekly score for the league
+            if find_weekly:
+                for week_num in range(starting_week, ending_week + 1):
+                    weekly_scores.extend(
+                        get_weekly_scores_for_league_and_week(
+                            league, week_num, user_store))
+
+            if find_seasonal:
+                # Grab the points-for in each league
+                seasonal_scores.extend(
+                    get_pf_for_entire_league(league, user_store))
 
     # Sublists used for sorted results
     max_weekly_scores = []
