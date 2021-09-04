@@ -222,7 +222,9 @@ def find_inactive_starters_for_league_and_week(
         for starter_id in starters:
             # Get the first player in inactives that matches the starter id, or None
             try:
-                inactive_player = [p for p in inactives if p.player_id == starter_id][0]
+                inactive_player = [
+                    p for p in inactives if p.player_id == starter_id
+                ][0]
             except IndexError:
                 inactive_player = None
             if inactive_player is not None:
@@ -259,11 +261,19 @@ def parse_user_provided_flags() -> argparse.Namespace:
     group.add_argument("--include-covid",
                        dest="include_covid",
                        action="store_true",
-                       help="Include COVID players in inactives")
+                       help="Include COVID players in the report")
     group.add_argument("--exclude-covid",
                        dest="include_covid",
                        action="store_false")
-    parser.set_defaults(include_covid=False)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--include-missing",
+                       dest="include_missing",
+                       action="store_true",
+                       help="Include missing players in the report")
+    group.add_argument("--exclude-missing",
+                       dest="include_missing",
+                       action="store_false")
+    parser.set_defaults(include_covid=False, include_missing=True)
 
     return parser.parse_args()
 
@@ -275,16 +285,18 @@ def main(argv):
     league_regex = re.compile(args.league_regex)
     week = args.week
     include_covid = args.include_covid
+    include_missing = args.include_missing
 
     # Retrieve the list of all inactive players
     nfl_players = Players()
     inactive_players = find_all_inactive_players_for_week(
         nfl_players.get_all_players(), week, include_covid)
 
-    # Empty starting slots fill in as id 0, so add an entry for that
-    # 0th player in order to report the empty spot
-    inactive_players.append(
-        Player("Missing Player", "0", "None", "MISSING", "NONE"))
+    if include_missing:
+        # Empty starting slots fill in as id 0, so add an entry for that
+        # 0th player in order to report the empty spot
+        inactive_players.append(
+            Player("Missing Player", "0", "None", "MISSING", "NONE"))
 
     # Retrieve all of the leagues
     admin_user = User(user)
@@ -299,13 +311,12 @@ def main(argv):
         league_name = league.get_league().get("name")
 
         # Only look at leagues that match the provided regex
-        if league_regex.match(league_name): 
+        if league_regex.match(league_name):
             user_store.store_users_for_league(league)
 
             inactive_rosters.extend(
-                find_inactive_starters_for_league_and_week(league, week,
-                                                           inactive_players,
-                                                           user_store))
+                find_inactive_starters_for_league_and_week(
+                    league, week, inactive_players, user_store))
 
     # Print out the final inactive rosters
     for roster in inactive_rosters:
