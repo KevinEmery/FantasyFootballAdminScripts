@@ -219,11 +219,15 @@ def find_inactive_starters_for_league_and_week(
     for matchup in weekly_matchups:
         starters = matchup.get("starters")
         tmp_inactives = []
-        # FIXME: This should look through the starters and check for their existence
-        #        in the list of inactives, not the other way around.
-        for player in inactives:
-            if player.player_id in starters:
-                tmp_inactives.append(player)
+        for starter_id in starters:
+            # Get the first player in inactives that matches the starter id, or None
+            try:
+                inactive_player = [p for p in inactives if p.player_id == starter_id][0]
+            except IndexError:
+                inactive_player = None
+            if inactive_player is not None:
+                tmp_inactives.append(inactive_player)
+
         if tmp_inactives:
             inactive_rosters.append(
                 InactiveRoster(roster_id_to_username[matchup.get("roster_id")],
