@@ -227,7 +227,7 @@ def parse_user_provided_flags() -> argparse.Namespace:
                         "--year",
                         help="year to run the analysis on",
                         type=int,
-                        default=2020)
+                        default=2021)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--max",
                        dest="max",
