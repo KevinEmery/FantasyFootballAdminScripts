@@ -23,6 +23,7 @@ started potentially inactive players.
 """
 
 import argparse
+import re
 import sys
 from typing import Callable, Dict, List
 
@@ -240,6 +241,12 @@ def parse_user_provided_flags() -> argparse.Namespace:
         help="The year to run the analysis on, defaults to 2021",
         type=int,
         default=2021)
+    parser.add_argument(
+        "-r",
+        "--league_regex",
+        help="Regular expression used to select which leagues to analyze",
+        type=str,
+        default=".*")
     parser.add_argument("username",
                         help="User account used to pull all of the leagues",
                         type=str)
@@ -261,6 +268,7 @@ def main(argv):
     args = parse_user_provided_flags()
     user = args.username
     year = args.year
+    league_regex = re.compile(args.league_regex)
     week = args.week
     include_covid = args.include_covid
 
@@ -284,12 +292,16 @@ def main(argv):
     # Iterate through each league to find the inactive owners in each
     for league_object in all_leagues:
         league = League(league_object.get("league_id"))
-        user_store.store_users_for_league(league)
+        league_name = league.get_league().get("name")
 
-        inactive_rosters.extend(
-            find_inactive_starters_for_league_and_week(league, week,
-                                                       inactive_players,
-                                                       user_store))
+        # Only look at leagues that match the provided regex
+        if league_regex.match(league_name): 
+            user_store.store_users_for_league(league)
+
+            inactive_rosters.extend(
+                find_inactive_starters_for_league_and_week(league, week,
+                                                           inactive_players,
+                                                           user_store))
 
     # Print out the final inactive rosters
     for roster in inactive_rosters:
