@@ -234,11 +234,12 @@ def find_inactive_starters_for_league_and_week(
 def parse_user_provided_flags() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("-y",
-                        "--year",
-                        help="The year to run the analysis on, defaults to 2020",
-                        type=int,
-                        default=2020)
+    parser.add_argument(
+        "-y",
+        "--year",
+        help="The year to run the analysis on, defaults to 2020",
+        type=int,
+        default=2020)
     parser.add_argument("username",
                         help="User account used to pull all of the leagues",
                         type=str)
@@ -286,8 +287,9 @@ def main(argv):
         user_store.store_users_for_league(league)
 
         inactive_rosters.extend(
-            find_inactive_starters_for_league_and_week(
-                league, week, inactive_players, user_store))
+            find_inactive_starters_for_league_and_week(league, week,
+                                                       inactive_players,
+                                                       user_store))
 
     # Print out the final inactive rosters
     for roster in inactive_rosters:
