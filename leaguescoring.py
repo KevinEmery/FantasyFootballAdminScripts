@@ -301,9 +301,9 @@ def main(argv):
     ending_week = args.end
     weekly_score_output_count = args.weekly_count
     seasonal_score_output_count = args.season_count
-    find_weekly = args.weekly
-    print_max_this_week = args.weekly and args.max and args.current_week
-    print_min_this_week = args.weekly and args.min and args.current_week
+    find_weekly = args.weekly or args.current_week
+    print_max_this_week = args.max and args.current_week
+    print_min_this_week = args.min and args.current_week
     print_max_weekly = args.weekly and args.max
     print_min_weekly = args.weekly and args.min
     find_seasonal = args.season

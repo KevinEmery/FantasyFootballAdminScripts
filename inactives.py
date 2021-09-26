@@ -48,7 +48,8 @@ BYE_WEEKS_2021 = {
 # report. Intent here is to clean up cases where a player was given a status
 # just before or during the game, as this doesn't represent an inactive owner.
 # NOTE: Player ids must be passed as strings
-PLAYER_IDS_TO_IGNORE = []
+# CMC, Jacobs, Cook, Henderson
+PLAYER_IDS_TO_IGNORE = ["4034", "5850", "4029", "5916"]
 
 
 class Player:
