@@ -218,6 +218,18 @@ def find_inactive_starters_for_league_and_week(
     weekly_matchups = league.get_matchups(week)
     for matchup in weekly_matchups:
         starters = matchup.get("starters")
+        username = roster_id_to_username[matchup.get("roster_id")]
+
+        # I'm running into a strange issue where someone's starters are coming
+        # back as None. Log that to console and move on for now, you'll have
+        # to manually check their roster.
+        if starters is None:
+            msg = "{league} - {username}'s starters list is None"
+            print(
+                msg.format(league=league.get_league().get("name"),
+                           username=username))
+            continue
+
         tmp_inactives = []
         for starter_id in starters:
             # Get the first player in inactives that matches the starter id, or None
@@ -232,7 +244,7 @@ def find_inactive_starters_for_league_and_week(
 
         if tmp_inactives:
             inactive_rosters.append(
-                InactiveRoster(roster_id_to_username[matchup.get("roster_id")],
+                InactiveRoster(username,
                                league.get_league().get("name"), tmp_inactives))
 
     return inactive_rosters
@@ -319,6 +331,7 @@ def main(argv):
                     league, week, inactive_players, user_store))
 
     # Print out the final inactive rosters
+    print("")
     for roster in inactive_rosters:
         print(roster)
 
