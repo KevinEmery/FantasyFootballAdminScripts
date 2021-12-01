@@ -18,7 +18,9 @@ One limitation of this is that the player status is pulled in real time - the Sl
 #### Usage
 
 ```
-usage: inactives.py [-h] [-y YEAR] [--include-covid | --exclude-covid]
+usage: inactives.py [-h] [-y YEAR] [-r LEAGUE_REGEX]
+                    [--include-covid | --exclude-covid]
+                    [--include-missing | --exclude-missing]
                     username week
 
 positional arguments:
@@ -27,9 +29,14 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2020
-  --include-covid       Include COVID players in inactives
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2021
+  -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
+                        Regular expression used to select which leagues to
+                        analyze
+  --include-covid       Include COVID players in the report
   --exclude-covid
+  --include-missing     Include missing players in the report
+  --exclude-missing
 ```
 
 ### leaguescoring.py
@@ -42,8 +49,9 @@ This script is used to find various summary statistics around how teams are perf
 
 ```
 usage: leaguescoring.py [-h] [-wc WEEKLY_COUNT] [-sc SEASON_COUNT] [-y YEAR]
-                        [--max | --no-max] [--min | --no-min]
-                        [--season | --no-season] [--weekly | --no-weekly]
+                        [-r LEAGUE_REGEX] [--max | --no-max]
+                        [--min | --no-min] [--season | --no-season]
+                        [--weekly | --no-weekly]
                         [--current-week | --no-current-week]
                         username [start] end
 
@@ -59,6 +67,9 @@ optional arguments:
   -sc SEASON_COUNT, --season_count SEASON_COUNT
                         number of season data points to display (default: 5)
   -y YEAR, --year YEAR  year to run the analysis on
+  -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
+                        Regular expression used to select which leagues to
+                        analyze
   --max                 Include the 'max' statistics (default)
   --no-max
   --min                 Include the 'min' statistics (default)
@@ -70,6 +81,35 @@ optional arguments:
   --current-week        Include the 'current week' statistics (default)
   --no-current-week
 ```
+
+### adp.py
+
+#### Description
+
+This script is used to find the average draft position (ADP) of players in all leagues for a specific user in a specific year. That list can be filtered by a variety of different factors (league name, position, and/or team) to generate customized reports. Most useful when looking across a number of leagues but also if you just want quick reference for all players from a given position/team for a single league.
+
+#### Usage
+
+```
+usage: adp.py [-h] [-y YEAR] [-r LEAGUE_REGEX] [-p POSITION] [-t TEAM]
+              [--human_readable | --csv]
+              username
+
+positional arguments:
+  username              User account used to pull all of the leagues
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2021
+  -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
+                        Regular expression used to select which leagues to
+                        analyze
+  -p POSITION, --position POSITION
+                        Which NFL position to print data about (default: all)
+  -t TEAM, --team TEAM  Which NFL team to print data about (default: all)
+  --human_readable
+  --csv
+  ```
 
 ## Dependencies
 
