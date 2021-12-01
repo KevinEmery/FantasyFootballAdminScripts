@@ -33,9 +33,9 @@ optional arguments:
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
-  --include-covid       Include COVID players in the report
+  --include-covid       Include COVID players in the report (default)
   --exclude-covid
-  --include-missing     Include missing players in the report
+  --include-missing     Include missing players in the report (default)
   --exclude-missing
 ```
 

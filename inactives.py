@@ -273,7 +273,7 @@ def parse_user_provided_flags() -> argparse.Namespace:
     group.add_argument("--include-covid",
                        dest="include_covid",
                        action="store_true",
-                       help="Include COVID players in the report")
+                       help="Include COVID players in the report (default)")
     group.add_argument("--exclude-covid",
                        dest="include_covid",
                        action="store_false")
@@ -281,11 +281,11 @@ def parse_user_provided_flags() -> argparse.Namespace:
     group.add_argument("--include-missing",
                        dest="include_missing",
                        action="store_true",
-                       help="Include missing players in the report")
+                       help="Include missing players in the report (default)")
     group.add_argument("--exclude-missing",
                        dest="include_missing",
                        action="store_false")
-    parser.set_defaults(include_covid=False, include_missing=True)
+    parser.set_defaults(include_covid=True, include_missing=True)
 
     return parser.parse_args()
 
