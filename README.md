@@ -29,7 +29,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2021
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
@@ -66,7 +66,7 @@ optional arguments:
                         number of weekly data points to display (default: 5)
   -sc SEASON_COUNT, --season_count SEASON_COUNT
                         number of season data points to display (default: 5)
-  -y YEAR, --year YEAR  year to run the analysis on
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
@@ -92,6 +92,7 @@ This script is used to find the average draft position (ADP) of players in all l
 
 ```
 usage: adp.py [-h] [-y YEAR] [-r LEAGUE_REGEX] [-p POSITION] [-t TEAM]
+              [-n MAX_RESULTS] [-c MINIMUM_TIMES_DRAFTED]
               [--human_readable | --csv]
               username
 
@@ -100,13 +101,18 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2021
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
   -p POSITION, --position POSITION
                         Which NFL position to print data about (default: all)
   -t TEAM, --team TEAM  Which NFL team to print data about (default: all)
+  -n MAX_RESULTS, --max_results MAX_RESULTS
+                        Maximum number of players to display (default: all)
+  -c MINIMUM_TIMES_DRAFTED, --minimum_times_drafted MINIMUM_TIMES_DRAFTED
+                        Minimum number of times a player needs to be drafted
+                        (default: 1)
   --human_readable
   --csv
   ```
