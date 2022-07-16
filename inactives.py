@@ -169,8 +169,7 @@ def find_all_inactive_players_for_week(all_players: Dict[int,
         if player_inactive:
             inactive_players.append(
                 Player(player_data.get("full_name"), player_id,
-                       player_data.get("position"), status,
-                       player_data.get("team")))
+                       player_data.get("position"), status, team))
 
     return inactive_players
 
