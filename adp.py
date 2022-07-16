@@ -139,6 +139,13 @@ def parse_user_provided_flags() -> argparse.Namespace:
         help="Maximum number of players to display (default: all)",
         type=int,
         default=-1)
+    parser.add_argument(
+        "-c",
+        "--minimum_times_drafted",
+        help=
+        "Minimum number of times a player needs to be drafted (default: 1)",
+        type=int,
+        default=1)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--human_readable",
                        dest="output_format",
@@ -166,6 +173,7 @@ def main(argv):
     position = args.position
     team = args.team
     max_results_to_print = args.max_results
+    minimum_times_drafted = args.minimum_times_drafted
     output_format = args.output_format
     league_regex = re.compile(args.league_regex)
 
@@ -219,6 +227,10 @@ def main(argv):
 
         # Filter on team
         if team != INCLUDE_ALL and drafted_player.team != team:
+            continue
+
+        # Filter out players who have been drafted fewer times than the specified minimum count
+        if drafted_player.times_drafted < minimum_times_drafted:
             continue
 
         results_printed += 1
