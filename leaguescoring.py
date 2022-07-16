@@ -224,11 +224,12 @@ def parse_user_provided_flags() -> argparse.Namespace:
         help="number of season data points to display (default: 5)",
         type=int,
         default=5)
-    parser.add_argument("-y",
-                        "--year",
-                        help="year to run the analysis on",
-                        type=int,
-                        default=2021)
+    parser.add_argument(
+        "-y",
+        "--year",
+        help="The year to run the analysis on, defaults to 2022",
+        type=int,
+        default=2022)
     parser.add_argument(
         "-r",
         "--league_regex",

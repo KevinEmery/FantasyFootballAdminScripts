@@ -29,9 +29,11 @@ from sleeper_wrapper import Drafts, League, User
 
 INCLUDE_ALL = "all"
 
+
 class OutputFormat(Enum):
     HUMAN_READABLE = 1
     CSV = 2
+
 
 class DraftedPlayer:
     def __init__(self, player_id: str, first_name: str, last_name: str,
@@ -110,9 +112,9 @@ def parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument(
         "-y",
         "--year",
-        help="The year to run the analysis on, defaults to 2021",
+        help="The year to run the analysis on, defaults to 2022",
         type=int,
-        default=2021)
+        default=2022)
     parser.add_argument(
         "-r",
         "--league_regex",

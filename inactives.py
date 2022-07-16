@@ -32,16 +32,15 @@ from sleeper_wrapper import League, User, Players
 from sleeper_utils import is_league_inactive
 from user_store import UserStore
 
-BYE_WEEKS_2021 = {
-    6: ["ATL", "NO", "NYJ", "SF"],
-    7: ["BUF", "DAL", "JAX", "LAC", "MIN", "PIT"],
-    8: ["BAL", "LV"],
-    9: ["DET", "SEA", "TB", "WAS"],
-    10: ["CHI", "CIN", "HOU", "NYG"],
-    11: ["LAR", "DEN"],
-    12: ["ARI", "KC"],
-    13: ["CAR", "CLE", "GB", "TEN"],
-    14: ["IND", "MIA", "NE", "PHI"]
+BYE_WEEKS_2022 = {
+    6: ["DET", "LV", "TEN", "HOU"],
+    7: ["BUF", "LAR", "MIN", "PHI"],
+    8: ["KC", "LAC"],
+    9: ["CLE", "DAL", "DEN", "NYG", "PIT", "SF"],
+    10: ["BAL", "CIN", "NE", "NYJ"],
+    11: ["JAX", "MIA", "SEA", "TB"],
+    13: ["ARI", "CAR"],
+    14: ["ATL", "CHI", "GB", "IND", "NO", "WAS"]
 }
 
 # This should be used on a week-to-week basis to exclude players from the
@@ -144,8 +143,8 @@ def find_all_inactive_players_for_week(all_players: Dict[int,
     teams_on_bye = []
     status_to_ignore = ["Questionable"]
 
-    if week in BYE_WEEKS_2021.keys():
-        teams_on_bye = BYE_WEEKS_2021.get(week)
+    if week in BYE_WEEKS_2022.keys():
+        teams_on_bye = BYE_WEEKS_2022.get(week)
 
     if not include_covid:
         status_to_ignore.append("COV")
@@ -255,9 +254,9 @@ def parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument(
         "-y",
         "--year",
-        help="The year to run the analysis on, defaults to 2021",
+        help="The year to run the analysis on, defaults to 2022",
         type=int,
-        default=2021)
+        default=2022)
     parser.add_argument(
         "-r",
         "--league_regex",
