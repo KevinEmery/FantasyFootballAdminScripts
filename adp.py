@@ -133,6 +133,12 @@ def parse_user_provided_flags() -> argparse.Namespace:
         help="Which NFL team to print data about (default: all)",
         type=str,
         default=INCLUDE_ALL)
+    parser.add_argument(
+        "-n",
+        "--max_results",
+        help="Maximum number of players to display (default: all)",
+        type=int,
+        default=-1)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--human_readable",
                        dest="output_format",
@@ -159,6 +165,7 @@ def main(argv):
     league_year = args.year
     position = args.position
     team = args.team
+    max_results_to_print = args.max_results
     output_format = args.output_format
     league_regex = re.compile(args.league_regex)
 
@@ -195,16 +202,26 @@ def main(argv):
 
     # Print the results of all the parsing
     print("")
+    results_printed = 0
     for player_id in sorted(player_id_to_drafted_player,
                             key=player_id_to_drafted_player.get):
+
+        # Short circuit if we've printed enough
+        if max_results_to_print != -1 and results_printed >= max_results_to_print:
+            break
+
+        # Pull up the player
         drafted_player = player_id_to_drafted_player[player_id]
 
+        # Filter on position
         if position != INCLUDE_ALL and drafted_player.position != position:
             continue
 
+        # Filter on team
         if team != INCLUDE_ALL and drafted_player.team != team:
             continue
 
+        results_printed += 1
         print(create_output_for_player(drafted_player, output_format))
 
 
