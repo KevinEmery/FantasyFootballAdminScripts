@@ -209,7 +209,6 @@ def main(argv):
                 drafted_player.add_draft_position(pick["pick_no"])
 
     # Print the results of all the parsing
-    print("")
     results_printed = 0
     for player_id in sorted(player_id_to_drafted_player,
                             key=player_id_to_drafted_player.get):
