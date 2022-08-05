@@ -72,28 +72,51 @@ class DraftedPlayer:
         return self.average_draft_position < other.average_draft_position
 
 
-def create_output_for_player(player: DraftedPlayer,
-                             format: OutputFormat) -> str:
+def create_output_for_player(player: DraftedPlayer, format: OutputFormat,
+                             league_size: int) -> str:
     if format == OutputFormat.HUMAN_READABLE:
-        return create_human_readable_output_for_player(player)
+        return create_human_readable_output_for_player(player, league_size)
     elif format == OutputFormat.CSV:
         return create_csv_output_for_player(player)
     else:
         return "UNSUPPORTED FORMAT"
 
 
-def create_human_readable_output_for_player(player: DraftedPlayer) -> str:
+def create_human_readable_output_for_player(player: DraftedPlayer,
+                                            league_size: int) -> str:
     player_name = player.first_name + " " + player.last_name
     if player.times_drafted == 0:
         template = "{player_name} went undrafted"
         return template.format(player_name=player_name)
 
-    template = "{player_name:<30}ADP: {adp:5.1f}   Min: {min:<3}   Max: {max:<3}   N= {n}"
+    if league_size == 0:
+        template = "{player_name:<30}ADP: {adp:5.1f}   Min: {min:<3}   Max: {max:<3}   N= {n}"
+        adp = player.average_draft_position
+        minimum = player.min_draft_position
+        maximum = player.max_draft_position
+    else:
+        template = "{player_name:<30}ADP: {adp:<5}   Min: {min:<5}   Max: {max:<5}   N= {n}"
+        adp = convert_raw_adp_to_round_and_pick(player.average_draft_position,
+                                                league_size)
+        minimum = convert_raw_adp_to_round_and_pick(player.min_draft_position,
+                                                    league_size)
+        maximum = convert_raw_adp_to_round_and_pick(player.max_draft_position,
+                                                    league_size)
+
     return template.format(player_name=player_name,
-                           adp=player.average_draft_position,
-                           min=player.min_draft_position,
-                           max=player.max_draft_position,
+                           adp=adp,
+                           min=minimum,
+                           max=maximum,
                            n=player.times_drafted)
+
+
+def convert_raw_adp_to_round_and_pick(raw_adp: float, league_size: int) -> str:
+    adp = int(round(raw_adp))
+
+    draft_round = adp // league_size + 1
+    draft_pick = adp % league_size
+
+    return str(draft_round) + "." + str(draft_pick)
 
 
 def create_csv_output_for_player(player: DraftedPlayer) -> str:
@@ -146,6 +169,11 @@ def parse_user_provided_flags() -> argparse.Namespace:
         "Minimum number of times a player needs to be drafted (default: 1)",
         type=int,
         default=1)
+    parser.add_argument("-s",
+                        "--league_size",
+                        help="Number of teams in the league",
+                        type=int,
+                        default=0)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--human_readable",
                        dest="output_format",
@@ -174,6 +202,7 @@ def main(argv):
     team = args.team
     max_results_to_print = args.max_results
     minimum_times_drafted = args.minimum_times_drafted
+    league_size = args.league_size
     output_format = args.output_format
     league_regex = re.compile(args.league_regex)
 
@@ -233,7 +262,9 @@ def main(argv):
             continue
 
         results_printed += 1
-        print(create_output_for_player(drafted_player, output_format))
+        print(
+            create_output_for_player(drafted_player, output_format,
+                                     league_size))
 
 
 if __name__ == "__main__":

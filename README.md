@@ -3,7 +3,7 @@ Repository for a handful of Python scripts designed to parse information from Sl
 
 As they're written today, these scripts are designed with the idea that there is one single account in all of the leagues you want to analyze. That account doesn't need to be an owner of a team (and in fact most of my personal applications today are running it on users who don't have a team, but instead are just in the leagues to help run them), but they need to be in the league as it's from that user that the full list of leagues to be analyzed is pulled.
 
-The primary use case is for people administering multiple leagues who want to do pull information about all of the teams.
+The primary use case is for people administering multiple leagues who want to pull information about all of the teams.
 
 ## Scripts
 
@@ -92,7 +92,7 @@ This script is used to find the average draft position (ADP) of players in all l
 
 ```
 usage: adp.py [-h] [-y YEAR] [-r LEAGUE_REGEX] [-p POSITION] [-t TEAM]
-              [-n MAX_RESULTS] [-c MINIMUM_TIMES_DRAFTED]
+              [-n MAX_RESULTS] [-c MINIMUM_TIMES_DRAFTED] [-s LEAGUE_SIZE]
               [--human_readable | --csv]
               username
 
@@ -113,6 +113,8 @@ optional arguments:
   -c MINIMUM_TIMES_DRAFTED, --minimum_times_drafted MINIMUM_TIMES_DRAFTED
                         Minimum number of times a player needs to be drafted
                         (default: 1)
+  -s LEAGUE_SIZE, --league_size LEAGUE_SIZE
+                        Number of teams in the league
   --human_readable
   --csv
   ```
