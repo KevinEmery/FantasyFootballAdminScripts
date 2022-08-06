@@ -116,6 +116,12 @@ def convert_raw_adp_to_round_and_pick(raw_adp: float, league_size: int) -> str:
     draft_round = adp // league_size + 1
     draft_pick = adp % league_size
 
+    # If a player is picked in the last pick of round x it should be x.<league_size> so we need to tweak
+    # the numbers here. In a 14-team league Pick 42 is 3.14, not 4.0
+    if draft_pick == 0:
+        draft_pick = league_size
+        draft_round -= 1
+
     return str(draft_round) + "." + str(draft_pick)
 
 
