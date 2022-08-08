@@ -25,11 +25,13 @@ started potentially inactive players.
 import argparse
 import re
 import sys
+from datetime import datetime
 from typing import Callable, Dict, List
 
 from sleeper_wrapper import League, User, Players
 
-from sleeper_utils import create_roster_id_to_username_dict, is_league_inactive
+from sleeper_utils import is_league_inactive, create_roster_id_to_username_dict
+from transactions import LeagueTransaction, get_most_recent_transaction_per_roster
 from user_store import UserStore
 
 BYE_WEEKS_2022 = {
@@ -94,18 +96,32 @@ class InactiveRoster:
         the source of information
     inactives : List[Player]
         The list of inactive players this team has currently starting
+    last_transaction: LeagueTransaction
+        (Optional) Last transaction the user performed
     """
-    def __init__(self, user_name: str, league_name: str,
-                 inactives: List[Player]):
+    def __init__(self,
+                 user_name: str,
+                 league_name: str,
+                 inactives: List[Player],
+                 last_transaction: LeagueTransaction = None):
         self.user_name = user_name
         self.league_name = league_name
         self.inactives = inactives
+        self.last_transaction = last_transaction
 
     def __str__(self):
         return_string = ""
         first_line_template = "{user_name}, {league_name}\n"
+        last_transaction_template = "Last transaction: {date}\n"
+        date_format = "%m-%d-%Y"
+
         return_string += first_line_template.format(
             user_name=self.user_name, league_name=self.league_name)
+        if self.last_transaction is not None:
+            date = datetime.fromtimestamp(self.last_transaction.timestamp).strftime(date_format)
+            return_string += last_transaction_template.format(
+                date=date)
+
         for player in self.inactives:
             return_string += str(player) + "\n"
 
@@ -174,8 +190,9 @@ def find_all_inactive_players_for_week(all_players: Dict[int,
 
 
 def find_inactive_starters_for_league_and_week(
-        league: League, week: int, inactives: List[Player],
-        user_store: UserStore) -> List[InactiveRoster]:
+    league: League, week: int, inactives: List[Player], user_store: UserStore,
+    roster_id_to_last_transaction: Dict[int, LeagueTransaction]
+) -> List[InactiveRoster]:
     """Finds all of the teams with inactive starters within a league
 
     This is where the bulk of the business logic lives, iterating over each
@@ -190,6 +207,8 @@ def find_inactive_starters_for_league_and_week(
         The week we're looking at, to ensure we pull the correct starters
     inactives : List[Player]
         List of all inactive Players based on their current status
+    roster_id_to_last_transaction : Dict[int, LeagueTransaction]
+        Dict of roster id to their last transaction
     user_store : UserStore
         Storage object used to retrieve the username for a specific team
 
@@ -236,9 +255,14 @@ def find_inactive_starters_for_league_and_week(
                 tmp_inactives.append(inactive_player)
 
         if tmp_inactives:
+            last_transaction = None
+            if roster_id_to_last_transaction is not None:
+                last_transaction = roster_id_to_last_transaction[matchup.get(
+                    "roster_id")]
+
             inactive_rosters.append(
                 InactiveRoster(username,
-                               league.get_league().get("name"), tmp_inactives))
+                               league.get_league().get("name"), tmp_inactives, last_transaction))
 
     return inactive_rosters
 
@@ -278,7 +302,18 @@ def parse_user_provided_flags() -> argparse.Namespace:
     group.add_argument("--exclude-missing",
                        dest="include_missing",
                        action="store_false")
-    parser.set_defaults(include_covid=True, include_missing=True)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--include-transactions",
+        dest="include_transactions",
+        action="store_true",
+        help="Include last transaction data in the report (default)")
+    group.add_argument("--exclude-transactions",
+                       dest="include_transactions",
+                       action="store_false")
+    parser.set_defaults(include_covid=True,
+                        include_missing=True,
+                        include_transactions=True)
 
     return parser.parse_args()
 
@@ -291,6 +326,7 @@ def main(argv):
     week = args.week
     include_covid = args.include_covid
     include_missing = args.include_missing
+    include_transactions = args.include_transactions
 
     # Retrieve the list of all inactive players
     nfl_players = Players()
@@ -318,10 +354,16 @@ def main(argv):
         # Only look at leagues that match the provided regex
         if league_regex.match(league_name):
             user_store.store_users_for_league(league)
+            most_recent_transaction_per_roster = None
+
+            if include_transactions:
+                most_recent_transaction_per_roster = get_most_recent_transaction_per_roster(
+                    league, week)
 
             inactive_rosters.extend(
                 find_inactive_starters_for_league_and_week(
-                    league, week, inactive_players, user_store))
+                    league, week, inactive_players, user_store,
+                    most_recent_transaction_per_roster))
 
     # Print out the final inactive rosters
     print("")
