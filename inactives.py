@@ -1,5 +1,5 @@
 """
-   Copyright 2020 Kevin Emery
+   Copyright 2022 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ from typing import Callable, Dict, List
 
 from sleeper_wrapper import League, User, Players
 
-from sleeper_utils import is_league_inactive
+from sleeper_utils import create_roster_id_to_username_dict, is_league_inactive
 from user_store import UserStore
 
 BYE_WEEKS_2022 = {
@@ -198,19 +198,14 @@ def find_inactive_starters_for_league_and_week(
     List[InactiveRoster]
         A list of the all the rosters in the league with >0 inactive players
     """
-    rosters = league.get_rosters()
 
     # Short circuit to avoid problems if the league is empty
-    if is_league_inactive(rosters):
+    if is_league_inactive(league):
         return []
 
-    roster_id_to_username = {}
     inactive_rosters = []
-
-    # Create a mapping of the roster id to the username
-    for roster in rosters:
-        roster_id_to_username[roster.get(
-            "roster_id")] = user_store.get_username(roster.get("owner_id"))
+    roster_id_to_username = create_roster_id_to_username_dict(
+        league, user_store)
 
     # Each "matchup" represents a single teams performance, so look at all of them
     weekly_matchups = league.get_matchups(week)

@@ -1,5 +1,5 @@
 """
-   Copyright 2020 Kevin Emery
+   Copyright 2022 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ from typing import Callable, List
 
 from sleeper_wrapper import League, User
 
-from sleeper_utils import is_league_inactive
+from sleeper_utils import create_roster_id_to_username_dict, is_league_inactive
 from user_store import UserStore
 
 
@@ -112,19 +112,13 @@ def get_weekly_scores_for_league_and_week(
     List[WeeklyScore]
         A list of the individual weekly scores
     """
-    rosters = league.get_rosters()
-
     # Short circuit to avoid problems if the league is empty
-    if is_league_inactive(rosters):
+    if is_league_inactive(league):
         return []
 
-    roster_id_to_username = {}
     weekly_scores = []
-
-    # Create a mapping of the roster id to the username
-    for roster in rosters:
-        roster_id_to_username[roster.get(
-            "roster_id")] = user_store.get_username(roster.get("owner_id"))
+    roster_id_to_username = create_roster_id_to_username_dict(
+        league, user_store)
 
     # Each "matchup" represents a single teams performance
     weekly_matchups = league.get_matchups(week)
@@ -156,15 +150,13 @@ def get_pf_for_entire_league(league: League,
     List[SeasonScore]
         A list of the Season-long scores for each team in the league
     """
-    rosters = league.get_rosters()
-
     # Short circuit to avoid problems if the league is empty
-    if is_league_inactive(rosters):
+    if is_league_inactive(league):
         return []
 
     season_scores = []
 
-    for roster in rosters:
+    for roster in league.get_rosters():
         total_points_for = float(roster.get("settings").get("fpts"))
         try:
             total_points_for += float(
