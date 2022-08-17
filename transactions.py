@@ -9,6 +9,8 @@ from sleeper_wrapper import League, User
 from sleeper_utils import is_league_inactive, create_roster_id_to_username_dict
 from user_store import UserStore
 
+DEC_31_1999_MILLIS = 946684800000
+
 
 class LeagueTransaction:
     def __init__(self, timestamp_in_millis: int, transaction_type: str,
@@ -64,7 +66,7 @@ def determine_most_recent_transaction_for_each_roster(
     for i in range(1, league_size + 1):
         if i not in most_recent_transaction_per_roster.keys():
             most_recent_transaction_per_roster[i] = LeagueTransaction(
-                946684800000, "None", [i])
+                DEC_31_1999_MILLIS, "None", [i])
 
     return most_recent_transaction_per_roster
 
