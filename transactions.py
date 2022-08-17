@@ -9,6 +9,7 @@ from sleeper_wrapper import League, User
 from sleeper_utils import is_league_inactive, create_roster_id_to_username_dict
 from user_store import UserStore
 
+
 class LeagueTransaction:
     def __init__(self, timestamp_in_millis: int, transaction_type: str,
                  involved_rosters: [int]):
@@ -25,7 +26,6 @@ class LeagueTransaction:
 
     def __lt__(self, other):
         return self.timestamp < other.timestamp
-
 
 
 def fetch_all_league_transactions(league: League,
@@ -63,25 +63,43 @@ def determine_most_recent_transaction_for_each_roster(
 
     for i in range(1, league_size + 1):
         if i not in most_recent_transaction_per_roster.keys():
-            most_recent_transaction_per_roster[i] = LeagueTransaction(946684800000, "None", [i])
+            most_recent_transaction_per_roster[i] = LeagueTransaction(
+                946684800000, "None", [i])
 
     return most_recent_transaction_per_roster
 
-def get_most_recent_transaction_per_roster(league: League, week: int) -> Dict[int, LeagueTransaction]:
-    league_transactions = fetch_all_league_transactions(
-                league, week)
+
+def get_most_recent_transaction_per_roster(
+        league: League, week: int) -> Dict[int, LeagueTransaction]:
+    league_transactions = fetch_all_league_transactions(league, week)
     league_transactions.sort(reverse=True)
     most_recent_transaction_per_roster = determine_most_recent_transaction_for_each_roster(
         league, league_transactions)
 
     return most_recent_transaction_per_roster
 
-def format_most_recent_transaction(username: str, transaction: LeagueTransaction) -> str:
+
+def print_recent_transaction_data(league_name: str,
+                                  transactions: Dict[int, LeagueTransaction],
+                                  roster_id_map: Dict[int, str]):
+
+    print(league_name)
+    for roster_id in transactions.keys():
+        print(
+            format_most_recent_transaction(roster_id_map[roster_id],
+                                           transactions[roster_id]))
+    print("")
+
+
+def format_most_recent_transaction(username: str,
+                                   transaction: LeagueTransaction) -> str:
     template = "{username:<20}type: {type:<15}date: {formatted_date}"
-    formatted_date = datetime.fromtimestamp(transaction.timestamp).strftime("%m-%d-%Y")
+    formatted_date = datetime.fromtimestamp(
+        transaction.timestamp).strftime("%m-%d-%Y")
 
-    return template.format(username=username, type=transaction.transaction_type, formatted_date=formatted_date)
-
+    return template.format(username=username,
+                           type=transaction.transaction_type,
+                           formatted_date=formatted_date)
 
 
 def parse_user_provided_flags() -> argparse.Namespace:
@@ -102,7 +120,9 @@ def parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument("username",
                         help="User account used to pull all of the leagues",
                         type=str)
-    parser.add_argument("week", help="The last week to look at transactions", type=int)
+    parser.add_argument("week",
+                        help="The last week to look at transactions",
+                        type=int)
 
     return parser.parse_args()
 
@@ -132,11 +152,14 @@ def main(argv):
         if league_regex.match(league_name):
             user_store.store_users_for_league(league)
 
-            most_recent_transaction_per_roster = get_most_recent_transaction_per_roster(league, week)
-            roster_id_to_username = create_roster_id_to_username_dict(league, user_store)
-            for key in most_recent_transaction_per_roster.keys():
-                print(format_most_recent_transaction(roster_id_to_username[key], most_recent_transaction_per_roster[key]))
-            print("")
+            most_recent_transaction_per_roster = get_most_recent_transaction_per_roster(
+                league, week)
+            roster_id_to_username = create_roster_id_to_username_dict(
+                league, user_store)
+
+            print_recent_transaction_data(league_name,
+                                          most_recent_transaction_per_roster,
+                                          roster_id_to_username)
 
 
 if __name__ == "__main__":
