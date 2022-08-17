@@ -119,6 +119,55 @@ optional arguments:
   --csv
   ```
 
+### transactions.py
+
+#### Description
+
+This script is used to find the last transaction date for each manager across all of the leagues a specific user is in. The list can be filtered to exclude specific leagues if desired. This is largely meant as another tool in a toolbox designed to see if managers in a league are remaining active.
+
+#### Usage
+
+```
+usage: transactions.py [-h] [-y YEAR] [-r LEAGUE_REGEX] username
+
+positional arguments:
+  username              User account used to pull all of the leagues
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
+  -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
+                        Regular expression used to select which leagues to
+                        analyze
+```
+
+### trades.py
+
+#### Description
+
+This script is used to print out all of the trades that have occurred in the leagues for a specific user. Unlike most of the other scripts here this isn't intended to be used for specific pieces of analysis, but rather just an easy way to extract all trades so they can be shared more widely.
+
+The output of this is pre-formatted with Discord markdown for ease of use.
+
+#### Usage
+
+```
+usage: trades.py [-h] [-y YEAR] [-r LEAGUE_REGEX] [-s START] [-e END] username
+
+positional arguments:
+  username              User account used to pull all of the leagues
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
+  -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
+                        Regular expression used to select which leagues to
+                        analyze
+  -s START, --start START
+                        First date for trade analysis
+  -e END, --end END     Last date for trade analysis
+```
+
 ## Dependencies
 
 [sleeper-api-wrapper](https://github.com/SwapnikKatkoori/sleeper-api-wrapper)
