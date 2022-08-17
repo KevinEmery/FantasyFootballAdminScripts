@@ -119,8 +119,6 @@ def main(argv):
     all_leagues = admin_user.get_all_leagues("nfl", year)
     user_store = UserStore()
 
-    inactive_rosters = []
-
     # Iterate through each league to find the inactive owners in each
     for league_object in all_leagues:
         league = League(league_object.get("league_id"))
@@ -132,7 +130,6 @@ def main(argv):
 
         # Only look at leagues that match the provided regex
         if league_regex.match(league_name):
-            print(league_name)
             user_store.store_users_for_league(league)
 
             most_recent_transaction_per_roster = get_most_recent_transaction_per_roster(league, week)
