@@ -1,0 +1,277 @@
+"""
+   Copyright 2022 Kevin Emery
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+"""
+"""Script to display all of the trades in one or more leagues
+
+This script will iterate over all specified leagues for the given user and output
+a Discord-formatted list of the trades within the provided date range
+"""
+
+import argparse
+import re
+import sys
+from datetime import datetime
+from dateutil import parser
+from typing import Dict, List
+
+from sleeper_wrapper import League, Players, User
+
+from sleeper_utils import is_league_inactive, create_roster_id_to_username_dict
+from user_store import UserStore
+
+
+class TeamTradeDetails:
+    def __init__(self, roster_id: int):
+        self.roster_id = roster_id
+        self.adds = []
+        self.losses = []
+        self.draft_picks_added = []
+        self.draft_picks_lost = []
+
+    def add_player(self, player_id: str):
+        self.adds.append(player_id)
+
+    def lose_player(self, player_id: str):
+        self.losses.append(player_id)
+
+    def _append_round_suffix(self, round: int) -> str:
+        if round == 1:
+            return str(round) + "st"
+        elif round == 2:
+            return str(round) + "nd"
+        elif round == 3:
+            return str(round) + "rd"
+        elif round == 4 or round == 5 or round == 6:
+            return str(round) + "th"
+        else:
+            return "Round " + str(round)
+
+    def add_draft_pick(self, season: str, round: int):
+        self.draft_picks_added.append(season + " " +
+                                      self._append_round_suffix(round))
+
+    def lose_draft_pick(self, season: str, round: int):
+        self.draft_picks_lost.append(season + " " +
+                                     self._append_round_suffix(round))
+
+    # Only used for debugging
+    def __str__(self):
+        return_string = ""
+        return_string += "Roster " + str(self.roster_id) + "\n"
+        return_string += "--Added--\n"
+        for add in self.adds:
+            return_string += add + "\n"
+        for add in self.draft_picks_added:
+            return_string += add + "\n"
+        return_string += "--Lost--\n"
+        for loss in self.losses:
+            return_string += loss + "\n"
+        for loss in self.draft_picks_lost:
+            return_string += loss + "\n"
+        return_string += "\n"
+        return return_string
+
+
+class Trade:
+    def __init__(self, timestamp_in_millis: int, involved_rosters: List[int],
+                 adds: Dict[str, int], drops: Dict[str, int],
+                 draft_picks: List[Dict[str, str]]):
+        self.trade_time = datetime.fromtimestamp(timestamp_in_millis / 1000)
+        self.roster_id_to_detail = {}
+
+        # Create a roster entry for each involved team
+        for roster_id in involved_rosters:
+            self.roster_id_to_detail[roster_id] = TeamTradeDetails(roster_id)
+
+        # Process the trade components
+        self._process_adds(adds)
+        self._process_drops(drops)
+        self._process_draft_picks(draft_picks)
+
+    # Record every add in the trade onto the appropriate roster
+    def _process_adds(self, adds: Dict[str, int]):
+        if adds is not None:
+            for player_id, roster_id in adds.items():
+                self.roster_id_to_detail[roster_id].add_player(player_id)
+
+    # Record every drop in the trade onto the appropriate roster
+    def _process_drops(self, drops: Dict[str, int]):
+        if drops is not None:
+            for player_id, roster_id in drops.items():
+                self.roster_id_to_detail[roster_id].lose_player(player_id)
+
+    # Record every draft pick in the trade onto the appropriate roster
+    def _process_draft_picks(self, draft_picks: List[Dict[str, str]]):
+        for pick in draft_picks:
+            # Owner id is the person who received the draft pick
+            self.roster_id_to_detail[pick["owner_id"]].add_draft_pick(
+                pick["season"], pick["round"])
+
+            # Previous owner is who is trading it away
+            self.roster_id_to_detail[
+                pick["previous_owner_id"]].lose_draft_pick(
+                    pick["season"], pick["round"])
+
+    def __lt__(self, other):
+        return self.trade_time < other.trade_time
+
+    # Only used for debugging
+    def __str__(self):
+        return_string = ""
+        for key, team_trade_detail in self.roster_id_to_detail.items():
+            return_string += str(team_trade_detail)
+        return return_string
+
+
+def fetch_all_league_trades(league: League) -> List[Trade]:
+    all_trades = []
+
+    # Iterate through every week of the season (and then a couple more just to be sure)
+    for i in range(1, 20):
+        weekly_transactions = league.get_transactions(i)
+
+        for transaction in weekly_transactions:
+            if transaction.get("type") == "trade":
+                all_trades.append(
+                    Trade(transaction.get("status_updated"),
+                          transaction.get("consenter_ids"),
+                          transaction.get("adds"), transaction.get("drops"),
+                          transaction.get("draft_picks")))
+
+    return all_trades
+
+
+def filter_and_sort_trades_by_date(trades: List[Trade], start: datetime,
+                                   end: datetime) -> List[Trade]:
+    filtered_trades = list(
+        filter(
+            lambda trade: trade.trade_time < end and trade.trade_time > start,
+            trades))
+    filtered_trades.sort()
+    return filtered_trades
+
+
+# Format all of the league's trades using Discord markdown formatting
+def print_league_trades(league: League, trades: List[Trade],
+                        roster_id_map: Dict[int, str],
+                        player_map: Dict[str, Dict[str, str]]):
+    print("__**" + league.get_league().get("name") + "**__\n")
+
+    for trade in trades:
+        print("----------------------------------------------------")
+        print("Trade on " + trade.trade_time.strftime("%m-%d-%Y"))
+        for roster_id, trade_detail in trade.roster_id_to_detail.items():
+
+            print("**Team Manager: " + roster_id_map[roster_id] + "**")
+            print("Roster link: " + create_roster_link(
+                league.get_league().get("league_id"), roster_id))
+            print("*Traded For*")
+            for add in trade_detail.adds:
+                player = player_map[add]
+                print("    " + player["first_name"] + " " +
+                      player["last_name"] + " - " + player["position"])
+            for add in trade_detail.draft_picks_added:
+                print("    " + add)
+            print("*Traded Away*")
+            for loss in trade_detail.losses:
+                player = player_map[loss]
+                print("    " + player["first_name"] + " " +
+                      player["last_name"] + " - " + player["position"])
+            for loss in trade_detail.draft_picks_lost:
+                print("    " + loss)
+            print("")
+
+
+def create_roster_link(league_id: str, roster_id: int) -> str:
+    template = "https://sleeper.app/roster/{league_id}/{roster_id}"
+    return template.format(league_id=league_id, roster_id=str(roster_id))
+
+
+def parse_user_provided_flags() -> argparse.Namespace:
+    arg_parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    arg_parser.add_argument(
+        "-y",
+        "--year",
+        help="The year to run the analysis on, defaults to 2022",
+        type=int,
+        default=2022)
+    arg_parser.add_argument(
+        "-r",
+        "--league_regex",
+        help="Regular expression used to select which leagues to analyze",
+        type=str,
+        default=".*")
+    arg_parser.add_argument("-s",
+                            "--start",
+                            help="First date for trade analysis",
+                            type=str,
+                            default="12-31-1999")
+    arg_parser.add_argument("-e",
+                            "--end",
+                            help="Last date for trade analysis",
+                            type=str,
+                            default="12-31-2099")
+    arg_parser.add_argument(
+        "username",
+        help="User account used to pull all of the leagues",
+        type=str)
+
+    return arg_parser.parse_args()
+
+
+def main(argv):
+    args = parse_user_provided_flags()
+    user = args.username
+    year = args.year
+    league_regex = re.compile(args.league_regex)
+    start_date = parser.parse(args.start)
+    end_date = parser.parse(args.end)
+
+    # Retrieve all of the leagues
+    admin_user = User(user)
+    all_leagues = admin_user.get_all_leagues("nfl", year)
+    user_store = UserStore()
+
+    # Get all players
+    nfl_players = Players()
+    player_id_to_player = nfl_players.get_all_players()
+
+    # Iterate through each league to find the inactive owners in each
+    for league_object in all_leagues:
+        league = League(league_object.get("league_id"))
+        league_name = league.get_league().get("name")
+
+        if is_league_inactive(league):
+            continue
+
+        # Only look at leagues that match the provided regex
+        if league_regex.match(league_name):
+            league_trades = fetch_all_league_trades(league)
+            filtered_league_trades = filter_and_sort_trades_by_date(
+                league_trades, start_date, end_date)
+
+            if filtered_league_trades:
+                # Retrieve information used during display and then print the results
+                user_store.store_users_for_league(league)
+                roster_id_to_username = create_roster_id_to_username_dict(
+                    league, user_store)
+
+                print_league_trades(league, filtered_league_trades,
+                                    roster_id_to_username, player_id_to_player)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
