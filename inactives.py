@@ -118,9 +118,9 @@ class InactiveRoster:
         return_string += first_line_template.format(
             user_name=self.user_name, league_name=self.league_name)
         if self.last_transaction is not None:
-            date = datetime.fromtimestamp(self.last_transaction.timestamp).strftime(date_format)
-            return_string += last_transaction_template.format(
-                date=date)
+            date = datetime.fromtimestamp(
+                self.last_transaction.timestamp).strftime(date_format)
+            return_string += last_transaction_template.format(date=date)
 
         for player in self.inactives:
             return_string += str(player) + "\n"
@@ -262,7 +262,8 @@ def find_inactive_starters_for_league_and_week(
 
             inactive_rosters.append(
                 InactiveRoster(username,
-                               league.get_league().get("name"), tmp_inactives, last_transaction))
+                               league.get_league().get("name"), tmp_inactives,
+                               last_transaction))
 
     return inactive_rosters
 
@@ -358,7 +359,7 @@ def main(argv):
 
             if include_transactions:
                 most_recent_transaction_per_roster = get_most_recent_transaction_per_roster(
-                    league, week)
+                    league)
 
             inactive_rosters.extend(
                 find_inactive_starters_for_league_and_week(

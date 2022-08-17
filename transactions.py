@@ -62,8 +62,7 @@ class LeagueTransaction:
         return self.timestamp < other.timestamp
 
 
-def fetch_all_league_transactions(league: League,
-                                  week: int) -> List[LeagueTransaction]:
+def fetch_all_league_transactions(league: League) -> List[LeagueTransaction]:
     """Retrieves all of the league's transactions, distilling them into our custom data class
 
     This is meant to be a fairly thin method that extracts the information we
@@ -74,8 +73,6 @@ def fetch_all_league_transactions(league: League,
     ----------
     league : League
         The League object being analyzed
-    week : int
-        The final week to pull transactions from
 
     Returns
     -------
@@ -84,8 +81,8 @@ def fetch_all_league_transactions(league: League,
     """
     all_transactions = []
 
-    # All preseason transactions count as Week 1, so this grabs from Week 1 through week
-    for i in range(1, week + 1):
+    # Iterate through every week of the season (and then a couple more just to be sure)
+    for i in range(1, 20):
         weekly_transactions = league.get_transactions(i)
 
         for transaction in weekly_transactions:
@@ -150,8 +147,8 @@ def determine_most_recent_transaction_for_each_roster(
 
 
 def get_most_recent_transaction_per_roster(
-        league: League, week: int) -> Dict[int, LeagueTransaction]:
-    league_transactions = fetch_all_league_transactions(league, week)
+        league: League) -> Dict[int, LeagueTransaction]:
+    league_transactions = fetch_all_league_transactions(league)
     league_transactions.sort(reverse=True)
     most_recent_transaction_per_roster = determine_most_recent_transaction_for_each_roster(
         league, league_transactions)
@@ -200,9 +197,6 @@ def parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument("username",
                         help="User account used to pull all of the leagues",
                         type=str)
-    parser.add_argument("week",
-                        help="The last week to look at transactions",
-                        type=int)
 
     return parser.parse_args()
 
@@ -212,7 +206,6 @@ def main(argv):
     user = args.username
     year = args.year
     league_regex = re.compile(args.league_regex)
-    week = args.week
 
     # Retrieve all of the leagues
     admin_user = User(user)
@@ -234,7 +227,7 @@ def main(argv):
 
             # Retrieve the last transaction data, username information, and print the results
             most_recent_transaction_per_roster = get_most_recent_transaction_per_roster(
-                league, week)
+                league)
             roster_id_to_username = create_roster_id_to_username_dict(
                 league, user_store)
             print_recent_transaction_data(league_name,
