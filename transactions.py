@@ -1,3 +1,24 @@
+"""
+   Copyright 2022 Kevin Emery
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+"""
+"""Script used to find the last transaction date for every user in a set of leagues
+
+This script will iterate over all of the leagues that the provided user is in,
+retrieving and report the last transaction date for every person in each league
+"""
+
 import argparse
 import re
 import sys
@@ -13,6 +34,17 @@ DEC_31_1999_MILLIS = 946684800000
 
 
 class LeagueTransaction:
+    """Data class to hold the relevant information about a transaction
+
+    Attributes
+    ----------
+    timestamp_in_millis : int
+        Timestamp in milliseconds that the transaction occurred
+    transaction_type: str
+        The string representation of what kind of transaction it was (waiver, free agent, trade)
+    involved_rosters: [int]
+        List of roster ids involved in the transaction. Not guaranteed to be non-empty
+    """
     def __init__(self, timestamp_in_millis: int, transaction_type: str,
                  involved_rosters: [int]):
         self.timestamp = timestamp_in_millis / 1000
@@ -32,7 +64,27 @@ class LeagueTransaction:
 
 def fetch_all_league_transactions(league: League,
                                   week: int) -> List[LeagueTransaction]:
+    """Retrieves all of the league's transactions, distilling them into our custom data class
+
+    This is meant to be a fairly thin method that extracts the information we
+    need to do our analysis from the larger transaction object that's 
+    returned through Sleeper's API
+
+    Parameters
+    ----------
+    league : League
+        The League object being analyzed
+    week : int
+        The final week to pull transactions from
+
+    Returns
+    -------
+    List[LeagueTransaction]
+        A list of the transactions in the league
+    """
     all_transactions = []
+
+    # All preseason transactions count as Week 1, so this grabs from Week 1 through week
     for i in range(1, week + 1):
         weekly_transactions = league.get_transactions(i)
 
@@ -48,6 +100,25 @@ def fetch_all_league_transactions(league: League,
 def determine_most_recent_transaction_for_each_roster(
         league: League,
         transactions: List[LeagueTransaction]) -> Dict[int, LeagueTransaction]:
+    """Finds each roster's most recent transaction
+
+    Given a list of transactions sorted from most recent to oldest, this method returns
+    each roster's most recent transaction so that it can be returned out to the caller.
+
+    This assumes roster ids go from 1 to N where N is the number of teams in the league
+
+    Parameters
+    ----------
+    league : League
+        The League object being analyzed
+    transactions: List[LeagueTransaction]
+        Sorted list of transactions with the most recent transaction first.
+
+    Returns
+    -------
+    Dict[int, LeagueTransaction]
+        Map of roster id to that roster's most recent transaction
+    """
     most_recent_transaction_per_roster = {}
     league_size = league.get_league().get("total_rosters")
 
@@ -56,13 +127,20 @@ def determine_most_recent_transaction_for_each_roster(
         if transaction.involved_rosters is None:
             continue
 
+        # Each transaction can have one or more rosters involved (like a trade), so
+        # we may need to track this transaction for multiple rosters
         for roster in transaction.involved_rosters:
+
+            # Only track the transaction if we haven't already stored one for this roster
             if roster not in most_recent_transaction_per_roster.keys():
                 most_recent_transaction_per_roster[roster] = transaction
 
+        # If we get here then every roster has a transaction and we can abort early
         if len(most_recent_transaction_per_roster) >= league_size:
             break
 
+    # If a team hasn't made any transactions then they won't be in the map. For clarity,
+    # this adds a dummy transaction into the list for the roster signifying the lack of transaction
     for i in range(1, league_size + 1):
         if i not in most_recent_transaction_per_roster.keys():
             most_recent_transaction_per_roster[i] = LeagueTransaction(
@@ -154,11 +232,11 @@ def main(argv):
         if league_regex.match(league_name):
             user_store.store_users_for_league(league)
 
+            # Retrieve the last transaction data, username information, and print the results
             most_recent_transaction_per_roster = get_most_recent_transaction_per_roster(
                 league, week)
             roster_id_to_username = create_roster_id_to_username_dict(
                 league, user_store)
-
             print_recent_transaction_data(league_name,
                                           most_recent_transaction_per_roster,
                                           roster_id_to_username)
