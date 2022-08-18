@@ -31,6 +31,9 @@ from sleeper_wrapper import League, Players, User
 from sleeper_utils import is_league_inactive, create_roster_id_to_username_dict
 from user_store import UserStore
 
+# Needs to be large enough for longest player name plus a couple (MVS)
+OUTPUT_COLUMN_WIDTH = 30
+
 
 class TeamTradeDetails:
     def __init__(self, roster_id: int):
@@ -170,33 +173,146 @@ def print_league_trades(league: League, trades: List[Trade],
     print("__**" + league.get_league().get("name") + "**__\n")
 
     for trade in trades:
-        print("----------------------------------------------------")
-        print("Trade on " + trade.trade_time.strftime("%m-%d-%Y"))
-        for roster_id, trade_detail in trade.roster_id_to_detail.items():
+        league_id = league.get_league().get("league_id")
 
-            print("**Team Manager: " + roster_id_map[roster_id] + "**")
-            print("Roster link: " + create_roster_link(
-                league.get_league().get("league_id"), roster_id))
-            print("*Traded For*")
-            for add in trade_detail.adds:
-                player = player_map[add]
-                print("    " + player["first_name"] + " " +
-                      player["last_name"] + " - " + player["position"])
-            for add in trade_detail.draft_picks_added:
-                print("    " + add)
-            print("*Traded Away*")
-            for loss in trade_detail.losses:
-                player = player_map[loss]
-                print("    " + player["first_name"] + " " +
-                      player["last_name"] + " - " + player["position"])
-            for loss in trade_detail.draft_picks_lost:
-                print("    " + loss)
-            print("")
+        # Switch based on the trade size. Two team trades have a better visualization but
+        # it's hard to do that for trades with more than 2.
+        if len(trade.roster_id_to_detail) == 2:
+            print_two_team_trade(league_id, trade, roster_id_map, player_map)
+        else:
+            print_larger_trade(league_id, trade, roster_id_map, player_map)
+
+
+def print_two_team_trade(league_id: str, trade: Trade,
+                         roster_id_map: Dict[int, str],
+                         player_map: Dict[str, Dict[str, str]]):
+
+    # Define the template variables
+    manager_template = "**Team {number}: {manager}** - {roster_link}"
+    date_template = "%m-%d-%Y"
+
+    # Extract the information from the trade
+    trade_rosters = list(trade.roster_id_to_detail.keys())
+    trade_detail = list(trade.roster_id_to_detail.values())[0]
+
+    team_a_adds = []
+    team_b_adds = []
+
+    for player_id in trade_detail.adds:
+        team_a_adds.append(format_player_string(player_id, player_map))
+    for pick in trade_detail.draft_picks_added:
+        team_a_adds.append(pick)
+
+    for player_id in trade_detail.losses:
+        team_b_adds.append(format_player_string(player_id, player_map))
+    for pick in trade_detail.draft_picks_lost:
+        team_b_adds.append(pick)
+
+    # Output the trade itself
+    print("Trade on " + trade.trade_time.strftime(date_template))
+    print(
+        manager_template.format(number="A",
+                                manager=roster_id_map[trade_rosters[0]],
+                                roster_link=create_roster_link(
+                                    league_id, trade_rosters[0])))
+    print(
+        manager_template.format(number="B",
+                                manager=roster_id_map[trade_rosters[1]],
+                                roster_link=create_roster_link(
+                                    league_id, trade_rosters[1])))
+
+    # Preferred format, but looks bad on Desktop
+    # print_side_by_side_table(team_a_adds, team_b_adds)
+
+    # Formats well on desktop and mobile
+    print_two_separate_tables(team_a_adds, team_b_adds)
+
+
+def print_side_by_side_table(team_a_adds: List[str], team_b_adds: List[str]):
+    # Define the templates
+    header_template = "|{team_a:^{column_width}}|{team_b:^{column_width}}|"
+    row_template = "|{player_a:^{column_width}}|{player_b:^{column_width}}|"
+
+    # Print the table
+    print("```")
+    print("=" * (OUTPUT_COLUMN_WIDTH * 2 + 3))
+    print(
+        header_template.format(team_a="Team A Gained",
+                               team_b="Team B Gained",
+                               column_width=OUTPUT_COLUMN_WIDTH))
+    print("|" + "=" * (OUTPUT_COLUMN_WIDTH * 2 + 1) + "|")
+
+    for i in range(0, max(len(team_a_adds), len(team_b_adds))):
+        player_a = ''
+        player_b = ''
+        if i < len(team_a_adds):
+            player_a = team_a_adds[i]
+        if i < len(team_b_adds):
+            player_b = team_b_adds[i]
+        print(
+            row_template.format(player_a=player_a,
+                                player_b=player_b,
+                                column_width=OUTPUT_COLUMN_WIDTH))
+
+    print("=" * (OUTPUT_COLUMN_WIDTH * 2 + 3))
+    print("```\n")
+
+
+def print_two_separate_tables(team_a_adds: List[str], team_b_adds: List[str]):
+    print("```")
+    print_single_team_adds("Team A Gained", team_a_adds)
+    print_single_team_adds("Team B Gained", team_b_adds)
+    print("```\n")
+
+
+def print_single_team_adds(header_text: str, players: List[str]):
+
+    # Define the templates
+    template = "|{text:^{column_width}}|"
+
+    # Print the table
+    print("=" * (OUTPUT_COLUMN_WIDTH + 2))
+    print(template.format(text=header_text, column_width=OUTPUT_COLUMN_WIDTH))
+    print("|" + "=" * OUTPUT_COLUMN_WIDTH + "|")
+
+    for i in range(0, len(players)):
+        print(
+            template.format(text=players[i], column_width=OUTPUT_COLUMN_WIDTH))
+
+    print("=" * (OUTPUT_COLUMN_WIDTH + 2))
+
+
+def print_larger_trade(league_id: str, trade: Trade, roster_id_map: Dict[int,
+                                                                         str],
+                       player_map: Dict[str, Dict[str, str]]):
+    print("\n\nTrade on " + trade.trade_time.strftime("%m-%d-%Y"))
+    for roster_id, trade_detail in trade.roster_id_to_detail.items():
+        print("**Team Manager: " + roster_id_map[roster_id] + "**")
+        print("Roster link: " + create_roster_link(league_id, roster_id))
+        print("*Traded For*")
+        for player_id in trade_detail.adds:
+            print("    " + format_player_string(player_id, player_map))
+        for pick in trade_detail.draft_picks_added:
+            print("    " + pick)
+        print("*Traded Away*")
+        for player_id in trade_detail.losses:
+            print("    " + format_player_string(player_id, player_map))
+        for pick in trade_detail.draft_picks_lost:
+            print("    " + pick)
+        print("")
 
 
 def create_roster_link(league_id: str, roster_id: int) -> str:
     template = "https://sleeper.app/roster/{league_id}/{roster_id}"
     return template.format(league_id=league_id, roster_id=str(roster_id))
+
+
+def format_player_string(player_id: str, player_map) -> str:
+    player = player_map[player_id]
+    template = "{first} {last} ({position})"
+    return template.format(first=player["first_name"],
+                           last=player["last_name"],
+                           position=player["position"])
 
 
 def parse_user_provided_flags() -> argparse.Namespace:
