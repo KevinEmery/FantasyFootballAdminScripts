@@ -187,7 +187,7 @@ def parse_user_provided_flags() -> argparse.Namespace:
                         type=str)
 
     parser.set_defaults(output_format=OutputFormat.HUMAN_READABLE,
-                        platform=common.PlatformSelection.SLEEPER)
+                        platform_selection=common.PlatformSelection.SLEEPER)
     return parser.parse_args()
 
 
