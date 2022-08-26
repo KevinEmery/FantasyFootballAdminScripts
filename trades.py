@@ -248,10 +248,10 @@ def print_two_team_trade(league_id: str, trade: Trade,
                                     league_id, trade_rosters[1])))
 
     # Preferred format, but looks bad on mobile
-    print_side_by_side_table(team_a_adds, team_b_adds)
+    # print_side_by_side_table(team_a_adds, team_b_adds)
 
     # Formats well on desktop and mobile
-    # print_two_separate_tables(team_a_adds, team_b_adds)
+    print_two_separate_tables(team_a_adds, team_b_adds)
 
 
 def print_side_by_side_table(team_a_adds: List[str], team_b_adds: List[str]):
