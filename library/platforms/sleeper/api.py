@@ -2,8 +2,6 @@ import requests
 
 from typing import Any, Dict, List
 
-from ...model.league import League
-from ...model.player import Player
 from ...model.user import User
 
 BASE_URL = "https://api.sleeper.app/v1/"

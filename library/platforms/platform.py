@@ -8,13 +8,11 @@ from ..model.user import User
 
 
 class Platform:
-    def get_user_by_identifier(self, username: str) -> User:
+    def get_admin_user_by_identifier(self, identifier: str) -> User:
         pass
 
-    def get_all_leagues_for_user(self,
-                                 user: User,
-                                 sport: str = SPORT,
-                                 year: str = YEAR) -> List[League]:
+    def get_all_leagues_for_user(self, user: User, sport: str,
+                                 year: str) -> List[League]:
         pass
 
     def get_drafted_players_for_league(self,
