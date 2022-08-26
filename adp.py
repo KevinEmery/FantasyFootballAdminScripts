@@ -2,9 +2,9 @@ import argparse
 import re
 import sys
 
-from enum import Enum
+import common
 
-from common import filter_leagues_by_league_name
+from enum import Enum
 
 from library.model.draftedplayer import DraftedPlayer
 from library.model.player import Player
@@ -20,11 +20,6 @@ INCLUDE_ALL = "all"
 class OutputFormat(Enum):
     HUMAN_READABLE = 1
     CSV = 2
-
-
-class PlatformSelection(Enum):
-    SLEEPER = 1
-    FLEAFLICKER = 2
 
 
 class AggregatedPlayerData(object):
@@ -181,18 +176,18 @@ def parse_user_provided_flags() -> argparse.Namespace:
     group.add_argument("--sleeper",
                        dest="platform_selection",
                        action="store_const",
-                       const=PlatformSelection.SLEEPER)
+                       const=common.PlatformSelection.SLEEPER)
     group.add_argument("--fleaflicker",
                        dest="platform_selection",
                        action="store_const",
-                       const=PlatformSelection.FLEAFLICKER)
+                       const=common.PlatformSelection.FLEAFLICKER)
 
     parser.add_argument("identifier",
                         help="User account used to pull all of the leagues",
                         type=str)
 
     parser.set_defaults(output_format=OutputFormat.HUMAN_READABLE,
-                        platform=PlatformSelection.SLEEPER)
+                        platform=common.PlatformSelection.SLEEPER)
     return parser.parse_args()
 
 
@@ -212,14 +207,14 @@ def main(argv):
     league_regex = re.compile(args.league_regex)
 
     # Set platform based on user choice
-    if args.platform_selection == PlatformSelection.SLEEPER:
+    if args.platform_selection == common.PlatformSelection.SLEEPER:
         platform = Sleeper()
-    elif args.platform_selection == PlatformSelection.FLEAFLICKER:
+    elif args.platform_selection == common.PlatformSelection.FLEAFLICKER:
         platform = Fleaflicker()
 
     user = platform.get_admin_user_by_identifier(account_identifier)
     all_leagues = platform.get_all_leagues_for_user(user)
-    leagues_to_analyze = filter_leagues_by_league_name(all_leagues,
+    leagues_to_analyze = common.filter_leagues_by_league_name(all_leagues,
                                                        league_regex)
     player_data = {}
 
