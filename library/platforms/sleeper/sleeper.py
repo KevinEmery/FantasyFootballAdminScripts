@@ -19,8 +19,8 @@ class Sleeper(Platform):
         self._player_id_to_player: Dict[
             str, Player] = self._initialize_player_data()
 
-    def get_user_by_identifier(self, username: str) -> User:
-        return get_user_from_username(username)
+    def get_admin_user_by_identifier(self, identifier: str) -> User:
+        return get_user_from_username(identifier)
 
     def get_all_leagues_for_user(self,
                                  user: User,
@@ -39,8 +39,11 @@ class Sleeper(Platform):
 
         return leagues
 
-    def get_drafted_players_for_league(self,
-                                       league: League) -> List[DraftedPlayer]:
+    def get_drafted_players_for_league(
+            self,
+            league: League,
+            sport: str = SPORT,
+            year: str = YEAR) -> List[DraftedPlayer]:
         drafted_players = []
 
         raw_draft_data = get_all_picks_for_draft(league.draft_id)
