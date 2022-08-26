@@ -7,6 +7,7 @@ from ..platform import Platform
 from ...defaults import *
 from ...model.draftedplayer import DraftedPlayer
 from ...model.league import League
+from ...model.player import Player
 from ...model.trade import Trade
 from ...model.user import User
 
