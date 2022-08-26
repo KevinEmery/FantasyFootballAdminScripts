@@ -24,11 +24,13 @@ def get_all_leagues_for_user(user: User, sport: str, year: str) -> List[str]:
     response = requests.get(request_url)
     return response.json()
 
+
 def get_all_picks_for_draft(draft_id: str) -> List[str]:
     request_url = BASE_URL + "draft/{draft_id}/picks".format(draft_id=draft_id)
 
     response = requests.get(request_url)
     return response.json()
+
 
 def get_all_players(sport: str) -> Dict[str, Dict[str, Any]]:
     request_url = BASE_URL + "players/{sport}".format(sport=sport)
