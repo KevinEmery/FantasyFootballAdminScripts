@@ -148,7 +148,9 @@ def print_larger_trade(trade: Trade):
     for trade_detail in trade.details:
         print("**Team Manager: " + trade_detail.team.manager.name + "**")
         print("Roster link: " + trade_detail.team.roster_link)
-        if len(trade_detail.added_players) > 0 or len(trade_detail.added_draft_picks) > 0 or trade_detail.faab_added > 0:
+        if len(trade_detail.added_players) > 0 or len(
+                trade_detail.added_draft_picks
+        ) > 0 or trade_detail.faab_added > 0:
             print("*Traded For*")
         for player in trade_detail.added_players:
             print("    " + format_player_string(player))
@@ -156,7 +158,9 @@ def print_larger_trade(trade: Trade):
             print("    " + pick)
         if trade_detail.faab_added > 0:
             print("    " + format_faab(trade_detail.faab_added))
-        if len(trade_detail.lost_players) > 0 or len(trade_detail.lost_draft_picks) > 0 or trade_detail.faab_lost > 0:
+        if len(trade_detail.lost_players) > 0 or len(
+                trade_detail.lost_draft_picks
+        ) > 0 or trade_detail.faab_lost > 0:
             print("*Traded Away*")
         for player in trade_detail.lost_players:
             print("    " + format_player_string(player))

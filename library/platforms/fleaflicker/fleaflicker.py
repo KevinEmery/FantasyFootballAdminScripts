@@ -16,7 +16,6 @@ from ...model.user import User
 
 
 class Fleaflicker(Platform):
-
     def __init__(self):
         self._league_id_to_team_id_to_user: Dict[str, Dict[int, User]] = {}
 
@@ -61,7 +60,8 @@ class Fleaflicker(Platform):
 
                     draft_position = lineup_entry["draftedAt"]["overall"]
 
-                    drafted_players.append(DraftedPlayer(player, draft_position))
+                    drafted_players.append(
+                        DraftedPlayer(player, draft_position))
 
         return drafted_players
 
@@ -72,7 +72,8 @@ class Fleaflicker(Platform):
         raw_trades = fetch_trades(league.league_id, SPORT)
 
         for trade_data in raw_trades:
-            trade_time = datetime.fromtimestamp(int(trade_data["approvedOn"]) / 1000)
+            trade_time = datetime.fromtimestamp(
+                int(trade_data["approvedOn"]) / 1000)
 
             # Ignore trades not made this year, Fleaflicker's API returns all trades throughout time
             if str(trade_time.year) != YEAR:
@@ -84,7 +85,8 @@ class Fleaflicker(Platform):
                 team_id = str(team_data["team"]["id"])
                 user = team_id_to_user[team_id]
 
-                team = Team(team_id, user, self._build_roster_link(league.league_id, team_id))
+                team = Team(team_id, user,
+                            self._build_roster_link(league.league_id, team_id))
 
                 trade_detail = TradeDetail(team)
 
@@ -101,7 +103,10 @@ class Fleaflicker(Platform):
 
                 if "picksObtained" in team_data:
                     for draft_pick in team_data["picksObtained"]:
-                        trade_detail.add_draft_pick_with_slot(str(draft_pick["season"]), draft_pick["slot"]["round"], draft_pick["slot"]["slot"])
+                        trade_detail.add_draft_pick_with_slot(
+                            str(draft_pick["season"]),
+                            draft_pick["slot"]["round"],
+                            draft_pick["slot"]["slot"])
 
                 trade_details.append(trade_detail)
 
@@ -109,7 +114,8 @@ class Fleaflicker(Platform):
 
         return all_trades
 
-    def _build_player_from_pro_player(self, player_data: Dict[str, str]) -> Player:
+    def _build_player_from_pro_player(self, player_data: Dict[str,
+                                                              str]) -> Player:
         player_id = player_data["id"]
         name = player_data["nameFull"]
         position = player_data["position"]
@@ -134,9 +140,8 @@ class Fleaflicker(Platform):
 
         for division in raw_league_data["divisions"]:
             for team in division["teams"]:
-                user = User(str(team["owners"][0]["id"]), team["owners"][0]["displayName"])
+                user = User(str(team["owners"][0]["id"]),
+                            team["owners"][0]["displayName"])
                 team_id_to_user[str(team["id"])] = user
 
-
         self._league_id_to_team_id_to_user[league_id] = team_id_to_user
-
