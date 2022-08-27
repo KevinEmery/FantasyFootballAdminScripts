@@ -57,19 +57,19 @@ def print_two_team_trade(trade: Trade):
     team_a_adds = []
     team_b_adds = []
 
-    for player in trade_detail.added_players:
+    for player in trade.details[0].added_players:
         team_a_adds.append(format_player_string(player))
-    for pick in trade_detail.added_draft_picks:
+    for pick in trade.details[0].added_draft_picks:
         team_a_adds.append(pick)
-    if trade_detail.faab_added > 0:
+    if trade.details[0].faab_added > 0:
         team_a_adds.append(format_faab(trade_detail.faab_added))
 
-    for player in trade_detail.lost_players:
+    for player in trade.details[1].added_players:
         team_b_adds.append(format_player_string(player))
-    for pick in trade_detail.lost_draft_picks:
+    for pick in trade.details[1].added_draft_picks:
         team_b_adds.append(pick)
-    if trade_detail.faab_lost > 0:
-        team_b_adds.append(format_faab(trade_detail.faab_lost))
+    if trade.details[1].faab_added > 0:
+        team_b_adds.append(format_faab(trade_detail.faab_added))
 
     # Output the trade itself
     print("Trade on " + trade.trade_time.strftime(date_template))
@@ -148,14 +148,16 @@ def print_larger_trade(trade: Trade):
     for trade_detail in trade.details:
         print("**Team Manager: " + trade_detail.team.manager.name + "**")
         print("Roster link: " + trade_detail.team.roster_link)
-        print("*Traded For*")
+        if len(trade_detail.added_players) > 0 or len(trade_detail.added_draft_picks) > 0 or trade_detail.faab_added > 0:
+            print("*Traded For*")
         for player in trade_detail.added_players:
             print("    " + format_player_string(player))
         for pick in trade_detail.added_draft_picks:
             print("    " + pick)
         if trade_detail.faab_added > 0:
             print("    " + format_faab(trade_detail.faab_added))
-        print("*Traded Away*")
+        if len(trade_detail.lost_players) > 0 or len(trade_detail.lost_draft_picks) > 0 or trade_detail.faab_lost > 0:
+            print("*Traded Away*")
         for player in trade_detail.lost_players:
             print("    " + format_player_string(player))
         for pick in trade_detail.lost_draft_picks:

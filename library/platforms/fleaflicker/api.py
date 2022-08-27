@@ -22,6 +22,11 @@ def fetch_user_leagues(user: User, sport: str, year: str) -> List[str]:
     response = requests.get(request_url)
     return response.json()["leagues"]
 
+def fetch_league_standings(league_id: str, sport: str) -> List[str]:
+    request_url = BASE_URL + "FetchLeagueStandings?sport={sport}&league_id={league_id}".format(sport=sport.upper(),league_id=league_id)
+
+    response = requests.get(request_url)
+    return response.json()
 
 def fetch_league_draft_board(league_id: str, sport: str,
                              year: str) -> List[str]:
@@ -30,3 +35,9 @@ def fetch_league_draft_board(league_id: str, sport: str,
 
     response = requests.get(request_url)
     return response.json()
+
+def fetch_trades(league_id: str, sport: str) -> List[str]:
+    request_url = BASE_URL + "FetchTrades?sport={sport}&league_id={league_id}&filter=TRADES_COMPLETED".format(sport=sport.upper(),league_id=league_id)
+
+    response = requests.get(request_url)
+    return response.json()["trades"]

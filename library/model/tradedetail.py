@@ -24,9 +24,17 @@ class TradeDetail(object):
         self.added_draft_picks.append(year + " " +
                                       self._append_round_suffix(round))
 
+    def add_draft_pick_with_slot(self, year: str, round: int, slot: int):
+        template = "{year} {round}.{slot}"
+        self.added_draft_picks.append(template.format(year=year, round=str(round), slot=str(slot)))
+
     def lose_draft_pick(self, year: str, round: int):
-        self.draft_picks_lost.append(year + " " +
+        self.lost_draft_picks.append(year + " " +
                                      self._append_round_suffix(round))
+
+    def lose_draft_pick_with_slot(self, year: str, round: int, slot: int):
+        template = "{year} {round}.{slot}"
+        self.lost_draft_picks.append(template.format(year=year, round=str(round), slot=str(slot)))
 
     def add_faab(self, faab: int):
         self.faab_added += faab
