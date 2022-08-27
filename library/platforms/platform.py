@@ -4,6 +4,7 @@ from ..defaults import *
 
 from ..model.draftedplayer import DraftedPlayer
 from ..model.league import League
+from ..model.trade import Trade
 from ..model.user import User
 
 
@@ -17,4 +18,7 @@ class Platform:
 
     def get_drafted_players_for_league(self,
                                        league: League) -> List[DraftedPlayer]:
+        pass
+
+    def get_all_trades_for_league(self, League:League) -> List[Trade]:
         pass
