@@ -27,11 +27,10 @@ class Fleaflicker(Platform):
 
     def get_all_leagues_for_user(self,
                                  user: User,
-                                 sport: str = defaults.SPORT,
                                  year: str = defaults.YEAR) -> List[League]:
         leagues = []
 
-        raw_league_list = api.fetch_user_leagues(user, sport, year)
+        raw_league_list = api.fetch_user_leagues(user, year)
 
         for raw_league in raw_league_list:
             # Expensive up front but gives us user data for all operations
@@ -44,12 +43,10 @@ class Fleaflicker(Platform):
     def get_drafted_players_for_league(
             self,
             league: League,
-            sport: str = defaults.SPORT,
             year: str = defaults.YEAR) -> List[DraftedPlayer]:
         drafted_players = []
 
-        raw_draft_board = api.fetch_league_draft_board(league.league_id, sport,
-                                                       year)
+        raw_draft_board = api.fetch_league_draft_board(league.league_id, year)
         raw_rosters = raw_draft_board["rosters"]
         for roster in raw_rosters:
             for lineup_entry in roster["lineup"]:
@@ -69,7 +66,7 @@ class Fleaflicker(Platform):
         all_trades = []
 
         team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
-        raw_trades = api.fetch_trades(league.league_id, defaults.SPORT)
+        raw_trades = api.fetch_trades(league.league_id)
 
         for trade_data in raw_trades:
             trade_time = datetime.fromtimestamp(
@@ -134,7 +131,7 @@ class Fleaflicker(Platform):
 
     def _store_team_and_user_data_for_league(self, league_id: str):
 
-        raw_league_data = api.fetch_league_standings(league_id, defaults.SPORT)
+        raw_league_data = api.fetch_league_standings(league_id)
 
         team_id_to_user = {}
 

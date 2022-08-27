@@ -10,13 +10,12 @@ class Platform:
     def get_admin_user_by_identifier(self, identifier: str) -> User:
         pass
 
-    def get_all_leagues_for_user(self, user: User, sport: str,
-                                 year: str) -> List[League]:
+    def get_all_leagues_for_user(self, user: User, year: str) -> List[League]:
         pass
 
     def get_drafted_players_for_league(self,
                                        league: League) -> List[DraftedPlayer]:
         pass
 
-    def get_all_trades_for_league(self, League:League) -> List[Trade]:
+    def get_all_trades_for_league(self, League: League) -> List[Trade]:
         pass
