@@ -213,7 +213,7 @@ def main(argv):
         platform = Fleaflicker()
 
     user = platform.get_admin_user_by_identifier(account_identifier)
-    all_leagues = platform.get_all_leagues_for_user(user)
+    all_leagues = platform.get_all_leagues_for_user(user, league_year)
     leagues_to_analyze = common.filter_leagues_by_league_name(all_leagues,
                                                        league_regex)
     player_data = {}
