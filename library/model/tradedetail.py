@@ -11,7 +11,8 @@ class TradeDetail(object):
         self.lost_players: List[Player] = []
         self.added_draft_picks: List[str] = []
         self.lost_draft_picks: List[str] = []
-        self.faab_delta: int = 0
+        self.faab_added: int = 0
+        self.faab_lost: int = 0
 
     def add_player(self, player: Player):
         self.added_players.append(player)
@@ -28,10 +29,10 @@ class TradeDetail(object):
                                      self._append_round_suffix(round))
 
     def add_faab(self, faab: int):
-        self.faab_delta += faab
+        self.faab_added += faab
 
     def lose_faab(self, faab: int):
-        self.faab_delta -= faab
+        self.faab_lost += faab
 
     def _append_round_suffix(self, round: int) -> str:
         if round == 1:
