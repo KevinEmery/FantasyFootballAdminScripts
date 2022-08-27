@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import Dict, List
 
-from .api import *
+from . import api
 
 from ..platform import Platform
 
-from ...defaults import *
+from ... import defaults
 from ...model.draftedplayer import DraftedPlayer
 from ...model.league import League
 from ...model.player import Player
@@ -25,15 +25,15 @@ class Sleeper(Platform):
         self._league_id_to_roster_num_to_user: Dict[str, Dict[int, User]] = {}
 
     def get_admin_user_by_identifier(self, identifier: str) -> User:
-        return get_user_from_identifier(identifier)
+        return api.get_user_from_identifier(identifier)
 
     def get_all_leagues_for_user(self,
                                  user: User,
-                                 sport: str = SPORT,
-                                 year: str = YEAR) -> List[League]:
+                                 sport: str = defaults.SPORT,
+                                 year: str = defaults.YEAR) -> List[League]:
         leagues = []
 
-        raw_response_json = get_all_leagues_for_user(user, sport, year)
+        raw_response_json = api.get_all_leagues_for_user(user, sport, year)
 
         for raw_league in raw_response_json:
             league = League(raw_league["name"], raw_league["league_id"],
@@ -48,11 +48,11 @@ class Sleeper(Platform):
     def get_drafted_players_for_league(
             self,
             league: League,
-            sport: str = SPORT,
-            year: str = YEAR) -> List[DraftedPlayer]:
+            sport: str = defaults.SPORT,
+            year: str = defaults.YEAR) -> List[DraftedPlayer]:
         drafted_players = []
 
-        raw_draft_data = get_all_picks_for_draft(league.draft_id)
+        raw_draft_data = api.get_all_picks_for_draft(league.draft_id)
 
         for raw_draft_pick in raw_draft_data:
             drafted_players.append(
@@ -69,7 +69,7 @@ class Sleeper(Platform):
 
         # Iterate through every week of the season (and then a couple more just to be sure)
         for i in range(1, 20):
-            raw_transaction_data = get_league_transactions_for_week(
+            raw_transaction_data = api.get_league_transactions_for_week(
                 league.league_id, i)
 
             for transaction in raw_transaction_data:
@@ -133,7 +133,7 @@ class Sleeper(Platform):
         return template.format(league_id=league_id, roster_id=str(roster_id))
 
     def _store_roster_and_user_data_for_league(self, league: League):
-        raw_league_rosters = get_rosters_for_league(league.league_id)
+        raw_league_rosters = api.get_rosters_for_league(league.league_id)
 
         roster_num_to_user = {}
 
@@ -141,7 +141,7 @@ class Sleeper(Platform):
             owner_id = roster["owner_id"]
 
             if owner_id not in self._owner_id_to_user:
-                user = get_user_from_identifier(owner_id)
+                user = api.get_user_from_identifier(owner_id)
                 self._owner_id_to_user[owner_id] = user
 
             user = self._owner_id_to_user[owner_id]
@@ -150,10 +150,12 @@ class Sleeper(Platform):
         self._league_id_to_roster_num_to_user[
             league.league_id] = roster_num_to_user
 
-    def _initialize_player_data(self, sport: str = SPORT) -> Dict[str, Player]:
+    def _initialize_player_data(self,
+                                sport: str = defaults.SPORT
+                                ) -> Dict[str, Player]:
         player_id_to_player = {}
 
-        raw_player_map = get_all_players(sport)
+        raw_player_map = api.get_all_players(sport)
 
         for player_id in raw_player_map:
             raw_player = raw_player_map[player_id]

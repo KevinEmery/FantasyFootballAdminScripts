@@ -1,7 +1,5 @@
 from typing import List
 
-from ..defaults import *
-
 from ..model.draftedplayer import DraftedPlayer
 from ..model.league import League
 from ..model.trade import Trade
