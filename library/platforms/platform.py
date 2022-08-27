@@ -1,3 +1,5 @@
+import re
+
 from typing import List
 
 from ..model.draftedplayer import DraftedPlayer
@@ -10,7 +12,8 @@ class Platform:
     def get_admin_user_by_identifier(self, identifier: str) -> User:
         pass
 
-    def get_all_leagues_for_user(self, user: User, year: str) -> List[League]:
+    def get_all_leagues_for_user(self, user: User, year: str,
+                                 name_regex: re.Pattern) -> List[League]:
         pass
 
     def get_drafted_players_for_league(self,

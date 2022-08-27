@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Dict, List
 
+import re
+
 from . import api
 
 from ..platform import Platform
@@ -25,18 +27,22 @@ class Fleaflicker(Platform):
         # comprised of their email
         return User("", "Admin User", identifier)
 
-    def get_all_leagues_for_user(self,
-                                 user: User,
-                                 year: str = defaults.YEAR) -> List[League]:
+    def get_all_leagues_for_user(
+        self,
+        user: User,
+        year: str = defaults.YEAR,
+        name_regex: re.Pattern = re.compile(".*")
+    ) -> List[League]:
         leagues = []
 
         raw_league_list = api.fetch_user_leagues(user, year)
 
         for raw_league in raw_league_list:
-            # Expensive up front but gives us user data for all operations
-            self._store_team_and_user_data_for_league(str(raw_league["id"]))
+            league = League(raw_league["name"], str(raw_league["id"]))
 
-            leagues.append(League(raw_league["name"], str(raw_league["id"])))
+            if name_regex.match(league.name):
+                self._store_team_and_user_data_for_league(league.league_id)
+                leagues.append(league)
 
         return leagues
 
