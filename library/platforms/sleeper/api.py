@@ -15,9 +15,9 @@ def get_user_from_identifier(identifier: str) -> User:
     return User(response_json["user_id"], response_json["username"])
 
 
-def get_all_leagues_for_user(user: User, sport: str, year: str) -> List[str]:
-    request_url = BASE_URL + "user/{user_id}/leagues/{sport}/{year}".format(
-        user_id=user.user_id, sport=sport, year=year)
+def get_all_leagues_for_user(user: User, year: str) -> List[str]:
+    request_url = BASE_URL + "user/{user_id}/leagues/nfl/{year}".format(
+        user_id=user.user_id, year=year)
 
     response = requests.get(request_url)
     return response.json()
@@ -46,8 +46,8 @@ def get_rosters_for_league(league_id: str) -> List[str]:
     return response.json()
 
 
-def get_all_players(sport: str) -> Dict[str, Dict[str, Any]]:
-    request_url = BASE_URL + "players/{sport}".format(sport=sport)
+def get_all_players() -> Dict[str, Dict[str, Any]]:
+    request_url = BASE_URL + "players/nfl"
 
     response = requests.get(request_url)
     return response.json()

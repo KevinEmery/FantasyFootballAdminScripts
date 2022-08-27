@@ -29,11 +29,10 @@ class Sleeper(Platform):
 
     def get_all_leagues_for_user(self,
                                  user: User,
-                                 sport: str = defaults.SPORT,
                                  year: str = defaults.YEAR) -> List[League]:
         leagues = []
 
-        raw_response_json = api.get_all_leagues_for_user(user, sport, year)
+        raw_response_json = api.get_all_leagues_for_user(user, year)
 
         for raw_league in raw_response_json:
             league = League(raw_league["name"], raw_league["league_id"],
@@ -48,7 +47,6 @@ class Sleeper(Platform):
     def get_drafted_players_for_league(
             self,
             league: League,
-            sport: str = defaults.SPORT,
             year: str = defaults.YEAR) -> List[DraftedPlayer]:
         drafted_players = []
 
@@ -150,12 +148,10 @@ class Sleeper(Platform):
         self._league_id_to_roster_num_to_user[
             league.league_id] = roster_num_to_user
 
-    def _initialize_player_data(self,
-                                sport: str = defaults.SPORT
-                                ) -> Dict[str, Player]:
+    def _initialize_player_data(self) -> Dict[str, Player]:
         player_id_to_player = {}
 
-        raw_player_map = api.get_all_players(sport)
+        raw_player_map = api.get_all_players()
 
         for player_id in raw_player_map:
             raw_player = raw_player_map[player_id]
