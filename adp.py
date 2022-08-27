@@ -197,7 +197,7 @@ def main(argv):
 
     # Convert the computed args into our more-verbose local fields
     account_identifier = args.identifier
-    league_year = args.year
+    year = args.year
     position = args.position
     team = args.team
     max_results_to_print = args.max_results
@@ -213,12 +213,11 @@ def main(argv):
         platform = Fleaflicker()
 
     user = platform.get_admin_user_by_identifier(account_identifier)
-    all_leagues = platform.get_all_leagues_for_user(user, league_year)
-    leagues_to_analyze = common.filter_leagues_by_league_name(all_leagues,
-                                                       league_regex)
+    leagues = platform.get_all_leagues_for_user(user, year, league_regex)
+
     player_data = {}
 
-    for league in leagues_to_analyze:
+    for league in leagues:
         drafted_players = platform.get_drafted_players_for_league(league)
 
         for drafted_player in drafted_players:

@@ -1,3 +1,5 @@
+import re
+
 from datetime import datetime
 from typing import Dict, List
 
@@ -27,9 +29,12 @@ class Sleeper(Platform):
     def get_admin_user_by_identifier(self, identifier: str) -> User:
         return api.get_user_from_identifier(identifier)
 
-    def get_all_leagues_for_user(self,
-                                 user: User,
-                                 year: str = defaults.YEAR) -> List[League]:
+    def get_all_leagues_for_user(
+        self,
+        user: User,
+        year: str = defaults.YEAR,
+        name_regex: re.Pattern = re.compile(".*")
+    ) -> List[League]:
         leagues = []
 
         raw_response_json = api.get_all_leagues_for_user(user, year)
@@ -38,7 +43,8 @@ class Sleeper(Platform):
             league = League(raw_league["name"], raw_league["league_id"],
                             raw_league["draft_id"])
 
-            if raw_league["status"] != "pre_draft":
+            if raw_league["status"] != "pre_draft" and name_regex.match(
+                    league.name):
                 self._store_roster_and_user_data_for_league(league)
                 leagues.append(league)
 

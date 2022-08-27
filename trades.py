@@ -241,11 +241,9 @@ def main(argv):
         platform = Fleaflicker()
 
     user = platform.get_admin_user_by_identifier(identifier)
-    all_leagues = platform.get_all_leagues_for_user(user, year)
-    leagues_to_analyze = common.filter_leagues_by_league_name(
-        all_leagues, league_regex)
+    leagues = platform.get_all_leagues_for_user(user, year, league_regex)
 
-    for league in leagues_to_analyze:
+    for league in leagues:
         league_trades = platform.get_all_trades_for_league(league)
         filtered_league_trades = filter_and_sort_trades_by_date(
             league_trades, start_date, end_date)
