@@ -129,7 +129,8 @@ def parse_user_provided_flags() -> argparse.Namespace:
                         min=True,
                         season=True,
                         weekly=True,
-                        current_week=True)
+                        current_week=True,
+                        platform_selection=common.PlatformSelection.SLEEPER)
 
     return parser.parse_args()
 
@@ -158,7 +159,6 @@ def main(argv):
     # Set platform based on user choice
     if args.platform_selection == common.PlatformSelection.SLEEPER:
         platform = Sleeper()
-        raise Exception("Unimplemented")
     elif args.platform_selection == common.PlatformSelection.FLEAFLICKER:
         platform = Fleaflicker()
 

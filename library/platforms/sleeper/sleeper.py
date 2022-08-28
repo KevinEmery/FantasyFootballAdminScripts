@@ -11,10 +11,12 @@ from ... import defaults
 from ...model.draftedplayer import DraftedPlayer
 from ...model.league import League
 from ...model.player import Player
+from ...model.seasonscore import SeasonScore
 from ...model.team import Team
 from ...model.trade import Trade
 from ...model.tradedetail import TradeDetail
 from ...model.user import User
+from ...model.weeklyscore import WeeklyScore
 
 
 class Sleeper(Platform):
@@ -131,6 +133,48 @@ class Sleeper(Platform):
                 all_trades.append(Trade(transaction_time, all_details))
 
         return all_trades
+
+    def get_weekly_scores_for_league_and_week(self, league: League, week: int,
+                                              year: str) -> List[WeeklyScore]:
+        weekly_scores = []    
+
+        weekly_matchups = api.get_matchups_for_league_and_week(league.league_id, week)
+        roster_num_to_user = self._league_id_to_roster_num_to_user[
+            league.league_id]
+
+        # Each "matchup" represents a single teams performance
+        for matchup in weekly_matchups:
+            roster_id = matchup["roster_id"]
+            team = Team(roster_id, roster_num_to_user[roster_id],
+                        self._create_roster_link(league.league_id, roster_id))
+            weekly_scores.append(WeeklyScore(league, team, week, matchup.get("points")))
+
+        return weekly_scores
+
+    def get_season_scores_for_league(self, league: League,
+                                     year: str) -> List[SeasonScore]:
+        season_scores = []
+        raw_league_rosters = api.get_rosters_for_league(league.league_id)
+        roster_num_to_user = self._league_id_to_roster_num_to_user[
+            league.league_id]
+
+        for roster in raw_league_rosters:
+            roster_id = roster["roster_id"]
+            team = Team(roster_id, roster_num_to_user[roster_id],
+                        self._create_roster_link(league.league_id, roster_id))
+
+            total_points_for = float(roster["settings"]["fpts"])
+            try:
+                total_points_for += float(
+                    roster["settings"]["fpts_decimal"]) / 100
+            except Exception:
+                # Decimal field may not be pressent, skip
+                total_points_for += 0.00
+
+            season_scores.append(
+                SeasonScore(league, team, total_points_for))
+
+        return season_scores
 
     def _create_roster_link(self, league_id: str, roster_id: int) -> str:
         template = "https://sleeper.app/roster/{league_id}/{roster_id}"

@@ -45,6 +45,12 @@ def get_rosters_for_league(league_id: str) -> List[str]:
     response = requests.get(request_url)
     return response.json()
 
+def get_matchups_for_league_and_week(league_id: str, week: int) -> List[str]:
+    request_url = BASE_URL + "league/{league_id}/matchups/{week}".format(league_id=league_id, week=str(week))
+
+    response = requests.get(request_url)
+    return response.json()
+
 
 def get_all_players() -> Dict[str, Dict[str, Any]]:
     request_url = BASE_URL + "players/nfl"
