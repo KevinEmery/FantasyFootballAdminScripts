@@ -9,3 +9,6 @@ class Team(object):
 
     def __eq__(self, other):
         return self.team_id == other.team_id
+
+    def __hash__(self):
+        return hash((self.team_id, self.manager, self.roster_link))
