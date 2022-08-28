@@ -11,10 +11,12 @@ from ... import defaults
 from ...model.draftedplayer import DraftedPlayer
 from ...model.league import League
 from ...model.player import Player
+from ...model.seasonscore import SeasonScore
 from ...model.team import Team
 from ...model.trade import Trade
 from ...model.tradedetail import TradeDetail
 from ...model.user import User
+from ...model.weeklyscore import WeeklyScore
 
 
 class Fleaflicker(Platform):
@@ -35,13 +37,15 @@ class Fleaflicker(Platform):
     ) -> List[League]:
         leagues = []
 
-        raw_league_list = api.fetch_user_leagues(user, year)
+        # Even when pulling past data, we can only check the current year's leagues.
+        raw_league_list = api.fetch_user_leagues(user, defaults.YEAR)
 
         for raw_league in raw_league_list:
             league = League(raw_league["name"], str(raw_league["id"]))
 
             if name_regex.match(league.name):
-                self._store_team_and_user_data_for_league(league.league_id)
+                self._store_team_and_user_data_for_league(
+                    league.league_id, year)
                 leagues.append(league)
 
         return leagues
@@ -117,6 +121,74 @@ class Fleaflicker(Platform):
 
         return all_trades
 
+    def get_weekly_scores_for_league_and_week(
+            self,
+            league: League,
+            week: int,
+            year: str = defaults.YEAR) -> List[WeeklyScore]:
+        weekly_scores = []
+        team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
+
+        raw_league_scoreboard = api.fetch_league_scoreboard(
+            league.league_id, week, year)
+
+        for game in raw_league_scoreboard["games"]:
+            raw_home = game["home"]
+            raw_away = game["away"]
+            home_id = str(raw_home["id"])
+            away_id = str(raw_away["id"])
+
+            home_team = Team(
+                home_id, team_id_to_user[home_id],
+                self._build_roster_link(league.league_id, home_id))
+            away_team = Team(
+                away_id, team_id_to_user[away_id],
+                self._build_roster_link(league.league_id, away_id))
+
+            weekly_scores.append(
+                WeeklyScore(league, home_team, week,
+                            float(game["homeScore"]["score"]["formatted"])))
+            weekly_scores.append(
+                WeeklyScore(league, away_team, week,
+                            float(game["awayScore"]["score"]["formatted"])))
+
+        return weekly_scores
+
+    def get_season_scores_for_league(self, league: League,
+                                     year: str) -> List[SeasonScore]:
+        season_scores = []
+        team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
+
+        # The scoreboard returns season-long information regardless of the week
+        raw_league_scoreboard = api.fetch_league_scoreboard(
+            league.league_id, 1, year)
+
+        for game in raw_league_scoreboard["games"]:
+            raw_home = game["home"]
+            raw_away = game["away"]
+            home_id = str(raw_home["id"])
+            away_id = str(raw_away["id"])
+
+            home_team = Team(
+                home_id, team_id_to_user[home_id],
+                self._build_roster_link(league.league_id, home_id))
+            away_team = Team(
+                away_id, team_id_to_user[away_id],
+                self._build_roster_link(league.league_id, away_id))
+
+            season_scores.append(
+                SeasonScore(
+                    league, home_team,
+                    float(raw_home["pointsFor"]["formatted"].replace(",",
+                                                                     ""))))
+            season_scores.append(
+                SeasonScore(
+                    league, away_team,
+                    float(raw_away["pointsFor"]["formatted"].replace(",",
+                                                                     ""))))
+
+        return season_scores
+
     def _build_player_from_pro_player(self, player_data: Dict[str,
                                                               str]) -> Player:
         player_id = player_data["id"]
@@ -135,16 +207,18 @@ class Fleaflicker(Platform):
         template = "https://www.fleaflicker.com/nfl/leagues/{league_id}/teams/{team_id}"
         return template.format(league_id=league_id, team_id=team_id)
 
-    def _store_team_and_user_data_for_league(self, league_id: str):
-
-        raw_league_data = api.fetch_league_standings(league_id)
+    def _store_team_and_user_data_for_league(self, league_id: str, year: str):
+        raw_league_data = api.fetch_league_standings(league_id, year)
 
         team_id_to_user = {}
 
         for division in raw_league_data["divisions"]:
             for team in division["teams"]:
-                user = User(str(team["owners"][0]["id"]),
-                            team["owners"][0]["displayName"])
+                if "owners" in team:
+                    user = User(str(team["owners"][0]["id"]),
+                                team["owners"][0]["displayName"])
+                else:
+                    user = User("0", "No user")
                 team_id_to_user[str(team["id"])] = user
 
         self._league_id_to_team_id_to_user[league_id] = team_id_to_user

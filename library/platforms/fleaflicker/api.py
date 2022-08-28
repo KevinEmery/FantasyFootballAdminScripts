@@ -23,8 +23,9 @@ def fetch_user_leagues(user: User, year: str) -> List[str]:
     return response.json()["leagues"]
 
 
-def fetch_league_standings(league_id: str) -> List[str]:
-    request_url = BASE_URL + "FetchLeagueStandings?sport=NFL&league_id={league_id}".format(league_id=league_id)
+def fetch_league_standings(league_id: str, year: str) -> List[str]:
+    request_url = BASE_URL + "FetchLeagueStandings?sport=NFL&league_id={league_id}&season={year}".format(
+        league_id=league_id, year=year)
 
     response = requests.get(request_url)
     return response.json()
@@ -44,3 +45,11 @@ def fetch_trades(league_id: str) -> List[str]:
 
     response = requests.get(request_url)
     return response.json()["trades"]
+
+
+def fetch_league_scoreboard(league_id: str, week: int, year: str):
+    request_url = BASE_URL + "FetchLeagueScoreboard?sport=NFL&league_id={league_id}&scoring_period={week}&season={year}".format(
+        league_id=league_id, week=str(week), year=year)
+
+    response = requests.get(request_url)
+    return response.json()
