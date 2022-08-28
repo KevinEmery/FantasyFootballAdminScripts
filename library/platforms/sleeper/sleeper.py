@@ -42,8 +42,8 @@ class Sleeper(Platform):
         raw_response_json = api.get_all_leagues_for_user(user, year)
 
         for raw_league in raw_response_json:
-            league = League(raw_league["name"], raw_league["league_id"],
-                            raw_league["draft_id"])
+            league = League(raw_league["name"], raw_league["total_rosters"],
+                            raw_league["league_id"], raw_league["draft_id"])
 
             if raw_league["status"] != "pre_draft" and name_regex.match(
                     league.name):
@@ -136,9 +136,10 @@ class Sleeper(Platform):
 
     def get_weekly_scores_for_league_and_week(self, league: League, week: int,
                                               year: str) -> List[WeeklyScore]:
-        weekly_scores = []    
+        weekly_scores = []
 
-        weekly_matchups = api.get_matchups_for_league_and_week(league.league_id, week)
+        weekly_matchups = api.get_matchups_for_league_and_week(
+            league.league_id, week)
         roster_num_to_user = self._league_id_to_roster_num_to_user[
             league.league_id]
 
@@ -147,7 +148,8 @@ class Sleeper(Platform):
             roster_id = matchup["roster_id"]
             team = Team(roster_id, roster_num_to_user[roster_id],
                         self._create_roster_link(league.league_id, roster_id))
-            weekly_scores.append(WeeklyScore(league, team, week, matchup.get("points")))
+            weekly_scores.append(
+                WeeklyScore(league, team, week, matchup.get("points")))
 
         return weekly_scores
 
@@ -171,8 +173,7 @@ class Sleeper(Platform):
                 # Decimal field may not be pressent, skip
                 total_points_for += 0.00
 
-            season_scores.append(
-                SeasonScore(league, team, total_points_for))
+            season_scores.append(SeasonScore(league, team, total_points_for))
 
         return season_scores
 
