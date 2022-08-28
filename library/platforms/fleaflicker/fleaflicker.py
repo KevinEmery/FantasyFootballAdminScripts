@@ -41,7 +41,8 @@ class Fleaflicker(Platform):
         raw_league_list = api.fetch_user_leagues(user, defaults.YEAR)
 
         for raw_league in raw_league_list:
-            league = League(raw_league["name"], str(raw_league["id"]))
+            league = League(raw_league["name"], raw_league["capacity"],
+                            str(raw_league["id"]))
 
             if name_regex.match(league.name):
                 self._store_team_and_user_data_for_league(
