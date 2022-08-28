@@ -15,8 +15,11 @@ from ...model.seasonscore import SeasonScore
 from ...model.team import Team
 from ...model.trade import Trade
 from ...model.tradedetail import TradeDetail
+from ...model.transaction import Transaction
 from ...model.user import User
 from ...model.weeklyscore import WeeklyScore
+
+DEC_31_1999_SECONDS = 946684800
 
 
 class Fleaflicker(Platform):
@@ -189,6 +192,42 @@ class Fleaflicker(Platform):
                                                                      ""))))
 
         return season_scores
+
+    def get_last_transaction_for_teams_in_league(
+            self, league: League) -> Dict[Team, Transaction]:
+        transactions = {}
+        team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
+
+        for team_id in team_id_to_user:
+            raw_transactions = api.fetch_league_transactions_for_team(
+                league.league_id, team_id)
+            most_recent_raw_transaction = raw_transactions["items"][0]
+            transaction_object = most_recent_raw_transaction["transaction"]
+
+            transaction_time = datetime.fromtimestamp(
+                int(most_recent_raw_transaction["timeEpochMilli"]) / 1000)
+
+            team = Team(team_id, team_id_to_user[team_id],
+                        self._build_roster_link(league.league_id, team_id))
+
+            # If the year isn't the current year then just return a default transaction,
+            # the team doesn't have one this year
+            if str(transaction_time.year) != defaults.YEAR:
+                transaction = Transaction(
+                    datetime.fromtimestamp(DEC_31_1999_SECONDS), "NONE", team)
+            else:
+                # This is the default, and if it's not set in the response then we assume
+                # that the transaction is an add
+                transaction_type = "TRANSACTION_ADD"
+                if "type" in transaction_object:
+                    transaction_type = transaction_object["type"]
+
+                transaction = Transaction(transaction_time, transaction_type,
+                                          team)
+
+            transactions[team] = transaction
+
+        return transactions
 
     def _build_player_from_pro_player(self, player_data: Dict[str,
                                                               str]) -> Player:

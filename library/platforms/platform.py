@@ -1,11 +1,13 @@
 import re
 
-from typing import List
+from typing import Dict, List
 
 from ..model.draftedplayer import DraftedPlayer
 from ..model.league import League
 from ..model.seasonscore import SeasonScore
+from ..model.team import Team
 from ..model.trade import Trade
+from ..model.transaction import Transaction
 from ..model.user import User
 from ..model.weeklyscore import WeeklyScore
 
@@ -31,4 +33,9 @@ class Platform:
 
     def get_season_scores_for_league(self, league: League,
                                      year: str) -> List[SeasonScore]:
+        pass
+
+    def get_last_transaction_for_teams_in_league(
+            self,
+            league: League) -> Dict[Team, Transaction]:
         pass
