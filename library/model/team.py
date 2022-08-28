@@ -6,3 +6,6 @@ class Team(object):
         self.team_id = team_id
         self.manager = manager
         self.roster_link = roster_link
+
+    def __eq__(self, other):
+        return self.team_id == other.team_id
