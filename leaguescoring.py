@@ -2,8 +2,6 @@ import argparse
 import re
 import sys
 
-from typing import List
-
 import common
 
 from library.model.league import League
@@ -14,34 +12,6 @@ from library.model.weeklyscore import WeeklyScore
 from library.platforms.platform import Platform
 from library.platforms.fleaflicker.fleaflicker import Fleaflicker
 from library.platforms.sleeper.sleeper import Sleeper
-
-
-def print_weekly_scores_with_header(scores: List[WeeklyScore],
-                                    header_text: str, count: int):
-    if not scores:
-        return
-
-    print(header_text)
-    for i in range(0, count):
-        if i < len(scores):
-            print(common.format_weekly_score_for_table(scores[i]))
-        else:
-            break
-    print("")
-
-
-def print_season_scores_with_header(scores: List[SeasonScore],
-                                    header_text: str, count: int):
-    if not scores:
-        return
-
-    print(header_text)
-    for i in range(0, count):
-        if i < len(scores):
-            print(common.format_seasonal_score_for_table(scores[i]))
-        else:
-            break
-    print("")
 
 
 def parse_user_provided_flags() -> argparse.Namespace:
@@ -214,33 +184,33 @@ def main(argv):
     # Print out the results
     this_week_template = "{main_header}, Week {week_num}"
     if print_max_this_week:
-        print_weekly_scores_with_header(
+        common.print_weekly_scores_with_header(
             max_scores_this_week,
             this_week_template.format(main_header="HIGHEST SCORES THIS WEEK",
                                       week_num=ending_week),
             weekly_score_output_count)
     if print_min_this_week:
-        print_weekly_scores_with_header(
+        common.print_weekly_scores_with_header(
             min_scores_this_week,
             this_week_template.format(main_header="LOWEST SCORES THIS WEEK",
                                       week_num=ending_week),
             weekly_score_output_count)
     if print_max_weekly:
-        print_weekly_scores_with_header(max_weekly_scores,
-                                        "HIGHEST WEEKLY SCORES THIS SEASON",
-                                        weekly_score_output_count)
+        common.print_weekly_scores_with_header(
+            max_weekly_scores, "HIGHEST WEEKLY SCORES THIS SEASON",
+            weekly_score_output_count)
     if print_min_weekly:
-        print_weekly_scores_with_header(min_weekly_scores,
-                                        "LOWEST WEEKLY SCORES THIS SEASON",
-                                        weekly_score_output_count)
+        common.print_weekly_scores_with_header(
+            min_weekly_scores, "LOWEST WEEKLY SCORES THIS SEASON",
+            weekly_score_output_count)
     if print_max_seasonal:
-        print_season_scores_with_header(max_seasonal_points_for,
-                                        "HIGHEST POINTS-FOR THIS SEASON",
-                                        seasonal_score_output_count)
+        common.print_season_scores_with_header(
+            max_seasonal_points_for, "HIGHEST POINTS-FOR THIS SEASON",
+            seasonal_score_output_count)
     if print_min_seasonal:
-        print_season_scores_with_header(min_seasonal_points_for,
-                                        "LOWEST POINTS-FOR THIS SEASON",
-                                        seasonal_score_output_count)
+        common.print_season_scores_with_header(
+            min_seasonal_points_for, "LOWEST POINTS-FOR THIS SEASON",
+            seasonal_score_output_count)
 
 
 if __name__ == "__main__":

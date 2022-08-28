@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 
 from library.model.seasonscore import SeasonScore
 from library.model.weeklyscore import WeeklyScore
@@ -7,6 +8,36 @@ from library.model.weeklyscore import WeeklyScore
 class PlatformSelection(Enum):
     SLEEPER = 1
     FLEAFLICKER = 2
+
+
+def print_weekly_scores_with_header(scores: List[WeeklyScore],
+                                    header_text: str,
+                                    count: int = 1000):
+    if not scores:
+        return
+
+    print(header_text)
+    for i in range(0, count):
+        if i < len(scores):
+            print(format_weekly_score_for_table(scores[i]))
+        else:
+            break
+    print("")
+
+
+def print_season_scores_with_header(scores: List[SeasonScore],
+                                    header_text: str,
+                                    count: int = 1000):
+    if not scores:
+        return
+
+    print(header_text)
+    for i in range(0, count):
+        if i < len(scores):
+            print(format_seasonal_score_for_table(scores[i]))
+        else:
+            break
+    print("")
 
 
 def format_weekly_score_for_table(score: WeeklyScore) -> str:
