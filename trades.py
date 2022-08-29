@@ -4,7 +4,6 @@ import sys
 
 from datetime import datetime
 from dateutil import parser
-from enum import Enum
 from typing import List
 
 import common
