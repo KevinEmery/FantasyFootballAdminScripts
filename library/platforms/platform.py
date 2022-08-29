@@ -2,7 +2,7 @@ import re
 
 from typing import Dict, List
 
-from .. import defaults
+from .. import common
 from ..model.draftedplayer import DraftedPlayer
 from ..model.league import League
 from ..model.seasonscore import SeasonScore
@@ -19,7 +19,7 @@ class Platform:
 
     def get_all_leagues_for_user(self,
                                  user: User,
-                                 year: str = defaults.YEAR,
+                                 year: str = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = ".*",
                                  store_user_info: bool = True) -> List[League]:
         pass
@@ -27,7 +27,7 @@ class Platform:
     def get_drafted_players_for_league(
             self,
             league: League,
-            year: str = defaults.YEAR) -> List[DraftedPlayer]:
+            year: str = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
         pass
 
     def get_all_trades_for_league(self, League: League) -> List[Trade]:
