@@ -7,7 +7,7 @@ from . import api
 
 from ..platform import Platform
 
-from ... import defaults
+from ... import common
 from ...model.draftedplayer import DraftedPlayer
 from ...model.league import League
 from ...model.player import Player
@@ -18,8 +18,6 @@ from ...model.tradedetail import TradeDetail
 from ...model.transaction import Transaction
 from ...model.user import User
 from ...model.weeklyscore import WeeklyScore
-
-DEC_31_1999_SECONDS = 946684800
 
 
 class Sleeper(Platform):
@@ -36,7 +34,7 @@ class Sleeper(Platform):
 
     def get_all_leagues_for_user(self,
                                  user: User,
-                                 year: str = defaults.YEAR,
+                                 year: str = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
                                  store_user_info: bool = True) -> List[League]:
         leagues = []
@@ -58,7 +56,7 @@ class Sleeper(Platform):
     def get_drafted_players_for_league(
             self,
             league: League,
-            year: str = defaults.YEAR) -> List[DraftedPlayer]:
+            year: str = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
         drafted_players = []
 
         raw_draft_data = api.get_all_picks_for_draft(league.draft_id)
@@ -227,7 +225,8 @@ class Sleeper(Platform):
                         self._create_roster_link(league.league_id, roster_id))
             if team not in last_transaction_per_team:
                 last_transaction_per_team[team] = Transaction(
-                    datetime.fromtimestamp(DEC_31_1999_SECONDS), "None", team)
+                    datetime.fromtimestamp(common.DEC_31_1999_SECONDS), "None",
+                    team)
 
         return last_transaction_per_team
 
