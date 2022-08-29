@@ -222,6 +222,9 @@ class Fleaflicker(Platform):
                 if "type" in transaction_object:
                     transaction_type = transaction_object["type"]
 
+                if transaction_type.startswith("TRANSACTION_"):
+                    transaction_type = transaction_type[12:]
+
                 transaction = Transaction(transaction_time, transaction_type,
                                           team)
 

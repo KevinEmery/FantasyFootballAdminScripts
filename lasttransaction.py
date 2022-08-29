@@ -26,7 +26,7 @@ def print_recent_transaction_data(league_name: str,
 
 
 def format_most_recent_transaction(transaction: Transaction) -> str:
-    template = "{username:<20}type: {type:<25}date: {formatted_date}"
+    template = "{username:<20}type: {type:<15}date: {formatted_date}"
     formatted_date = transaction.time.strftime("%m-%d-%Y")
 
     return template.format(username=transaction.team.manager.name,
