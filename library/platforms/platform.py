@@ -20,7 +20,7 @@ class Platform:
     def get_all_leagues_for_user(self,
                                  user: User,
                                  year: str = common.DEFAULT_YEAR,
-                                 name_regex: re.Pattern = ".*",
+                                 name_regex: re.Pattern = re.compile(".*"),
                                  store_user_info: bool = True) -> List[League]:
         pass
 
