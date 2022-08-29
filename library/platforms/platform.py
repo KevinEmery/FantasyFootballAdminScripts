@@ -2,6 +2,7 @@ import re
 
 from typing import Dict, List
 
+from .. import defaults
 from ..model.draftedplayer import DraftedPlayer
 from ..model.league import League
 from ..model.seasonscore import SeasonScore
@@ -16,12 +17,17 @@ class Platform:
     def get_admin_user_by_identifier(self, identifier: str) -> User:
         pass
 
-    def get_all_leagues_for_user(self, user: User, year: str,
-                                 name_regex: re.Pattern) -> List[League]:
+    def get_all_leagues_for_user(self,
+                                 user: User,
+                                 year: str = defaults.YEAR,
+                                 name_regex: re.Pattern = ".*",
+                                 store_user_info: bool = True) -> List[League]:
         pass
 
-    def get_drafted_players_for_league(self,
-                                       league: League) -> List[DraftedPlayer]:
+    def get_drafted_players_for_league(
+            self,
+            league: League,
+            year: str = defaults.YEAR) -> List[DraftedPlayer]:
         pass
 
     def get_all_trades_for_league(self, League: League) -> List[Trade]:
@@ -36,6 +42,5 @@ class Platform:
         pass
 
     def get_last_transaction_for_teams_in_league(
-            self,
-            league: League) -> Dict[Team, Transaction]:
+            self, league: League) -> Dict[Team, Transaction]:
         pass
