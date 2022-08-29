@@ -32,12 +32,11 @@ class Fleaflicker(Platform):
         # comprised of their email
         return User("", "Admin User", identifier)
 
-    def get_all_leagues_for_user(
-        self,
-        user: User,
-        year: str = defaults.YEAR,
-        name_regex: re.Pattern = re.compile(".*")
-    ) -> List[League]:
+    def get_all_leagues_for_user(self,
+                                 user: User,
+                                 year: str = defaults.YEAR,
+                                 name_regex: re.Pattern = re.compile(".*"),
+                                 store_user_info: bool = True) -> List[League]:
         leagues = []
 
         # Even when pulling past data, we can only check the current year's leagues.
@@ -48,8 +47,9 @@ class Fleaflicker(Platform):
                             str(raw_league["id"]))
 
             if name_regex.match(league.name):
-                self._store_team_and_user_data_for_league(
-                    league.league_id, year)
+                if store_user_info:
+                    self._store_team_and_user_data_for_league(
+                        league.league_id, year)
                 leagues.append(league)
 
         return leagues

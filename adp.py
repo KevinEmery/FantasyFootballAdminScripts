@@ -213,7 +213,10 @@ def main(argv):
         platform = Fleaflicker()
 
     user = platform.get_admin_user_by_identifier(account_identifier)
-    leagues = platform.get_all_leagues_for_user(user, year, league_regex)
+    leagues = platform.get_all_leagues_for_user(user,
+                                                year,
+                                                league_regex,
+                                                store_user_info=False)
 
     player_data = {}
 
