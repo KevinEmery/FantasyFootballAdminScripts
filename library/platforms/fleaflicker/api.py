@@ -1,13 +1,11 @@
 import requests
 
-from typing import Any, Dict, List
-
 from ...model.user import User
 
 BASE_URL = "https://www.fleaflicker.com/api/"
 
 
-def fetch_user_leagues(user: User, year: str) -> List[str]:
+def fetch_user_leagues(user: User, year: str):
     request_url = BASE_URL + "FetchUserLeagues?sport=NFL&season={year}".format(
         year=year)
 
@@ -23,7 +21,7 @@ def fetch_user_leagues(user: User, year: str) -> List[str]:
     return response.json()["leagues"]
 
 
-def fetch_league_standings(league_id: str, year: str) -> List[str]:
+def fetch_league_standings(league_id: str, year: str):
     request_url = BASE_URL + "FetchLeagueStandings?sport=NFL&league_id={league_id}&season={year}".format(
         league_id=league_id, year=year)
 
@@ -31,7 +29,7 @@ def fetch_league_standings(league_id: str, year: str) -> List[str]:
     return response.json()
 
 
-def fetch_league_draft_board(league_id: str, year: str) -> List[str]:
+def fetch_league_draft_board(league_id: str, year: str):
     request_url = BASE_URL + "FetchLeagueDraftBoard?sport=NFL&season={year}&league_id={league_id}".format(
         year=year, league_id=league_id)
 
@@ -39,7 +37,7 @@ def fetch_league_draft_board(league_id: str, year: str) -> List[str]:
     return response.json()
 
 
-def fetch_trades(league_id: str) -> List[str]:
+def fetch_trades(league_id: str):
     request_url = BASE_URL + "FetchTrades?sport=NFL&league_id={league_id}&filter=TRADES_COMPLETED".format(
         league_id=league_id)
 
@@ -47,8 +45,7 @@ def fetch_trades(league_id: str) -> List[str]:
     return response.json()["trades"]
 
 
-def fetch_league_transactions(league_id: str,
-                              result_offset: int = 0) -> List[str]:
+def fetch_league_transactions(league_id: str, result_offset: int = 0):
     request_url = BASE_URL + "FetchLeagueTransactions?league_id={league_id}&result_offset={result_offset}".format(
         league_id=league_id, result_offset=result_offset)
 
@@ -58,7 +55,7 @@ def fetch_league_transactions(league_id: str,
 
 def fetch_league_transactions_for_team(league_id: str,
                                        team_id: str,
-                                       result_offset: int = 0) -> List[str]:
+                                       result_offset: int = 0):
     request_url = BASE_URL + "FetchLeagueTransactions?league_id={league_id}&team_id={team_id}&result_offset={result_offset}".format(
         league_id=league_id, team_id=team_id, result_offset=result_offset)
 
