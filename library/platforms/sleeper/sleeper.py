@@ -15,8 +15,11 @@ from ...model.seasonscore import SeasonScore
 from ...model.team import Team
 from ...model.trade import Trade
 from ...model.tradedetail import TradeDetail
+from ...model.transaction import Transaction
 from ...model.user import User
 from ...model.weeklyscore import WeeklyScore
+
+DEC_31_1999_SECONDS = 946684800
 
 
 class Sleeper(Platform):
@@ -176,6 +179,57 @@ class Sleeper(Platform):
             season_scores.append(SeasonScore(league, team, total_points_for))
 
         return season_scores
+
+    def get_last_transaction_for_teams_in_league(
+            self, league: League) -> Dict[Team, Transaction]:
+        last_transaction_per_team = {}
+        all_transactions = []
+        roster_num_to_user = self._league_id_to_roster_num_to_user[
+            league.league_id]
+
+        # Iterate through every week of the season (and then a couple more
+        # just to be sure),  gathering all of the transactions
+        # A potential optimization would be to combine this step with the
+        # "one per team" logic by starting at the end. But that assumes either
+        # ordering within each week on the API or requires logic to order each
+        # week, and frankly not doing that is just easier for now.
+        for week in range(1, 20):
+            raw_transactions = api.get_league_transactions_for_week(
+                league.league_id, week)
+
+            for raw_transaction in raw_transactions:
+                transaction_time = datetime.fromtimestamp(
+                    raw_transaction["status_updated"] / 1000)
+                transaction_type = raw_transaction["type"]
+
+                # Creates a transaction entry for each involved team, which is easier to parse
+                # afterwards
+                for roster_id in raw_transaction["roster_ids"]:
+                    team = Team(
+                        roster_id, roster_num_to_user[roster_id],
+                        self._create_roster_link(league.league_id, roster_id))
+                    all_transactions.append(
+                        Transaction(transaction_time, transaction_type, team))
+
+        # Sort the transactions last to first and grab each team's most recent
+        all_transactions.sort(reverse=True)
+
+        for transaction in all_transactions:
+            if transaction.team not in last_transaction_per_team:
+                last_transaction_per_team[transaction.team] = transaction
+
+            if len(last_transaction_per_team) >= league.size:
+                return last_transaction_per_team
+
+        # Backfill data for any team that doesn't have a transaction
+        for roster_id in range(1, league.size + 1):
+            team = Team(roster_id, roster_num_to_user[roster_id],
+                        self._create_roster_link(league.league_id, roster_id))
+            if team not in last_transaction_per_team:
+                last_transaction_per_team[team] = Transaction(
+                    datetime.fromtimestamp(DEC_31_1999_SECONDS), "None", team)
+
+        return last_transaction_per_team
 
     def _create_roster_link(self, league_id: str, roster_id: int) -> str:
         template = "https://sleeper.app/roster/{league_id}/{roster_id}"

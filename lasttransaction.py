@@ -75,7 +75,6 @@ def main(argv):
     # Set platform based on user choice
     if args.platform_selection == common.PlatformSelection.SLEEPER:
         platform = Sleeper()
-        raise Exception("Not implemented")
     elif args.platform_selection == common.PlatformSelection.FLEAFLICKER:
         platform = Fleaflicker()
 
