@@ -49,11 +49,14 @@ def parse_user_provided_flags() -> argparse.Namespace:
     group.add_argument("--sleeper",
                        dest="platform_selection",
                        action="store_const",
-                       const=common.PlatformSelection.SLEEPER)
+                       const=common.PlatformSelection.SLEEPER,
+                       help="Run analysis on Sleeper leagues (default)")
     group.add_argument("--fleaflicker",
                        dest="platform_selection",
                        action="store_const",
-                       const=common.PlatformSelection.FLEAFLICKER)
+                       const=common.PlatformSelection.FLEAFLICKER,
+                       help="Run analysis on Fleaflicker leagues")
+
     parser.add_argument("identifier",
                         help="User identifier used to pull all of the leagues",
                         type=str)
