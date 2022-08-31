@@ -4,6 +4,7 @@ from typing import Dict, List
 
 from .. import common
 from ..model.draftedplayer import DraftedPlayer
+from ..model.inactiveroster import InactiveRoster
 from ..model.league import League
 from ..model.seasonscore import SeasonScore
 from ..model.team import Team
@@ -43,4 +44,11 @@ class Platform:
 
     def get_last_transaction_for_teams_in_league(
             self, league: League) -> Dict[Team, Transaction]:
+        pass
+
+    def get_inactive_rosters_for_league_and_week(
+            self,
+            league: League,
+            week: int,
+            player_names_to_ignore: List[str] = []) -> List[InactiveRoster]:
         pass

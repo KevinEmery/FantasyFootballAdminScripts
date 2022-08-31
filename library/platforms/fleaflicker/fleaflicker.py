@@ -9,6 +9,7 @@ from ..platform import Platform
 
 from ... import common
 from ...model.draftedplayer import DraftedPlayer
+from ...model.inactiveroster import InactiveRoster
 from ...model.league import League
 from ...model.player import Player
 from ...model.seasonscore import SeasonScore
@@ -227,6 +228,14 @@ class Fleaflicker(Platform):
             transactions[team] = transaction
 
         return transactions
+
+    def get_inactive_rosters_for_league_and_week(
+            self,
+            league: League,
+            week: int,
+            player_names_to_ignore: List[str] = []) -> List[InactiveRoster]:
+        print("get_inactive_rosters_for_league_and_week Not implemented")
+        return []
 
     def _build_player_from_pro_player(self, player_data: Dict[str,
                                                               str]) -> Player:

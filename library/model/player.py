@@ -6,3 +6,6 @@ class Player(object):
         self.team = team
         self.position = position
         self.status = status
+
+    def is_inactive(self):
+        return self.status is not None and self.status != "" and self.status != "Questionable"

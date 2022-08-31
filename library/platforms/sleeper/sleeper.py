@@ -9,6 +9,7 @@ from ..platform import Platform
 
 from ... import common
 from ...model.draftedplayer import DraftedPlayer
+from ...model.inactiveroster import InactiveRoster
 from ...model.league import League
 from ...model.player import Player
 from ...model.seasonscore import SeasonScore
@@ -230,6 +231,52 @@ class Sleeper(Platform):
 
         return last_transaction_per_team
 
+    def get_inactive_rosters_for_league_and_week(
+            self,
+            league: League,
+            week: int,
+            player_names_to_ignore: List[str] = []) -> List[InactiveRoster]:
+        inactive_rosters = []
+        roster_num_to_user = self._league_id_to_roster_num_to_user[
+            league.league_id]
+        teams_on_bye = common.TEAMS_ON_BYE[week]
+
+        raw_matchups = api.get_matchups_for_league_and_week(
+            league.league_id, week)
+        for raw_matchup in raw_matchups:
+            roster_id = raw_matchup["roster_id"]
+            user = roster_num_to_user[roster_id]
+            inactive_players = []
+
+            starting_player_ids = raw_matchup["starters"]
+
+            # I've run into a strange issue where someone's starters come back
+            # as None. Log that to console and move on we'll need to manually check
+            if starting_player_ids is None:
+                template = "{league} - {username}'s starters list is None"
+                print(template.format(league=league.name, username=user.name))
+                continue
+
+            for player_id in starting_player_ids:
+                player = self._player_id_to_player[player_id]
+
+                if player.name in player_names_to_ignore:
+                    continue
+
+                if player.is_inactive():
+                    inactive_players.append(player)
+                elif player.team in teams_on_bye:
+                    player.status = "BYE"
+                    inactive_players.append(player)
+
+            if inactive_players:
+                team = Team(
+                    roster_id, user,
+                    self._create_roster_link(league.league_id, roster_id))
+                inactive_rosters.append(InactiveRoster(team, inactive_players))
+
+        return inactive_rosters
+
     def _create_roster_link(self, league_id: str, roster_id: int) -> str:
         template = "https://sleeper.app/roster/{league_id}/{roster_id}"
         return template.format(league_id=league_id, roster_id=str(roster_id))
@@ -267,7 +314,7 @@ class Sleeper(Platform):
                 raw_player["position"], raw_player["injury_status"])
 
         # Insert a dummy missing player at ID 0
-        player_id_to_player["0"] = Player("0", "Missing Player", "None",
-                                          "MISSING", "NONE")
+        player_id_to_player["0"] = Player("0", "Missing", "None", "None",
+                                          "None")
 
         return player_id_to_player
