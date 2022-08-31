@@ -6,8 +6,10 @@ from .transaction import Transaction
 
 
 class InactiveRoster(object):
-    def __init__(self, team: Team, inactives: List[Player],
-                 last_transaction: Transaction):
+    def __init__(self,
+                 team: Team,
+                 inactive_players: List[Player],
+                 last_transaction: Transaction = None):
         self.team = team
-        self.inactives = inactives
-        self.last_transaction last_transaction
+        self.inactive_players = inactive_players
+        self.last_transaction = last_transaction
