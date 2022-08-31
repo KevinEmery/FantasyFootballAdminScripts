@@ -63,24 +63,28 @@ def parse_user_provided_flags() -> argparse.Namespace:
                        action="store_true",
                        help="Include the 'max' statistics (default)")
     group.add_argument("--no-max", dest="max", action="store_false")
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--min",
                        dest="min",
                        action="store_true",
                        help="Include the 'min' statistics (default)")
     group.add_argument("--no-min", dest="min", action="store_false")
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--season",
                        dest="season",
                        action="store_true",
                        help="Include the 'season' statistics (default)")
     group.add_argument("--no-season", dest="season", action="store_false")
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--weekly",
                        dest="weekly",
                        action="store_true",
                        help="Include the 'weekly' statistics (default)")
     group.add_argument("--no-weekly", dest="weekly", action="store_false")
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--current-week",
                        dest="current_week",
@@ -89,15 +93,19 @@ def parse_user_provided_flags() -> argparse.Namespace:
     group.add_argument("--no-current-week",
                        dest="current_week",
                        action="store_false")
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--sleeper",
                        dest="platform_selection",
                        action="store_const",
-                       const=common.PlatformSelection.SLEEPER)
+                       const=common.PlatformSelection.SLEEPER,
+                       help="Run analysis on Sleeper leagues (default)")
     group.add_argument("--fleaflicker",
                        dest="platform_selection",
                        action="store_const",
-                       const=common.PlatformSelection.FLEAFLICKER)
+                       const=common.PlatformSelection.FLEAFLICKER,
+                       help="Run analysis on Fleaflicker leagues")
+
     parser.add_argument("identifier",
                         help="User identifier used to pull all of the leagues",
                         type=str)

@@ -220,15 +220,18 @@ def parse_user_provided_flags() -> argparse.Namespace:
                             help="Last date for trade analysis",
                             type=str,
                             default="12-31-2099")
+
     group = arg_parser.add_mutually_exclusive_group()
     group.add_argument("--sleeper",
                        dest="platform_selection",
                        action="store_const",
-                       const=common.PlatformSelection.SLEEPER)
+                       const=common.PlatformSelection.SLEEPER,
+                       help="Run analysis on Sleeper leagues (default)")
     group.add_argument("--fleaflicker",
                        dest="platform_selection",
                        action="store_const",
-                       const=common.PlatformSelection.FLEAFLICKER)
+                       const=common.PlatformSelection.FLEAFLICKER,
+                       help="Run analysis on Fleaflicker leagues")
 
     arg_parser.add_argument(
         "identifier",
