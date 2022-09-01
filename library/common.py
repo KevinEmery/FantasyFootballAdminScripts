@@ -14,6 +14,8 @@
    limitations under the License.
 """
 
+import requests
+
 DEC_31_1999_SECONDS = 946684800
 DEFAULT_YEAR = "2022"
 
@@ -37,3 +39,13 @@ TEAMS_ON_BYE = {
     17: [],
     18: []
 }
+
+
+def _make_get_request_with_logging(request_url):
+    try:
+        response = requests.get(request_url)
+        return response.json()
+    except Exception as e:
+        print("Request URL: {url}".format(url=request_url))
+        print("Exception: {e}".format(e=e))
+        print("Raw Response\n{response}".format(response=str(response)))
