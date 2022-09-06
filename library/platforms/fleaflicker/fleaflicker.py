@@ -129,10 +129,15 @@ class Fleaflicker(Platform):
 
                 if "picksObtained" in team_data:
                     for draft_pick in team_data["picksObtained"]:
-                        trade_detail.add_draft_pick_with_slot(
-                            str(draft_pick["season"]),
-                            draft_pick["slot"]["round"],
-                            draft_pick["slot"]["slot"])
+                        if "slot" in draft_pick["slot"]:
+                            trade_detail.add_draft_pick_with_slot(
+                                str(draft_pick["season"]),
+                                draft_pick["slot"]["round"],
+                                draft_pick["slot"]["slot"])
+                        else:
+                            trade_detail.add_draft_pick(
+                                str(draft_pick["season"]),
+                                draft_pick["slot"]["round"])
 
                 trade_details.append(trade_detail)
 
