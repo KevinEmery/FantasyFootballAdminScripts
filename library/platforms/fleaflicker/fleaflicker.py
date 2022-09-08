@@ -141,7 +141,7 @@ class Fleaflicker(Platform):
 
                 trade_details.append(trade_detail)
 
-            all_trades.append(Trade(trade_time, trade_details))
+            all_trades.append(Trade(league, trade_time, trade_details))
 
         return all_trades
 

@@ -48,9 +48,9 @@ def filter_and_sort_trades_by_date(trades: List[Trade], start: datetime,
 
 
 # Format all of the league's trades using Discord markdown formatting
-def print_league_trades(league: League, trades: List[Trade]):
+def print_trades(trades: List[Trade]):
     for trade in trades:
-        print("__**" + league.name + "**__\n")
+        print("__**" + trade.league.name + "**__\n")
         # Switch based on the trade size. Two team trades have a better visualization but
         # it's hard to do that for trades with more than 2.
         if len(trade.details) == 2:
@@ -260,14 +260,16 @@ def main(argv):
 
     user = platform.get_admin_user_by_identifier(identifier)
     leagues = platform.get_all_leagues_for_user(user, year, league_regex)
+    trades = []
 
     for league in leagues:
-        league_trades = platform.get_all_trades_for_league(league)
-        filtered_league_trades = filter_and_sort_trades_by_date(
-            league_trades, start_date, end_date)
+        trades.extend(platform.get_all_trades_for_league(league))
 
-        if filtered_league_trades:
-            print_league_trades(league, filtered_league_trades)
+    filtered_trades = filter_and_sort_trades_by_date(
+        trades, start_date, end_date)
+
+    if filtered_trades:
+        print_trades(filtered_trades)
 
 
 if __name__ == "__main__":

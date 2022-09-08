@@ -148,7 +148,7 @@ class Sleeper(Platform):
 
                 transaction_time = datetime.fromtimestamp(
                     transaction["status_updated"] / 1000)
-                all_trades.append(Trade(transaction_time, all_details))
+                all_trades.append(Trade(league, transaction_time, all_details))
 
         return all_trades
 

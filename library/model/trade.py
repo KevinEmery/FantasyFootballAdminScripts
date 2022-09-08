@@ -17,11 +17,13 @@
 from datetime import datetime
 from typing import List
 
+from .league import League
 from .tradedetail import TradeDetail
 
 
 class Trade(object):
-    def __init__(self, trade_time: datetime, details: List[TradeDetail]):
+    def __init__(self, league: League, trade_time: datetime, details: List[TradeDetail]):
+        self.league = league
         self.trade_time = trade_time
         self.details = details
 
