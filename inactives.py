@@ -32,9 +32,9 @@ from library.platforms.sleeper.sleeper import Sleeper
 
 
 def print_inactive_rosters(league: League, rosters: List[InactiveRoster]):
-    print("\n__**{league_name}**__".format(league_name=league.name))
+    print("__**{league_name}**__".format(league_name=league.name))
 
-    first_line_template = "\n**{user_name}**"
+    first_line_template = "**{user_name}**"
     last_transaction_template = "_Last transaction: {date}_"
     player_template = "{name}, {position} - {status}"
     date_format = "%m-%d-%Y"
@@ -51,6 +51,7 @@ def print_inactive_rosters(league: League, rosters: List[InactiveRoster]):
                 player_template.format(name=player.name,
                                        position=player.position,
                                        status=player.status))
+        print("")
 
 
 def parse_user_provided_flags() -> argparse.Namespace:
