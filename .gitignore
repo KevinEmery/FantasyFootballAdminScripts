@@ -130,3 +130,6 @@ dmypy.json
 
 # Local-only scripts
 local/
+
+# Local-only data files
+data/
