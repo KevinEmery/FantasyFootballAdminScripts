@@ -36,7 +36,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2023
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
@@ -77,7 +77,7 @@ optional arguments:
                         number of weekly data points to display (default: 5)
   -sc SEASON_COUNT, --season_count SEASON_COUNT
                         number of season data points to display (default: 5)
-  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2023
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
@@ -115,7 +115,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2023
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
@@ -142,7 +142,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2023
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
@@ -180,7 +180,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2023
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
@@ -208,7 +208,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2022
+  -y YEAR, --year YEAR  The year to run the analysis on, defaults to 2023
   -r LEAGUE_REGEX, --league_regex LEAGUE_REGEX
                         Regular expression used to select which leagues to
                         analyze
