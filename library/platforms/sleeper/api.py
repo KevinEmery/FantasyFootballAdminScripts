@@ -1,5 +1,5 @@
 """
-   Copyright 2022 Kevin Emery
+   Copyright 2023 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,6 +36,12 @@ def get_all_leagues_for_user(user: User, year: str):
 
 def get_all_picks_for_draft(draft_id: str):
     request_url = BASE_URL + "draft/{draft_id}/picks".format(draft_id=draft_id)
+
+    return common._make_get_request_with_logging(request_url)
+
+
+def get_draft(draft_id: str):
+    request_url = BASE_URL + "draft/{draft_id}".format(draft_id=draft_id)
 
     return common._make_get_request_with_logging(request_url)
 

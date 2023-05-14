@@ -1,5 +1,5 @@
 """
-   Copyright 2022 Kevin Emery
+   Copyright 2023 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ from . import api
 from ..platform import Platform
 
 from ... import common
+from ...model.draft import Draft
+from ...model.draft import DraftType
 from ...model.draftedplayer import DraftedPlayer
 from ...model.inactiveroster import InactiveRoster
 from ...model.league import League
@@ -91,6 +93,10 @@ class Sleeper(Platform):
         roster_num_to_user = self._league_id_to_roster_num_to_user[
             league.league_id]
 
+        # Save off the draft data in order to attribute picks
+        raw_draft = api.get_draft(league.draft_id)
+        draft = self._create_draft_from_response(raw_draft)
+
         # Iterate through every week of the season (and then a couple more just to be sure)
         for i in range(1, 20):
             raw_transaction_data = api.get_league_transactions_for_week(
@@ -133,14 +139,33 @@ class Sleeper(Platform):
                 # Process draft picks
                 draft_picks = transaction["draft_picks"]
                 for pick in draft_picks:
-                    # Owner id is the person who received the draft pick
-                    roster_id_to_trade_detail[pick["owner_id"]].add_draft_pick(
-                        pick["season"], pick["round"])
+                    # Include draft slot if it's for the current year
+                    if pick["season"] == draft.year:
+                        # Owner id is the person who received the draft pick
+                        roster_id_to_trade_detail[
+                            pick["owner_id"]].add_draft_pick_with_slot(
+                                pick["season"], pick["round"],
+                                draft.get_pick_num_within_round(
+                                    pick["roster_id"], pick["round"]))
 
-                    # Previous owner is who is trading it away
-                    roster_id_to_trade_detail[
-                        pick["previous_owner_id"]].lose_draft_pick(
-                            pick["season"], pick["round"])
+                        # Previous owner is who is trading it away
+                        roster_id_to_trade_detail[pick[
+                            "previous_owner_id"]].lose_draft_pick_with_slot(
+                                pick["season"], pick["round"],
+                                draft.get_pick_num_within_round(
+                                    pick["roster_id"], pick["round"]))
+
+                    # Otherwise just do the generic year/round
+                    else:
+                        # Owner id is the person who received the draft pick
+                        roster_id_to_trade_detail[
+                            pick["owner_id"]].add_draft_pick(
+                                pick["season"], pick["round"])
+
+                        # Previous owner is who is trading it away
+                        roster_id_to_trade_detail[
+                            pick["previous_owner_id"]].lose_draft_pick(
+                                pick["season"], pick["round"])
 
                 all_details = []
                 for roster_id in roster_id_to_trade_detail:
@@ -292,6 +317,27 @@ class Sleeper(Platform):
                 inactive_rosters.append(InactiveRoster(team, inactive_players))
 
         return inactive_rosters
+
+    def _create_draft_from_response(self, raw_draft) -> Draft:
+        raw_draft_type = raw_draft["type"]
+        if raw_draft_type == "snake":
+            draft_type = DraftType.SNAKE
+        elif raw_draft_type == "linear":
+            draft_type = DraftType.LINEAR
+        else:
+            print("Unknown draft type")
+            exit()
+
+        league_size = raw_draft["settings"]["teams"]
+        team_id_to_draft_slot = {}
+
+        slot_to_roster_id = raw_draft["slot_to_roster_id"]
+        for slot in range(1, league_size + 1):
+            team_id_to_draft_slot[slot_to_roster_id[str(slot)]] = slot
+
+        return Draft(raw_draft["season"], raw_draft["draft_id"], draft_type,
+                     raw_draft["settings"]["reversal_round"], league_size,
+                     team_id_to_draft_slot)
 
     def _create_roster_link(self, league_id: str, roster_id: int) -> str:
         template = "https://sleeper.app/roster/{league_id}/{roster_id}"
