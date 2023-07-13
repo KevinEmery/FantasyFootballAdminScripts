@@ -19,8 +19,10 @@ import re
 import sys
 
 import common
+import library.common as libCommon
 
 from enum import Enum
+from typing import List
 
 from library.model.draftedplayer import DraftedPlayer
 from library.model.player import Player
@@ -30,12 +32,22 @@ from library.platforms.platform import Platform
 from library.platforms.fleaflicker.fleaflicker import Fleaflicker
 from library.platforms.sleeper.sleeper import Sleeper
 
-INCLUDE_ALL = "all"
-
 
 class OutputFormat(Enum):
     HUMAN_READABLE = 1
     CSV = 2
+
+
+INCLUDE_ALL = "all"
+DEFAULT_YEAR = libCommon.DEFAULT_YEAR
+DEFAULT_POSITION = INCLUDE_ALL
+DEFAULT_TEAM = INCLUDE_ALL
+DEFAULT_MAX_RESULTS = -1
+DEFAULT_MIN_TIMES_DRAFTED = -1
+DEFAULT_LEAGUE_SIZE = 12
+DEFAULT_OUTPUT_FORMAT = OutputFormat.HUMAN_READABLE
+DEFAULT_LEAGUE_REGEX_STRING = ".*"
+DEFAULT_PLATFORM = common.PlatformSelection.SLEEPER
 
 
 class AggregatedPlayerData(object):
@@ -72,18 +84,18 @@ class AggregatedPlayerData(object):
         return self.player.name + " " + str(self.average_draft_position)
 
 
-def create_output_for_player(player: AggregatedPlayerData,
-                             format: OutputFormat, league_size: int) -> str:
+def _create_output_for_player(player: AggregatedPlayerData,
+                              format: OutputFormat, league_size: int) -> str:
     if format == OutputFormat.HUMAN_READABLE:
-        return create_human_readable_output_for_player(player, league_size)
+        return _create_human_readable_output_for_player(player, league_size)
     elif format == OutputFormat.CSV:
-        return create_csv_output_for_player(player)
+        return _create_csv_output_for_player(player)
     else:
         return "UNSUPPORTED FORMAT"
 
 
-def create_human_readable_output_for_player(player: AggregatedPlayerData,
-                                            league_size: int) -> str:
+def _create_human_readable_output_for_player(player: AggregatedPlayerData,
+                                             league_size: int) -> str:
     if player.times_drafted == 0:
         template = "{player_name} went undrafted"
         return template.format(player_name=player.player.name)
@@ -95,12 +107,12 @@ def create_human_readable_output_for_player(player: AggregatedPlayerData,
         maximum = player.max_draft_position
     else:
         template = "{player_name:<30}ADP: {adp:<5}   Min: {min:<5}   Max: {max:<5}   N= {n}"
-        adp = convert_raw_adp_to_round_and_pick(player.average_draft_position,
-                                                league_size)
-        minimum = convert_raw_adp_to_round_and_pick(player.min_draft_position,
-                                                    league_size)
-        maximum = convert_raw_adp_to_round_and_pick(player.max_draft_position,
-                                                    league_size)
+        adp = _convert_raw_adp_to_round_and_pick(player.average_draft_position,
+                                                 league_size)
+        minimum = _convert_raw_adp_to_round_and_pick(player.min_draft_position,
+                                                     league_size)
+        maximum = _convert_raw_adp_to_round_and_pick(player.max_draft_position,
+                                                     league_size)
 
     return template.format(player_name=player.player.name,
                            adp=adp,
@@ -109,7 +121,7 @@ def create_human_readable_output_for_player(player: AggregatedPlayerData,
                            n=player.times_drafted)
 
 
-def convert_raw_adp_to_round_and_pick(raw_adp: float, league_size: int) -> str:
+def _convert_raw_adp_to_round_and_pick(raw_adp: float, league_size: int) -> str:
     adp = int(round(raw_adp))
 
     draft_round = adp // league_size + 1
@@ -124,7 +136,7 @@ def convert_raw_adp_to_round_and_pick(raw_adp: float, league_size: int) -> str:
     return str(draft_round) + "." + str(draft_pick)
 
 
-def create_csv_output_for_player(player: AggregatedPlayerData) -> str:
+def _create_csv_output_for_player(player: AggregatedPlayerData) -> str:
     template = "{player_name},{n},{adp},{min},{max}"
     return template.format(player_name=player.player.name,
                            adp=player.average_draft_position,
@@ -133,7 +145,7 @@ def create_csv_output_for_player(player: AggregatedPlayerData) -> str:
                            n=player.times_drafted)
 
 
-def parse_user_provided_flags() -> argparse.Namespace:
+def _parse_user_provided_flags() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
@@ -141,43 +153,42 @@ def parse_user_provided_flags() -> argparse.Namespace:
         "--year",
         help="The year to run the analysis on, defaults to 2023",
         type=int,
-        default=2023)
+        default=DEFAULT_YEAR)
     parser.add_argument(
         "-r",
         "--league_regex",
         help="Regular expression used to select which leagues to analyze",
         type=str,
-        default=".*")
+        default=DEFAULT_LEAGUE_REGEX_STRING)
     parser.add_argument(
         "-p",
         "--position",
         help="Which NFL position to print data about (default: all)",
         type=str,
-        default=INCLUDE_ALL)
+        default=DEFAULT_POSITION)
     parser.add_argument(
         "-t",
         "--team",
         help="Which NFL team to print data about (default: all)",
         type=str,
-        default=INCLUDE_ALL)
+        default=DEFAULT_TEAM)
     parser.add_argument(
         "-n",
         "--max_results",
         help="Maximum number of players to display (default: all)",
         type=int,
-        default=-1)
+        default=DEFAULT_MAX_RESULTS)
     parser.add_argument(
         "-c",
         "--minimum_times_drafted",
-        help=
-        "Minimum number of times a player needs to be drafted (default: 1)",
+        help="Minimum number of times a player needs to be drafted (default: 1)",
         type=int,
-        default=1)
+        default=DEFAULT_MIN_TIMES_DRAFTED)
     parser.add_argument("-s",
                         "--league_size",
                         help="Number of teams in the league",
                         type=int,
-                        default=0)
+                        default=DEFAULT_LEAGUE_SIZE)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--human_readable",
                        dest="output_format",
@@ -204,30 +215,30 @@ def parse_user_provided_flags() -> argparse.Namespace:
                         help="User account used to pull all of the leagues",
                         type=str)
 
-    parser.set_defaults(output_format=OutputFormat.HUMAN_READABLE,
-                        platform_selection=common.PlatformSelection.SLEEPER)
+    parser.set_defaults(output_format=DEFAULT_OUTPUT_FORMAT,
+                        platform_selection=DEFAULT_PLATFORM)
     return parser.parse_args()
 
 
-def main(argv):
-    # Parse all of the user-provided flags
-    args = parse_user_provided_flags()
+def aggregate_adp_data(
+    account_identifier: str,
+    league_size: int = DEFAULT_LEAGUE_SIZE,
+    year: int = DEFAULT_YEAR,
+    position: str = DEFAULT_POSITION,
+    team: str = DEFAULT_TEAM,
+    max_results: int = DEFAULT_MAX_RESULTS,
+    minimum_times_drafted: int = DEFAULT_MIN_TIMES_DRAFTED,
+    league_regex_string: str = DEFAULT_LEAGUE_REGEX_STRING,
+    output_format: OutputFormat = DEFAULT_OUTPUT_FORMAT,
+    platform_selection: common.PlatformSelection = DEFAULT_PLATFORM
+) -> List[str]:
 
-    # Convert the computed args into our more-verbose local fields
-    account_identifier = args.identifier
-    year = args.year
-    position = args.position
-    team = args.team
-    max_results_to_print = args.max_results
-    minimum_times_drafted = args.minimum_times_drafted
-    league_size = args.league_size
-    output_format = args.output_format
-    league_regex = re.compile(args.league_regex)
+    league_regex = re.compile(league_regex_string)
 
     # Set platform based on user choice
-    if args.platform_selection == common.PlatformSelection.SLEEPER:
+    if platform_selection == common.PlatformSelection.SLEEPER:
         platform = Sleeper()
-    elif args.platform_selection == common.PlatformSelection.FLEAFLICKER:
+    elif platform_selection == common.PlatformSelection.FLEAFLICKER:
         platform = Fleaflicker()
 
     user = platform.get_admin_user_by_identifier(account_identifier)
@@ -251,11 +262,11 @@ def main(argv):
             player_data[player_id].add_draft_position(
                 drafted_player.draft_position)
 
-    results_printed = 0
+    results = []
     for player_id in sorted(player_data, key=player_data.get):
 
         # Short circuit if we've printed enough
-        if max_results_to_print != -1 and results_printed >= max_results_to_print:
+        if max_results != -1 and len(results) >= max_results:
             break
 
         # Pull up the player
@@ -273,10 +284,25 @@ def main(argv):
         if individual_player_data.times_drafted < minimum_times_drafted:
             continue
 
-        results_printed += 1
-        print(
-            create_output_for_player(individual_player_data, output_format,
-                                     league_size))
+        results.append(
+            _create_output_for_player(individual_player_data, output_format,
+                                      league_size))
+
+    return results
+
+
+def main(argv):
+    # Parse all of the user-provided flags
+    args = _parse_user_provided_flags()
+
+    adp_data = aggregate_adp_data(args.identifier, args.league_size, args.year,
+                                  args.position, args.team, args.max_results,
+                                  args.minimum_times_drafted,
+                                  args.league_regex, args.output_format,
+                                  args.platform_selection)
+
+    for player in adp_data:
+        print(player)
 
 
 if __name__ == "__main__":
