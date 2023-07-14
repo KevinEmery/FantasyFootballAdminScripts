@@ -38,6 +38,7 @@ async def on_ready():
 @commands.has_any_role("Commissioner", "League Admin")
 async def post_fta_adps(ctx, forum: discord.ForumChannel):
     await post_fta_adp_all(ctx, forum)
+    await post_fta_adp_qb(ctx, forum)
     await post_fta_adp_wr(ctx, forum)
     await post_fta_adp_rb(ctx, forum)
     await post_fta_adp_te(ctx, forum)
@@ -47,6 +48,12 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
 @commands.has_any_role("Commissioner", "League Admin")
 async def post_fta_adp_all(ctx, forum: discord.ForumChannel):
     await _post_fta_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players")
+
+
+@bot.command()
+@commands.has_any_role("Commissioner", "League Admin")
+async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
+    await _post_fta_position_adp(ctx, forum, "QB", "Quarterback")
 
 
 @bot.command()
