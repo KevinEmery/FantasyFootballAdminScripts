@@ -36,6 +36,7 @@ from library.platforms.sleeper.sleeper import Sleeper
 class OutputFormat(Enum):
     HUMAN_READABLE = 1
     CSV = 2
+    FORMATTED_CSV = 3
 
 
 INCLUDE_ALL = "all"
@@ -90,6 +91,8 @@ def _create_output_for_player(player: AggregatedPlayerData,
         return _create_human_readable_output_for_player(player, league_size)
     elif format == OutputFormat.CSV:
         return _create_csv_output_for_player(player)
+    elif format == OutputFormat.FORMATTED_CSV:
+        return _create_formatted_csv_output_for_player(player, league_size)
     else:
         return "UNSUPPORTED FORMAT"
 
@@ -142,6 +145,26 @@ def _create_csv_output_for_player(player: AggregatedPlayerData) -> str:
                            adp=player.average_draft_position,
                            min=player.min_draft_position,
                            max=player.max_draft_position,
+                           n=player.times_drafted)
+
+
+def _create_formatted_csv_output_for_player(player: AggregatedPlayerData, league_size: int) -> str:
+    template = "{player_name},{adp},{min},{max},{n}"
+    if league_size == 0:
+        adp = player.average_draft_position
+        minimum = player.min_draft_position
+        maximum = player.max_draft_position
+    else:
+        adp = _convert_raw_adp_to_round_and_pick(player.average_draft_position,
+                                                 league_size)
+        minimum = _convert_raw_adp_to_round_and_pick(player.min_draft_position,
+                                                     league_size)
+        maximum = _convert_raw_adp_to_round_and_pick(player.max_draft_position,
+                                                     league_size)
+    return template.format(player_name=player.player.name,
+                           adp=adp,
+                           min=minimum,
+                           max=maximum,
                            n=player.times_drafted)
 
 
