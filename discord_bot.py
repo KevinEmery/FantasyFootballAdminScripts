@@ -151,7 +151,7 @@ async def stop_posting_fta_trades(ctx):
     post_fta_trades.cancel()
 
 
-@tasks.loop(minutes=30.0)
+@tasks.loop(hours=1.0)
 async def post_fta_trades():
     trade_channel = _get_fta_trade_channel()
 
