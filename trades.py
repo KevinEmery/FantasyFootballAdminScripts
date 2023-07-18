@@ -23,6 +23,7 @@ from dateutil import parser
 from typing import List
 
 import common
+import library.common as libCommon
 
 from library.model.league import League
 from library.model.player import Player
@@ -36,8 +37,14 @@ from library.platforms.sleeper.sleeper import Sleeper
 # Needs to be large enough for longest player name plus a couple (MVS)
 OUTPUT_COLUMN_WIDTH = 30
 
+DEFAULT_YEAR = libCommon.DEFAULT_YEAR
+DEFAULT_LEAGUE_REGEX_STRING = ".*"
+DEFAULT_START = "12-31-1999"
+DEFAULT_END = "12-31-2099"
+DEFAULT_PLATFORM = common.PlatformSelection.SLEEPER
 
-def filter_and_sort_trades_by_date(trades: List[Trade], start: datetime,
+
+def _filter_and_sort_trades_by_date(trades: List[Trade], start: datetime,
                                    end: datetime) -> List[Trade]:
     filtered_trades = list(
         filter(
@@ -54,12 +61,12 @@ def print_trades(trades: List[Trade]):
         # Switch based on the trade size. Two team trades have a better visualization but
         # it's hard to do that for trades with more than 2.
         if len(trade.details) == 2:
-            print_two_team_trade(trade)
+            _print_two_team_trade(trade)
         else:
-            print_larger_trade(trade)
+            _print_larger_trade(trade)
 
 
-def print_two_team_trade(trade: Trade):
+def _print_two_team_trade(trade: Trade):
 
     # Define the template variables
     manager_template = "**Team {number}: {manager}** - {roster_link}"
@@ -72,18 +79,18 @@ def print_two_team_trade(trade: Trade):
     team_b_adds = []
 
     for player in trade.details[0].added_players:
-        team_a_adds.append(format_player_string(player))
+        team_a_adds.append(_format_player_string(player))
     for pick in trade.details[0].added_draft_picks:
         team_a_adds.append(pick)
     if trade.details[0].faab_added > 0:
-        team_a_adds.append(format_faab(trade_detail.faab_added))
+        team_a_adds.append(_format_faab(trade_detail.faab_added))
 
     for player in trade.details[1].added_players:
-        team_b_adds.append(format_player_string(player))
+        team_b_adds.append(_format_player_string(player))
     for pick in trade.details[1].added_draft_picks:
         team_b_adds.append(pick)
     if trade.details[1].faab_added > 0:
-        team_b_adds.append(format_faab(trade_detail.faab_added))
+        team_b_adds.append(_format_faab(trade_detail.faab_added))
 
     # Output the trade itself
     print("Trade on " + trade.trade_time.strftime(date_template))
@@ -97,13 +104,13 @@ def print_two_team_trade(trade: Trade):
                                 roster_link=trade.details[1].team.roster_link))
 
     # Preferred format, but looks bad on mobile
-    # print_side_by_side_table(team_a_adds, team_b_adds)
+    # _print_side_by_side_table(team_a_adds, team_b_adds)
 
     # Formats well on desktop and mobile
-    print_two_separate_tables(team_a_adds, team_b_adds)
+    _print_two_separate_tables(team_a_adds, team_b_adds)
 
 
-def print_side_by_side_table(team_a_adds: List[str], team_b_adds: List[str]):
+def _print_side_by_side_table(team_a_adds: List[str], team_b_adds: List[str]):
     # Define the templates
     header_template = "|{team_a:^{column_width}}|{team_b:^{column_width}}|"
     row_template = "|{player_a:^{column_width}}|{player_b:^{column_width}}|"
@@ -133,14 +140,14 @@ def print_side_by_side_table(team_a_adds: List[str], team_b_adds: List[str]):
     print("```\n")
 
 
-def print_two_separate_tables(team_a_adds: List[str], team_b_adds: List[str]):
+def _print_two_separate_tables(team_a_adds: List[str], team_b_adds: List[str]):
     print("```")
-    print_single_team_adds("Team A Gained", team_a_adds)
-    print_single_team_adds("Team B Gained", team_b_adds)
+    _print_single_team_adds("Team A Gained", team_a_adds)
+    _print_single_team_adds("Team B Gained", team_b_adds)
     print("```\n")
 
 
-def print_single_team_adds(header_text: str, players: List[str]):
+def _print_single_team_adds(header_text: str, players: List[str]):
 
     # Define the templates
     template = "|{text:^{column_width}}|"
@@ -157,7 +164,7 @@ def print_single_team_adds(header_text: str, players: List[str]):
     print("=" * (OUTPUT_COLUMN_WIDTH + 2))
 
 
-def print_larger_trade(trade: Trade):
+def _print_larger_trade(trade: Trade):
     print("Trade on " + trade.trade_time.strftime("%m-%d-%Y"))
     for trade_detail in trade.details:
         print("**Team Manager: " + trade_detail.team.manager.name + "**")
@@ -167,35 +174,35 @@ def print_larger_trade(trade: Trade):
         ) > 0 or trade_detail.faab_added > 0:
             print("*Traded For*")
         for player in trade_detail.added_players:
-            print("    " + format_player_string(player))
+            print("    " + _format_player_string(player))
         for pick in trade_detail.added_draft_picks:
             print("    " + pick)
         if trade_detail.faab_added > 0:
-            print("    " + format_faab(trade_detail.faab_added))
+            print("    " + _format_faab(trade_detail.faab_added))
         if len(trade_detail.lost_players) > 0 or len(
                 trade_detail.lost_draft_picks
         ) > 0 or trade_detail.faab_lost > 0:
             print("*Traded Away*")
         for player in trade_detail.lost_players:
-            print("    " + format_player_string(player))
+            print("    " + _format_player_string(player))
         for pick in trade_detail.lost_draft_picks:
             print("    " + pick)
         if trade_detail.faab_lost > 0:
-            print("    " + format_faab(trade_detail.faab_lost))
+            print("    " + _format_faab(trade_detail.faab_lost))
         print("")
 
 
-def format_player_string(player: Player) -> str:
+def _format_player_string(player: Player) -> str:
     template = "{name} ({position})"
     return template.format(name=player.name, position=player.position)
 
 
-def format_faab(faab: int) -> str:
+def _format_faab(faab: int) -> str:
     template = "${number} FAAB"
     return template.format(number=faab)
 
 
-def parse_user_provided_flags() -> argparse.Namespace:
+def _parse_user_provided_flags() -> argparse.Namespace:
     arg_parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter)
     arg_parser.add_argument(
@@ -203,23 +210,23 @@ def parse_user_provided_flags() -> argparse.Namespace:
         "--year",
         help="The year to run the analysis on, defaults to 2023",
         type=int,
-        default=2023)
+        default=DEFAULT_YEAR)
     arg_parser.add_argument(
         "-r",
         "--league_regex",
         help="Regular expression used to select which leagues to analyze",
         type=str,
-        default=".*")
+        default=DEFAULT_LEAGUE_REGEX_STRING)
     arg_parser.add_argument("-s",
                             "--start",
                             help="First date for trade analysis",
                             type=str,
-                            default="12-31-1999")
+                            default=DEFAULT_START)
     arg_parser.add_argument("-e",
                             "--end",
                             help="Last date for trade analysis",
                             type=str,
-                            default="12-31-2099")
+                            default=DEFAULT_END)
 
     group = arg_parser.add_mutually_exclusive_group()
     group.add_argument("--sleeper",
@@ -244,29 +251,36 @@ def parse_user_provided_flags() -> argparse.Namespace:
     return arg_parser.parse_args()
 
 
-def main(argv):
-    args = parse_user_provided_flags()
-    identifier = args.identifier
-    year = args.year
-    league_regex = re.compile(args.league_regex)
-    start_date = parser.parse(args.start)
-    end_date = parser.parse(args.end)
-
-    # Set platform based on user choice
-    if args.platform_selection == common.PlatformSelection.SLEEPER:
+def fetch_and_filter_trades(
+    account_identifier: str,
+    year: int = DEFAULT_YEAR,
+    league_regex_string: str = DEFAULT_LEAGUE_REGEX_STRING,
+    start_date_string: str = DEFAULT_START,
+    end_date_string: str = DEFAULT_END,
+    platform_selection: common.PlatformSelection = DEFAULT_PLATFORM
+) -> List[Trade]:
+    if platform_selection == common.PlatformSelection.SLEEPER:
         platform = Sleeper()
-    elif args.platform_selection == common.PlatformSelection.FLEAFLICKER:
+    elif platform_selection == common.PlatformSelection.FLEAFLICKER:
         platform = Fleaflicker()
 
-    user = platform.get_admin_user_by_identifier(identifier)
-    leagues = platform.get_all_leagues_for_user(user, year, league_regex)
+    user = platform.get_admin_user_by_identifier(account_identifier)
+    leagues = platform.get_all_leagues_for_user(user, year, re.compile(league_regex_string))
     trades = []
 
     for league in leagues:
         trades.extend(platform.get_all_trades_for_league(league))
 
-    filtered_trades = filter_and_sort_trades_by_date(
-        trades, start_date, end_date)
+    filtered_trades = _filter_and_sort_trades_by_date(
+        trades, parser.parse(start_date_string), parser.parse(end_date_string))
+
+    return filtered_trades
+
+
+def main(argv):
+    args = _parse_user_provided_flags()
+    filtered_trades = fetch_and_filter_trades(
+        args.identifier, args.year, args.league_regex, args.start, args.end, args.platform_selection)
 
     if filtered_trades:
         print_trades(filtered_trades)
