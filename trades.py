@@ -45,7 +45,7 @@ DEFAULT_PLATFORM = common.PlatformSelection.SLEEPER
 
 
 def _filter_and_sort_trades_by_date(trades: List[Trade], start: datetime,
-                                   end: datetime) -> List[Trade]:
+                                    end: datetime) -> List[Trade]:
     filtered_trades = list(
         filter(
             lambda trade: trade.trade_time < end and trade.trade_time > start,
@@ -54,19 +54,29 @@ def _filter_and_sort_trades_by_date(trades: List[Trade], start: datetime,
     return filtered_trades
 
 
+# Utility function that abstracts away the constant newlines, and makes it easier to
+# rewrite this class to return strings instead of printing from the helpers.
+def _append_with_newline(base: str, new_content: str) -> str:
+    return base + new_content + "\n"
+
+
 # Format all of the league's trades using Discord markdown formatting
-def print_trades(trades: List[Trade]):
+def format_trades(trades: List[Trade]) -> str:
+    output = ""
     for trade in trades:
-        print("__**" + trade.league.name + "**__\n")
+        output = _append_with_newline(output, "__**" + trade.league.name + "**__\n")
         # Switch based on the trade size. Two team trades have a better visualization but
         # it's hard to do that for trades with more than 2.
         if len(trade.details) == 2:
-            _print_two_team_trade(trade)
+            output = _append_with_newline(output, _format_two_team_trade(trade))
         else:
-            _print_larger_trade(trade)
+            output = _append_with_newline(output, _format_larger_trade(trade))
+
+    return output
 
 
-def _print_two_team_trade(trade: Trade):
+def _format_two_team_trade(trade: Trade) -> str:
+    output = ""
 
     # Define the template variables
     manager_template = "**Team {number}: {manager}** - {roster_link}"
@@ -93,36 +103,40 @@ def _print_two_team_trade(trade: Trade):
         team_b_adds.append(_format_faab(trade_detail.faab_added))
 
     # Output the trade itself
-    print("Trade on " + trade.trade_time.strftime(date_template))
-    print(
-        manager_template.format(number="A",
-                                manager=trade.details[0].team.manager.name,
-                                roster_link=trade.details[0].team.roster_link))
-    print(
-        manager_template.format(number="B",
-                                manager=trade.details[1].team.manager.name,
-                                roster_link=trade.details[1].team.roster_link))
+    output = _append_with_newline(output, "Trade on " + trade.trade_time.strftime(date_template))
+    output = _append_with_newline(output,
+                                  manager_template.format(number="A",
+                                                          manager=trade.details[0].team.manager.name,
+                                                          roster_link=trade.details[0].team.roster_link))
+    output = _append_with_newline(output,
+                                  manager_template.format(number="B",
+                                                          manager=trade.details[1].team.manager.name,
+                                                          roster_link=trade.details[1].team.roster_link))
 
     # Preferred format, but looks bad on mobile
-    # _print_side_by_side_table(team_a_adds, team_b_adds)
+    # output += _format_side_by_side_table(team_a_adds, team_b_adds)
 
     # Formats well on desktop and mobile
-    _print_two_separate_tables(team_a_adds, team_b_adds)
+    output += _format_two_separate_tables(team_a_adds, team_b_adds)
+
+    return output
 
 
-def _print_side_by_side_table(team_a_adds: List[str], team_b_adds: List[str]):
+def _format_side_by_side_table(team_a_adds: List[str], team_b_adds: List[str]) -> str:
+    output = ""
+
     # Define the templates
     header_template = "|{team_a:^{column_width}}|{team_b:^{column_width}}|"
     row_template = "|{player_a:^{column_width}}|{player_b:^{column_width}}|"
 
     # Print the table
-    print("```")
-    print("=" * (OUTPUT_COLUMN_WIDTH * 2 + 3))
-    print(
-        header_template.format(team_a="Team A Gained",
-                               team_b="Team B Gained",
-                               column_width=OUTPUT_COLUMN_WIDTH))
-    print("|" + "=" * (OUTPUT_COLUMN_WIDTH * 2 + 1) + "|")
+    output = _append_with_newline(output, "```")
+    output = _append_with_newline(output, "=" * (OUTPUT_COLUMN_WIDTH * 2 + 3))
+    output = _append_with_newline(output,
+                                  header_template.format(team_a="Team A Gained",
+                                                         team_b="Team B Gained",
+                                                         column_width=OUTPUT_COLUMN_WIDTH))
+    output = _append_with_newline(output, "|" + "=" * (OUTPUT_COLUMN_WIDTH * 2 + 1) + "|")
 
     for i in range(0, max(len(team_a_adds), len(team_b_adds))):
         player_a = ''
@@ -131,65 +145,78 @@ def _print_side_by_side_table(team_a_adds: List[str], team_b_adds: List[str]):
             player_a = team_a_adds[i]
         if i < len(team_b_adds):
             player_b = team_b_adds[i]
-        print(
-            row_template.format(player_a=player_a,
-                                player_b=player_b,
-                                column_width=OUTPUT_COLUMN_WIDTH))
+        output = _append_with_newline(output,
+                                      row_template.format(player_a=player_a,
+                                                          player_b=player_b,
+                                                          column_width=OUTPUT_COLUMN_WIDTH))
 
-    print("=" * (OUTPUT_COLUMN_WIDTH * 2 + 3))
-    print("```\n")
+    output = _append_with_newline(output, "=" * (OUTPUT_COLUMN_WIDTH * 2 + 3))
+    output = _append_with_newline(output, "```")
 
-
-def _print_two_separate_tables(team_a_adds: List[str], team_b_adds: List[str]):
-    print("```")
-    _print_single_team_adds("Team A Gained", team_a_adds)
-    _print_single_team_adds("Team B Gained", team_b_adds)
-    print("```\n")
+    return output
 
 
-def _print_single_team_adds(header_text: str, players: List[str]):
+def _format_two_separate_tables(team_a_adds: List[str], team_b_adds: List[str]) -> str:
+    output = ""
+
+    output = _append_with_newline(output, "```")
+    output += _format_single_team_adds("Team A Gained", team_a_adds)
+    output += _format_single_team_adds("Team B Gained", team_b_adds)
+    output = _append_with_newline(output, "```")
+
+    return output
+
+
+def _format_single_team_adds(header_text: str, players: List[str]):
+    output = ""
 
     # Define the templates
     template = "|{text:^{column_width}}|"
 
     # Print the table
-    print("=" * (OUTPUT_COLUMN_WIDTH + 2))
-    print(template.format(text=header_text, column_width=OUTPUT_COLUMN_WIDTH))
-    print("|" + "=" * OUTPUT_COLUMN_WIDTH + "|")
+    output = _append_with_newline(output, "=" * (OUTPUT_COLUMN_WIDTH + 2))
+    output = _append_with_newline(output, template.format(text=header_text, column_width=OUTPUT_COLUMN_WIDTH))
+    output = _append_with_newline(output, "|" + "=" * OUTPUT_COLUMN_WIDTH + "|")
 
     for i in range(0, len(players)):
-        print(
-            template.format(text=players[i], column_width=OUTPUT_COLUMN_WIDTH))
+        output = _append_with_newline(output,
+                                      template.format(text=players[i], column_width=OUTPUT_COLUMN_WIDTH))
 
-    print("=" * (OUTPUT_COLUMN_WIDTH + 2))
+    output = _append_with_newline(output, "=" * (OUTPUT_COLUMN_WIDTH + 2))
+
+    return output
 
 
-def _print_larger_trade(trade: Trade):
-    print("Trade on " + trade.trade_time.strftime("%m-%d-%Y"))
+def _format_larger_trade(trade: Trade) -> str:
+    output = ""
+
+    output = _append_with_newline(output, "Trade on " + trade.trade_time.strftime("%m-%d-%Y"))
     for trade_detail in trade.details:
-        print("**Team Manager: " + trade_detail.team.manager.name + "**")
-        print("Roster link: " + trade_detail.team.roster_link)
+        output = _append_with_newline(output, "**Team Manager: " + trade_detail.team.manager.name + "**")
+        output = _append_with_newline(output, "Roster link: " + trade_detail.team.roster_link)
         if len(trade_detail.added_players) > 0 or len(
                 trade_detail.added_draft_picks
         ) > 0 or trade_detail.faab_added > 0:
-            print("*Traded For*")
+            output = _append_with_newline(output, "*Traded For*")
         for player in trade_detail.added_players:
-            print("    " + _format_player_string(player))
+            output = _append_with_newline(output, "    " + _format_player_string(player))
         for pick in trade_detail.added_draft_picks:
-            print("    " + pick)
+            output = _append_with_newline(output, "    " + pick)
         if trade_detail.faab_added > 0:
-            print("    " + _format_faab(trade_detail.faab_added))
+            output = _append_with_newline(output, "    " + _format_faab(trade_detail.faab_added))
         if len(trade_detail.lost_players) > 0 or len(
                 trade_detail.lost_draft_picks
         ) > 0 or trade_detail.faab_lost > 0:
-            print("*Traded Away*")
+            output = _append_with_newline(output, "*Traded Away*")
         for player in trade_detail.lost_players:
-            print("    " + _format_player_string(player))
+            output = _append_with_newline(output, "    " + _format_player_string(player))
         for pick in trade_detail.lost_draft_picks:
-            print("    " + pick)
+            output = _append_with_newline(output, "    " + pick)
         if trade_detail.faab_lost > 0:
-            print("    " + _format_faab(trade_detail.faab_lost))
-        print("")
+            output = _append_with_newline(output, "    " + _format_faab(trade_detail.faab_lost))
+        output += "\n"
+
+    return output
 
 
 def _format_player_string(player: Player) -> str:
@@ -283,7 +310,7 @@ def main(argv):
         args.identifier, args.year, args.league_regex, args.start, args.end, args.platform_selection)
 
     if filtered_trades:
-        print_trades(filtered_trades)
+        print(format_trades(filtered_trades))
 
 
 if __name__ == "__main__":
