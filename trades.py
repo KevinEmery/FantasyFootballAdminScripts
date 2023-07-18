@@ -79,7 +79,7 @@ def _format_two_team_trade(trade: Trade) -> str:
     output = ""
 
     # Define the template variables
-    manager_template = "**Team {number}: {manager}** - {roster_link}"
+    manager_template = "**Team {number}: {manager}** - <{roster_link}>"
     date_template = "%m-%d-%Y"
 
     # Extract the information from the trade
@@ -193,7 +193,7 @@ def _format_larger_trade(trade: Trade) -> str:
     output = _append_with_newline(output, "Trade on " + trade.trade_time.strftime("%m-%d-%Y"))
     for trade_detail in trade.details:
         output = _append_with_newline(output, "**Team Manager: " + trade_detail.team.manager.name + "**")
-        output = _append_with_newline(output, "Roster link: " + trade_detail.team.roster_link)
+        output = _append_with_newline(output, "Roster link: <" + trade_detail.team.roster_link + ">")
         if len(trade_detail.added_players) > 0 or len(
                 trade_detail.added_draft_picks
         ) > 0 or trade_detail.faab_added > 0:
