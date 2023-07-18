@@ -324,8 +324,10 @@ class Sleeper(Platform):
             draft_type = DraftType.SNAKE
         elif raw_draft_type == "linear":
             draft_type = DraftType.LINEAR
+        elif raw_draft_type == "auction":
+            draft_type = DraftType.AUCTION
         else:
-            print("Unknown draft type")
+            print("Unknown draft type: " + raw_draft_type)
             exit()
 
         league_size = raw_draft["settings"]["teams"]

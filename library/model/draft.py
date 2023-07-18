@@ -20,6 +20,7 @@ from typing import Dict
 class DraftType(Enum):
     SNAKE = 1
     LINEAR = 2
+    AUCTION = 3
 
 
 class Draft(object):
