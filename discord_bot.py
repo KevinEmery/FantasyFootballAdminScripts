@@ -28,6 +28,9 @@ FTA_LAST_TRADE_TIMESTAMP_PATH = "./bot_data/fta_last_trade_timestamp"
 FTAFFL_USER = "FTAFFL"
 FTAFFL_LEAGUE_REGEX = "^FTA \#\d+.*$"
 
+FTA_LEAGUE_ADMIN_ROLE = "League Admin"
+LOB_COMMISH_ROLE = "Commissioner"
+
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -44,7 +47,7 @@ async def on_ready():
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adps(ctx, forum: discord.ForumChannel):
     await post_fta_adp_all(ctx, forum)
     await post_fta_adp_qb(ctx, forum)
@@ -54,43 +57,43 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_all(ctx, forum: discord.ForumChannel):
     await _post_fta_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", discord.Colour.dark_blue())
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
     await _post_fta_position_adp(ctx, forum, "QB", "Quarterback", discord.Colour.from_rgb(192, 94, 133))
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_wr(ctx, forum: discord.ForumChannel):
     await _post_fta_position_adp(ctx, forum, "WR", "Wide Receiver", discord.Colour.from_rgb(70, 162, 202))
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_rb(ctx, forum: discord.ForumChannel):
     await _post_fta_position_adp(ctx, forum, "RB", "Running Back", discord.Colour.from_rgb(115, 195, 166))
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_te(ctx, forum: discord.ForumChannel):
     await _post_fta_position_adp(ctx, forum, "TE", "Tight End", discord.Colour.from_rgb(204, 140, 74))
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_k(ctx, forum: discord.ForumChannel):
     await _post_fta_position_adp(ctx, forum, "K", "Kicker", discord.Colour.purple())
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_def(ctx, forum: discord.ForumChannel):
     await _post_fta_position_adp(ctx, forum, "DEF", "Team Defense", discord.Colour.from_rgb(154, 95, 78))
 
@@ -137,13 +140,13 @@ def _get_formatted_date() -> str:
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def start_posting_fta_trades(ctx):
     post_fta_trades.start()
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def stop_posting_fta_trades(ctx):
     post_fta_trades.cancel()
 
@@ -176,7 +179,7 @@ async def post_fta_trades():
 
 
 @bot.command()
-@commands.has_any_role("Commissioner", "League Admin")
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def set_fta_trades_channel(ctx, channel: discord.TextChannel):
     file = open(FTA_TRADE_CHANNEL_PATH, "w")
     file.write(str(channel.id))
