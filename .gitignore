@@ -133,3 +133,6 @@ local/
 
 # Local-only data files
 data/
+
+# Local-only data files for the bot
+bot_data/
