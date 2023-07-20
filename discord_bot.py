@@ -26,6 +26,10 @@ The designation \"X.Y\" represents a selection in Round X, at Pick Y"
 FTA_TRADE_CHANNEL_PATH = "./bot_data/fta_trade_channel"
 FTA_LAST_TRADE_TIMESTAMP_PATH = "./bot_data/fta_last_trade_timestamp"
 
+TWO_TEAM_TRADE_REACTIONS = ['🅰️', '🅱️', '🤷']
+THREE_TEAM_TRADE_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '🤷']
+FOUR_TEAM_TRADE_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '🤷']
+
 FTAFFL_USER = "FTAFFL"
 FTAFFL_LEAGUE_REGEX = "^FTA \#\d+.*$"
 
@@ -173,13 +177,26 @@ async def post_fta_trades():
 
         # Post the trades
         for trade in all_trades:
-            await trade_channel.send(content=trades.format_trades([trade]))
+            message = await trade_channel.send(content=trades.format_trades([trade]))
+            await _react_to_trade(message, len(trade.details))
 
         # Write the timestamp of the last trade
         if len(all_trades) > 0:
             _write_fta_last_trade_timestamp(all_trades[-1].trade_time)
     else:
         print("FTA_Trades: No trade channel available")
+
+
+async def _react_to_trade(message: discord.Message, trade_size: int):
+    if trade_size == 2:
+        for reaction in TWO_TEAM_TRADE_REACTIONS:
+            await message.add_reaction(reaction)
+    elif trade_size == 3:
+        for reaction in THREE_TEAM_TRADE_REACTIONS:
+            await message.add_reaction(reaction)
+    elif trade_size == 4:
+        for reaction in FOUR_TEAM_TRADE_REACTIONS:
+            await message.add_reaction(reaction)
 
 
 @bot.command()
