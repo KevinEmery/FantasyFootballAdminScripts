@@ -206,16 +206,16 @@ async def _react_to_trade(message: discord.Message, trade_size: int):
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def set_fta_trades_channel(ctx, channel: discord.TextChannel):
-    _print_descriptive_log("post_fta_trades", "Channel set to " + channel.name)
+    _print_descriptive_log("set_fta_trades_channel", "Channel set to " + channel.name)
     file = open(FTA_TRADE_CHANNEL_PATH, "w")
-    file.write(str(channel.id))
+    file.write(str(channel.id) + "," + channel.name)
     file.close()
 
 
 def _get_fta_trade_channel() -> discord.TextChannel:
     if os.path.isfile(FTA_TRADE_CHANNEL_PATH):
         file = open(FTA_TRADE_CHANNEL_PATH, "r")
-        channel_id = file.read()
+        channel_id = file.read().split(",")[0]
         file.close()
     else:
         return None
@@ -262,7 +262,7 @@ def _get_trade_hash_from_file_entry(file_line: str) -> str:
 
 
 def _print_descriptive_log(log_method: str, log_line: str = ""):
-    log_template = "{time:<20}{log_method:<20}{log_line}"
+    log_template = "{time:<20}{log_method:40.40}\t{log_line}"
     formatted_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     print(log_template.format(time=formatted_time, log_method=log_method, log_line=log_line))
