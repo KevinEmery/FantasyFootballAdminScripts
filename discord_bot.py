@@ -1,3 +1,4 @@
+import asyncio
 import discord
 import os
 
@@ -42,6 +43,7 @@ bot = commands.Bot(command_prefix='&', intents=intents)
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
+    post_fta_trades.start()
 
 # FTA ADP Commands
 
@@ -151,7 +153,7 @@ async def stop_posting_fta_trades(ctx):
     post_fta_trades.cancel()
 
 
-@tasks.loop(hours=1.0)
+@tasks.loop(minutes=5)
 async def post_fta_trades():
     trade_channel = _get_fta_trade_channel()
 
@@ -161,11 +163,13 @@ async def post_fta_trades():
 
         if last_posted_trade_timestamp != "":
             print("FTA_Trades: Retrieving trades since: " + last_posted_trade_timestamp)
-            all_trades = trades.fetch_and_filter_trades(
-                FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX, start_date_string=last_posted_trade_timestamp)
+            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
+                                                 FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX,
+                                                 start_date_string=last_posted_trade_timestamp)
         else:
             print("FTA_Trades: No previous timestamp found")
-            all_trades = trades.fetch_and_filter_trades(FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
+            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
+                                                 FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
 
         # Post the trades
         for trade in all_trades:
