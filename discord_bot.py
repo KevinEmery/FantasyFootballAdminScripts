@@ -57,6 +57,7 @@ async def on_ready():
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adps(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adps", "Posting to " + forum.name + " forum")
     await post_fta_adp_all(ctx, forum)
     await post_fta_adp_qb(ctx, forum)
     await post_fta_adp_wr(ctx, forum)
@@ -67,42 +68,49 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_all(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_all", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", discord.Colour.dark_blue())
 
 
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_qb", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "QB", "Quarterback", discord.Colour.from_rgb(192, 94, 133))
 
 
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_wr(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_wr", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "WR", "Wide Receiver", discord.Colour.from_rgb(70, 162, 202))
 
 
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_rb(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_rb", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "RB", "Running Back", discord.Colour.from_rgb(115, 195, 166))
 
 
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_te(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_te", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "TE", "Tight End", discord.Colour.from_rgb(204, 140, 74))
 
 
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_k(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_k", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "K", "Kicker", discord.Colour.purple())
 
 
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_def(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_def", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "DEF", "Team Defense", discord.Colour.from_rgb(154, 95, 78))
 
 
@@ -150,23 +158,25 @@ def _get_formatted_date() -> str:
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def start_posting_fta_trades(ctx):
+    _print_descriptive_log("start_posting_fta_trades")
     post_fta_trades.start()
 
 
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def stop_posting_fta_trades(ctx):
+    _print_descriptive_log("stop_posting_fta_trades")
     post_fta_trades.cancel()
 
 
 @tasks.loop(minutes=5)
 async def post_fta_trades():
+    _print_descriptive_log("post_fta_trades")
     trade_channel = _get_fta_trade_channel()
     posted_trade_hashes = _get_all_fta_trade_hashes()
 
     if trade_channel is not None:
-        print("FTA_Trades: Pulling all trades")
-
+        _print_descriptive_log("post_fta_trades", "Posting to " + trade_channel.name)
         # Pull all available trades
         all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
                                              FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
@@ -178,7 +188,7 @@ async def post_fta_trades():
                 await _react_to_trade(message, len(trade.details))
                 _write_fta_trade_hash(trade)
     else:
-        print("FTA_Trades: No trade channel available")
+        _print_descriptive_log("post_fta_trades", "No trade channel avaialble")
 
 
 async def _react_to_trade(message: discord.Message, trade_size: int):
@@ -196,6 +206,7 @@ async def _react_to_trade(message: discord.Message, trade_size: int):
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def set_fta_trades_channel(ctx, channel: discord.TextChannel):
+    _print_descriptive_log("post_fta_trades", "Channel set to " + channel.name)
     file = open(FTA_TRADE_CHANNEL_PATH, "w")
     file.write(str(channel.id))
     file.close()
@@ -248,6 +259,13 @@ def _create_string_for_trade_hash_file(trade: Trade) -> str:
 def _get_trade_hash_from_file_entry(file_line: str) -> str:
     split = file_line.split(",")
     return split[0]
+
+
+def _print_descriptive_log(log_method: str, log_line: str = ""):
+    log_template = "{time:<20}{log_method:<20}{log_line}"
+    formatted_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    print(log_template.format(time=formatted_time, log_method=log_method, log_line=log_line))
 
 
 def _retrieve_token() -> str:
