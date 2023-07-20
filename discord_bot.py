@@ -9,6 +9,8 @@ from datetime import datetime
 from discord.ext import commands, tasks
 from typing import List
 
+from library.model.trade import Trade
+
 # Actual limit is 25, we want to steer clear in case we add fields on top of the iteration
 EMBED_FIELD_LIMIT = 20
 FTA_ADP_THREAD_CONTENT = "The data here is for the FTA league format. \
@@ -24,7 +26,7 @@ N:   The number of times a player has been drafted\
 The designation \"X.Y\" represents a selection in Round X, at Pick Y"
 
 FTA_TRADE_CHANNEL_PATH = "./bot_data/fta_trade_channel"
-FTA_LAST_TRADE_TIMESTAMP_PATH = "./bot_data/fta_last_trade_timestamp"
+FTA_POSTED_TRADES_PATH = "./bot_data/fta_posted_trades"
 
 TWO_TEAM_TRADE_REACTIONS = ['🅰️', '🅱️', '🤷']
 THREE_TEAM_TRADE_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '🤷']
@@ -160,29 +162,21 @@ async def stop_posting_fta_trades(ctx):
 @tasks.loop(minutes=5)
 async def post_fta_trades():
     trade_channel = _get_fta_trade_channel()
+    posted_trade_hashes = _get_all_fta_trade_hashes()
 
     if trade_channel is not None:
-        # Get the last timestamp, determine if we need to pass it to the method as a starting point
-        last_posted_trade_timestamp = _read_fta_last_trade_timestamp()
+        print("FTA_Trades: Pulling all trades")
 
-        if last_posted_trade_timestamp != "":
-            print("FTA_Trades: Retrieving trades since: " + last_posted_trade_timestamp)
-            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
-                                                 FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX,
-                                                 start_date_string=last_posted_trade_timestamp)
-        else:
-            print("FTA_Trades: No previous timestamp found")
-            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
-                                                 FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
+        # Pull all available trades
+        all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
+                                             FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
 
-        # Post the trades
+        # Post the non-posted trades with reactions
         for trade in all_trades:
-            message = await trade_channel.send(content=trades.format_trades([trade]))
-            await _react_to_trade(message, len(trade.details))
-
-        # Write the timestamp of the last trade
-        if len(all_trades) > 0:
-            _write_fta_last_trade_timestamp(all_trades[-1].trade_time)
+            if trade.hash() not in posted_trade_hashes:
+                message = await trade_channel.send(content=trades.format_trades([trade]))
+                await _react_to_trade(message, len(trade.details))
+                _write_fta_trade_hash(trade)
     else:
         print("FTA_Trades: No trade channel available")
 
@@ -218,21 +212,42 @@ def _get_fta_trade_channel() -> discord.TextChannel:
     return bot.get_channel(int(channel_id))
 
 
-def _write_fta_last_trade_timestamp(timestamp: str):
-    file = open(FTA_LAST_TRADE_TIMESTAMP_PATH, "w")
-    file.write(str(timestamp))
+def _write_fta_trade_hash(trade: Trade):
+    if os.path.isfile(FTA_POSTED_TRADES_PATH):
+        file = open(FTA_POSTED_TRADES_PATH, "a")
+    else:
+        file = open(FTA_POSTED_TRADES_PATH, "w")
+
+    file.write(_create_string_for_trade_hash_file(trade)+"\n")
     file.close()
 
 
-def _read_fta_last_trade_timestamp() -> str:
-    if os.path.isfile(FTA_LAST_TRADE_TIMESTAMP_PATH):
-        file = open(FTA_LAST_TRADE_TIMESTAMP_PATH, "r")
-        timestamp = file.read()
+def _get_all_fta_trade_hashes() -> List[str]:
+    result = []
+    if os.path.isfile(FTA_POSTED_TRADES_PATH):
+        file = open(FTA_POSTED_TRADES_PATH, "r")
+        lines = file.readlines()
+        for line in lines:
+            result.append(_get_trade_hash_from_file_entry(line))
         file.close()
-    else:
-        return ""
 
-    return timestamp
+    return result
+
+
+def _create_string_for_trade_hash_file(trade: Trade) -> str:
+    output_list = []
+    output_list.append(trade.hash())
+    output_list.append(trade.league.name)
+    output_list.append(trade.get_string_trade_time())
+    for details in trade.details:
+        output_list.append(details.team.manager.name)
+
+    return ",".join(output_list)
+
+
+def _get_trade_hash_from_file_entry(file_line: str) -> str:
+    split = file_line.split(",")
+    return split[0]
 
 
 def _retrieve_token() -> str:
