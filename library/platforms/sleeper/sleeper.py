@@ -106,6 +106,10 @@ class Sleeper(Platform):
         for i in range(1, 20):
             raw_transaction_data = api.get_league_transactions_for_week(
                 league.league_id, i)
+            
+            # Guard against this coming back as None, and just skip the week
+            if raw_transaction_data is None:
+                continue
 
             for transaction in raw_transaction_data:
                 if transaction["type"] != "trade":
