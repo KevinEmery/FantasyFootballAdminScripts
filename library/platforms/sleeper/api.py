@@ -24,6 +24,13 @@ def get_user_from_identifier(identifier: str) -> User:
     request_url = BASE_URL + "user/{identifier}".format(identifier=identifier)
 
     response_json = common._make_get_request_with_logging(request_url)
+
+    # In the event of an error, this comes back as None. Doing this allows
+    # us to more gracefully fail down the line instead of throwing errors here.
+    if response_json is None:
+        print("Error retrieving sleeper user: " + identifier)
+        return User("Error", "Error")
+
     return User(response_json["user_id"], response_json["username"])
 
 

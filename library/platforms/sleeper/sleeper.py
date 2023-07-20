@@ -60,6 +60,11 @@ class Sleeper(Platform):
 
         raw_response_json = api.get_all_leagues_for_user(user, year)
 
+        # We can treat None as just an empty response. This can happen in error
+        # cases where we don't get a valid user.
+        if raw_response_json is None:  
+            return leagues
+
         for raw_league in raw_response_json:
             league = League(raw_league["name"], raw_league["total_rosters"],
                             raw_league["league_id"], raw_league["draft_id"])
