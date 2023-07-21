@@ -60,9 +60,10 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adps", "Posting to " + forum.name + " forum")
     await post_fta_adp_all(ctx, forum)
     await post_fta_adp_qb(ctx, forum)
-    await post_fta_adp_wr(ctx, forum)
     await post_fta_adp_rb(ctx, forum)
+    await post_fta_adp_wr(ctx, forum)
     await post_fta_adp_te(ctx, forum)
+    await post_fta_adp_k(ctx, forum)
 
 
 @bot.command()
