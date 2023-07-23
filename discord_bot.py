@@ -64,6 +64,7 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
     await post_fta_adp_wr(ctx, forum)
     await post_fta_adp_te(ctx, forum)
     await post_fta_adp_k(ctx, forum)
+    await post_fta_adp_def(ctx, forum)
 
 
 @bot.command()
