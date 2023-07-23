@@ -144,7 +144,7 @@ def _break_adp_content_into_messages(content: List[str], embed_color: discord.Co
 
 def _convert_adp_csv_to_embed_field(content: str, embed: discord.Embed):
     player_data = content.split(",")
-    template = "`ADP: {adp:<5} Min: {min:<5} Max: {max:<5} N: {n}`"
+    template = "`ADP: {adp:<5} Min: {min:<5} Max: {max:<5} N:{n}`"
     embed.add_field(name=player_data[0], value=template.format(n=player_data[4],
                     adp=player_data[1], min=player_data[2], max=player_data[3]), inline=False)
 
