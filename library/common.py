@@ -42,6 +42,9 @@ TEAMS_ON_BYE = {
 
 
 def _make_get_request_with_logging(request_url: str, should_retry: bool = True):
+    # Declare this here so that it's defined in all cases, even if the .get call explodes
+    response = None
+    
     try:
         response = requests.get(request_url)
         return response.json()
