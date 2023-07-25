@@ -105,6 +105,8 @@ class Fleaflicker(Platform):
             if str(trade_time.year) != common.DEFAULT_YEAR:
                 continue
 
+            trade_id = trade_data["id"]
+
             trade_details = []
 
             for team_data in trade_data["teams"]:
@@ -141,7 +143,7 @@ class Fleaflicker(Platform):
 
                 trade_details.append(trade_detail)
 
-            all_trades.append(Trade(league, trade_time, trade_details))
+            all_trades.append(Trade(trade_id, league, trade_time, trade_details))
 
         return all_trades
 

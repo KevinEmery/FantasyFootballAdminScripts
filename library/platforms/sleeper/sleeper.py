@@ -62,7 +62,7 @@ class Sleeper(Platform):
 
         # We can treat None as just an empty response. This can happen in error
         # cases where we don't get a valid user.
-        if raw_response_json is None:  
+        if raw_response_json is None:
             return leagues
 
         for raw_league in raw_response_json:
@@ -106,7 +106,7 @@ class Sleeper(Platform):
         for i in range(1, 20):
             raw_transaction_data = api.get_league_transactions_for_week(
                 league.league_id, i)
-            
+
             # Guard against this coming back as None, and just skip the week
             if raw_transaction_data is None:
                 continue
@@ -182,7 +182,8 @@ class Sleeper(Platform):
 
                 transaction_time = datetime.fromtimestamp(
                     transaction["status_updated"] / 1000)
-                all_trades.append(Trade(league, transaction_time, all_details))
+                trade_id = transaction["transaction_id"]
+                all_trades.append(Trade(trade_id, league, transaction_time, all_details))
 
         return all_trades
 
