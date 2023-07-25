@@ -175,7 +175,7 @@ async def stop_posting_fta_trades(ctx):
 async def post_fta_trades():
     _print_descriptive_log("post_fta_trades")
     trade_channel = _get_fta_trade_channel()
-    posted_trade_hashes = _get_all_fta_trade_hashes()
+    posted_trade_ids = _get_all_fta_trade_ids()
 
     if trade_channel is not None:
         _print_descriptive_log("post_fta_trades", "Posting to " + trade_channel.name)
@@ -185,10 +185,10 @@ async def post_fta_trades():
 
         # Post the non-posted trades with reactions
         for trade in all_trades:
-            if trade.hash() not in posted_trade_hashes:
+            if trade.id not in posted_trade_ids:
                 message = await trade_channel.send(content=trades.format_trades([trade]))
                 await _react_to_trade(message, len(trade.details))
-                _write_fta_trade_hash(trade)
+                _write_fta_trade_to_file(trade)
     else:
         _print_descriptive_log("post_fta_trades", "No trade channel avaialble")
 
@@ -225,40 +225,40 @@ def _get_fta_trade_channel() -> discord.TextChannel:
     return bot.get_channel(int(channel_id))
 
 
-def _write_fta_trade_hash(trade: Trade):
+def _write_fta_trade_to_file(trade: Trade):
     if os.path.isfile(FTA_POSTED_TRADES_PATH):
         file = open(FTA_POSTED_TRADES_PATH, "a")
     else:
         file = open(FTA_POSTED_TRADES_PATH, "w")
 
-    file.write(_create_string_for_trade_hash_file(trade)+"\n")
+    file.write(_create_file_string_for_trade(trade)+"\n")
     file.close()
 
 
-def _get_all_fta_trade_hashes() -> List[str]:
+def _get_all_fta_trade_ids() -> List[str]:
     result = []
     if os.path.isfile(FTA_POSTED_TRADES_PATH):
         file = open(FTA_POSTED_TRADES_PATH, "r")
         lines = file.readlines()
         for line in lines:
-            result.append(_get_trade_hash_from_file_entry(line))
+            result.append(_get_trade_id_from_file_entry(line))
         file.close()
 
     return result
 
 
-def _create_string_for_trade_hash_file(trade: Trade) -> str:
+def _create_file_string_for_trade(trade: Trade) -> str:
     output_list = []
-    output_list.append(trade.hash())
+    output_list.append(trade.id)
     output_list.append(trade.league.name)
-    output_list.append(trade.get_string_trade_time())
+    output_list.append(trade.trade_time.strftime("%m/%d/%Y - %H:%M:%S"))
     for details in trade.details:
         output_list.append(details.team.manager.name)
 
     return ",".join(output_list)
 
 
-def _get_trade_hash_from_file_entry(file_line: str) -> str:
+def _get_trade_id_from_file_entry(file_line: str) -> str:
     split = file_line.split(",")
     return split[0]
 
