@@ -27,6 +27,7 @@ The designation \"X.Y\" represents a selection in Round X, at Pick Y"
 
 FTA_TRADE_CHANNEL_PATH = "./bot_data/fta_trade_channel"
 FTA_POSTED_TRADES_PATH = "./bot_data/fta_posted_trades"
+FTA_TRADE_POSTING_STATUS_PATH = "./bot_data/fta_trade_posting_status"
 
 TWO_TEAM_TRADE_REACTIONS = ['🅰️', '🅱️', '🤷']
 THREE_TEAM_TRADE_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '🤷']
@@ -49,7 +50,8 @@ bot = commands.Bot(command_prefix='&', intents=intents)
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
-    post_fta_trades.start()
+    if _get_fta_trade_posting_status():
+        post_fta_trades.start()
 
 # FTA ADP Commands
 
@@ -161,6 +163,7 @@ def _get_formatted_date() -> str:
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def start_posting_fta_trades(ctx):
     _print_descriptive_log("start_posting_fta_trades")
+    _write_fta_trade_posting_status(True)
     post_fta_trades.start()
 
 
@@ -168,6 +171,7 @@ async def start_posting_fta_trades(ctx):
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def stop_posting_fta_trades(ctx):
     _print_descriptive_log("stop_posting_fta_trades")
+    _write_fta_trade_posting_status(False)
     post_fta_trades.cancel()
 
 
@@ -245,6 +249,34 @@ def _get_all_fta_trade_ids() -> List[str]:
         file.close()
 
     return result
+
+
+def _write_fta_trade_posting_status(is_active: bool):
+    file = open(FTA_TRADE_POSTING_STATUS_PATH, "w")
+    file.write(str(is_active))
+    file.close()
+
+
+def _get_fta_trade_posting_status() -> bool:
+    # Assume default status is false
+    posting_status = False
+    
+    if os.path.isfile(FTA_TRADE_POSTING_STATUS_PATH):
+        file = open(FTA_TRADE_POSTING_STATUS_PATH, "r")
+        s = file.read()
+
+        if s == 'True':
+            posting_status = True
+        elif s == 'False':
+            posting_status = False
+        else:
+            _print_descriptive_log("_get_fta_trade_posting_status",
+                                   "Unknown value %s for trade posting status".format(s))
+            posting_status = False
+
+        file.close()
+
+    return posting_status
 
 
 def _create_file_string_for_trade(trade: Trade) -> str:
