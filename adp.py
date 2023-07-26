@@ -273,7 +273,7 @@ def aggregate_adp_data(
     player_data = {}
 
     for league in leagues:
-        drafted_players = platform.get_drafted_players_for_league(league)
+        drafted_players = platform.get_drafted_players_for_league(league, year)
 
         for drafted_player in drafted_players:
             player_id = drafted_player.player.player_id
