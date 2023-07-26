@@ -3,6 +3,7 @@ import discord
 import os
 
 import adp
+import common
 import trades
 
 from datetime import datetime
@@ -16,14 +17,26 @@ EMBED_FIELD_LIMIT = 20
 FTA_ADP_THREAD_CONTENT = "The data here is for the FTA league format. \
 These leagues are 14-team, 0.5 PPR Leagues that start \
 1 QB, 2 RBs, 3 WRs, 1 TE, 1 W/R/T Flex, 1 K, and 1 DEF.\n\n"
+NARFFL_ADP_THREAD_CONTENT = "The data here is for the NarFFL league format. \
+These leagues are 12-team, 1.0 PPR Leagues that start \
+1 QB, 2 RBs, 2 WRs, 1 TE, 1 W/R/T Flex, 1 K, and 1 DEF.\n\n"
 ADP_GLOSSARY = "__**Glossary Terms**__\
 ```\n\
-ADP: The average draft position across all drafts\n\
+Av:  The average draft position across all drafts\n\
 Min: The earliest a player was drafted\n\
 Max: The latest a player was drafted\n\
-N:   The number of times a player has been drafted\
+(#): Number of times a player has been drafted\
 ```\n\
 The designation \"X.Y\" represents a selection in Round X, at Pick Y"
+
+# These colors mirror the Sleeper draft board
+ALL_PLAYERS_COLOR = discord.Colour.dark_blue()
+QB_COLOR = discord.Colour.from_rgb(192, 94, 133)
+RB_COLOR = discord.Colour.from_rgb(115, 195, 166)
+WR_COLOR = discord.Colour.from_rgb(70, 162, 202)
+TE_COLOR = discord.Colour.from_rgb(204, 140, 74)
+K_COLOR = discord.Colour.purple()
+DEF_COLOR = discord.Colour.from_rgb(154, 95, 78)
 
 FTA_TRADE_CHANNEL_PATH = "./bot_data/fta_trade_channel"
 FTA_POSTED_TRADES_PATH = "./bot_data/fta_posted_trades"
@@ -36,7 +49,10 @@ FOUR_TEAM_TRADE_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '🤷']
 FTAFFL_USER = "FTAFFL"
 FTAFFL_LEAGUE_REGEX = "^FTA \#\d+.*$"
 
+NARFFL_USER = "narfflflea@davehenning.net"
+
 FTA_LEAGUE_ADMIN_ROLE = "League Admin"
+NARFFL_ADMIN_ROLE = "Admin"
 LOB_COMMISH_ROLE = "Commissioner"
 
 intents = discord.Intents.default()
@@ -53,77 +69,13 @@ async def on_ready():
     if _get_fta_trade_posting_status():
         post_fta_trades.start()
 
-# FTA ADP Commands
+# General ADP Functions
 
 
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_adps(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adps", "Posting to " + forum.name + " forum")
-    await post_fta_adp_all(ctx, forum)
-    await post_fta_adp_qb(ctx, forum)
-    await post_fta_adp_rb(ctx, forum)
-    await post_fta_adp_wr(ctx, forum)
-    await post_fta_adp_te(ctx, forum)
-    await post_fta_adp_k(ctx, forum)
-    await post_fta_adp_def(ctx, forum)
-
-
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_adp_all(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_all", "Posting to " + forum.name + " forum")
-    await _post_fta_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", discord.Colour.dark_blue())
-
-
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_qb", "Posting to " + forum.name + " forum")
-    await _post_fta_position_adp(ctx, forum, "QB", "Quarterback", discord.Colour.from_rgb(192, 94, 133))
-
-
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_adp_wr(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_wr", "Posting to " + forum.name + " forum")
-    await _post_fta_position_adp(ctx, forum, "WR", "Wide Receiver", discord.Colour.from_rgb(70, 162, 202))
-
-
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_adp_rb(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_rb", "Posting to " + forum.name + " forum")
-    await _post_fta_position_adp(ctx, forum, "RB", "Running Back", discord.Colour.from_rgb(115, 195, 166))
-
-
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_adp_te(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_te", "Posting to " + forum.name + " forum")
-    await _post_fta_position_adp(ctx, forum, "TE", "Tight End", discord.Colour.from_rgb(204, 140, 74))
-
-
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_adp_k(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_k", "Posting to " + forum.name + " forum")
-    await _post_fta_position_adp(ctx, forum, "K", "Kicker", discord.Colour.purple())
-
-
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_adp_def(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_def", "Posting to " + forum.name + " forum")
-    await _post_fta_position_adp(ctx, forum, "DEF", "Team Defense", discord.Colour.from_rgb(154, 95, 78))
-
-
-async def _post_fta_position_adp(ctx, forum: discord.ForumChannel, position_short: str, position_long: str, embed_color: discord.Colour):
-    adp_data = adp.aggregate_adp_data(FTAFFL_USER, 14, position=position_short,
-                                      league_regex_string=FTAFFL_LEAGUE_REGEX, output_format=adp.OutputFormat.FORMATTED_CSV)
+async def _post_position_adp_data(ctx, forum: discord.ForumChannel, adp_data: List[str],
+                                  position_long: str, embed_color: discord.Colour, thread_content: str):
     messages = _break_adp_content_into_messages(adp_data, embed_color)
     thread_title = _get_formatted_date() + ": " + position_long
-    thread_content = FTA_ADP_THREAD_CONTENT + ADP_GLOSSARY
     thread = (await forum.create_thread(name=thread_title, content=thread_content))[0]
     for message in messages:
         await thread.send(embed=message)
@@ -147,7 +99,7 @@ def _break_adp_content_into_messages(content: List[str], embed_color: discord.Co
 
 def _convert_adp_csv_to_embed_field(content: str, embed: discord.Embed):
     player_data = content.split(",")
-    template = "`ADP: {adp:<5} Min: {min:<5} Max: {max:<5} N:{n}`"
+    template = "`Av: {adp:<5} Min: {min:<5} Max: {max:<5} ({n})`"
     embed.add_field(name=player_data[0], value=template.format(n=player_data[4],
                     adp=player_data[1], min=player_data[2], max=player_data[3]), inline=False)
 
@@ -155,6 +107,152 @@ def _convert_adp_csv_to_embed_field(content: str, embed: discord.Embed):
 def _get_formatted_date() -> str:
     now = datetime.now()
     return now.strftime("%m/%d/%y")
+
+# FTA ADP Commands
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_adps(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adps", "Posting to " + forum.name + " forum")
+    await post_fta_adp_all(ctx, forum)
+    await post_fta_adp_qb(ctx, forum)
+    await post_fta_adp_rb(ctx, forum)
+    await post_fta_adp_wr(ctx, forum)
+    await post_fta_adp_te(ctx, forum)
+    await post_fta_adp_k(ctx, forum)
+    await post_fta_adp_def(ctx, forum)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_adp_all(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_all", "Posting to " + forum.name + " forum")
+    await _post_fta_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", ALL_PLAYERS_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_qb", "Posting to " + forum.name + " forum")
+    await _post_fta_position_adp(ctx, forum, "QB", "Quarterback", QB_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_adp_wr(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_wr", "Posting to " + forum.name + " forum")
+    await _post_fta_position_adp(ctx, forum, "WR", "Wide Receiver", WR_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_adp_rb(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_rb", "Posting to " + forum.name + " forum")
+    await _post_fta_position_adp(ctx, forum, "RB", "Running Back", RB_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_adp_te(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_te", "Posting to " + forum.name + " forum")
+    await _post_fta_position_adp(ctx, forum, "TE", "Tight End", TE_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_adp_k(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_k", "Posting to " + forum.name + " forum")
+    await _post_fta_position_adp(ctx, forum, "K", "Kicker", K_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_adp_def(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_adp_def", "Posting to " + forum.name + " forum")
+    await _post_fta_position_adp(ctx, forum, "DEF", "Team Defense", DEF_COLOR)
+
+
+async def _post_fta_position_adp(ctx, forum: discord.ForumChannel, position_short: str,
+                                 position_long: str, embed_color: discord.Colour):
+    adp_data = adp.aggregate_adp_data(FTAFFL_USER, 14, position=position_short,
+                                      league_regex_string=FTAFFL_LEAGUE_REGEX,
+                                      output_format=adp.OutputFormat.FORMATTED_CSV)
+    await _post_position_adp_data(ctx, forum, adp_data, position_long, embed_color,
+                                  FTA_ADP_THREAD_CONTENT + ADP_GLOSSARY)
+
+# NarFFL ADP Commands
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_adps(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_adps", "Posting to " + forum.name + " forum")
+    await post_narffl_adp_all(ctx, forum)
+    await post_narffl_adp_qb(ctx, forum)
+    await post_narffl_adp_rb(ctx, forum)
+    await post_narffl_adp_wr(ctx, forum)
+    await post_narffl_adp_te(ctx, forum)
+    await post_narffl_adp_k(ctx, forum)
+    await post_narffl_adp_def(ctx, forum)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_adp_all(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_adp_all", "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", ALL_PLAYERS_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_adp_qb(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_adp_qb", "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, "QB", "Quarterback", QB_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_adp_wr(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_adp_wr", "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, "WR", "Wide Receiver", WR_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_adp_rb(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_adp_rb", "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, "RB", "Running Back", RB_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_adp_te(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_adp_te", "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, "TE", "Tight End", TE_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_adp_k(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_adp_k", "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, "K", "Kicker", K_COLOR)
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_adp_def(ctx, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_adp_def", "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, "D/ST", "Team Defense", DEF_COLOR)
+
+
+async def _post_narffl_position_adp(ctx, forum: discord.ForumChannel, position_short: str,
+                                    position_long: str, embed_color: discord.Colour):
+    adp_data = await asyncio.to_thread(adp.aggregate_adp_data, account_identifier=NARFFL_USER, league_size=12,
+                                       position=position_short, output_format=adp.OutputFormat.FORMATTED_CSV,
+                                       platform_selection=common.PlatformSelection.FLEAFLICKER)
+    await _post_position_adp_data(ctx, forum, adp_data, position_long, embed_color,
+                                  NARFFL_ADP_THREAD_CONTENT + ADP_GLOSSARY)
 
 # FTA Trade Commands
 
@@ -260,7 +358,7 @@ def _write_fta_trade_posting_status(is_active: bool):
 def _get_fta_trade_posting_status() -> bool:
     # Assume default status is false
     posting_status = False
-    
+
     if os.path.isfile(FTA_TRADE_POSTING_STATUS_PATH):
         file = open(FTA_TRADE_POSTING_STATUS_PATH, "r")
         s = file.read()
