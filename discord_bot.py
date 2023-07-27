@@ -41,6 +41,9 @@ DEF_COLOR = discord.Colour.from_rgb(154, 95, 78)
 FTA_TRADE_CHANNEL_PATH = "./bot_data/fta_trade_channel"
 FTA_POSTED_TRADES_PATH = "./bot_data/fta_posted_trades"
 FTA_TRADE_POSTING_STATUS_PATH = "./bot_data/fta_trade_posting_status"
+NARFFL_TRADE_CHANNEL_PATH = "./bot_data/narffl_trade_channel"
+NARFFL_POSTED_TRADES_PATH = "./bot_data/narffl_posted_trades"
+NARFFL_TRADE_POSTING_STATUS_PATH = "./bot_data/narffl_trade_posting_status"
 
 TWO_TEAM_TRADE_REACTIONS = ['🅰️', '🅱️', '🤷']
 THREE_TEAM_TRADE_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '🤷']
@@ -66,8 +69,10 @@ bot = commands.Bot(command_prefix='&', intents=intents)
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
-    if _get_fta_trade_posting_status():
+    if _get_trade_posting_status_from_file(FTA_TRADE_POSTING_STATUS_PATH):
         post_fta_trades.start()
+    if _get_trade_posting_status_from_file(NARFFL_TRADE_POSTING_STATUS_PATH):
+        post_narffl_trades.start()
 
 # General ADP Functions
 
@@ -254,45 +259,101 @@ async def _post_narffl_position_adp(ctx, forum: discord.ForumChannel, position_s
     await _post_position_adp_data(ctx, forum, adp_data, position_long, embed_color,
                                   NARFFL_ADP_THREAD_CONTENT + ADP_GLOSSARY)
 
-# FTA Trade Commands
+# General Trade Functions
 
 
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def start_posting_fta_trades(ctx):
-    _print_descriptive_log("start_posting_fta_trades")
-    _write_fta_trade_posting_status(True)
-    post_fta_trades.start()
+def _create_file_string_for_trade(trade: Trade) -> str:
+    output_list = []
+    output_list.append(str(trade.id))
+    output_list.append(trade.league.name)
+    output_list.append(trade.trade_time.strftime("%m/%d/%Y - %H:%M:%S"))
+    for details in trade.details:
+        output_list.append(details.team.manager.name)
+
+    return ",".join(output_list)
 
 
-@bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def stop_posting_fta_trades(ctx):
-    _print_descriptive_log("stop_posting_fta_trades")
-    _write_fta_trade_posting_status(False)
-    post_fta_trades.cancel()
+def _get_trade_id_from_file_entry(file_line: str) -> str:
+    split = file_line.split(",")
+    return split[0]
 
 
-@tasks.loop(minutes=5)
-async def post_fta_trades():
-    _print_descriptive_log("post_fta_trades")
-    trade_channel = _get_fta_trade_channel()
-    posted_trade_ids = _get_all_fta_trade_ids()
+def _get_posted_trade_ids_from_file(filename: str) -> List[str]:
+    result = []
+    if os.path.isfile(filename):
+        file = open(filename, "r")
+        lines = file.readlines()
+        for line in lines:
+            result.append(_get_trade_id_from_file_entry(line))
+        file.close()
 
-    if trade_channel is not None:
-        _print_descriptive_log("post_fta_trades", "Posting to " + trade_channel.name)
-        # Pull all available trades
-        all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
-                                             FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
+    return result
 
-        # Post the non-posted trades with reactions
-        for trade in all_trades:
-            if trade.id not in posted_trade_ids:
-                message = await trade_channel.send(content=trades.format_trades([trade]))
-                await _react_to_trade(message, len(trade.details))
-                _write_fta_trade_to_file(trade)
+
+def _write_trade_to_file(filename: str, trade: Trade):
+    if os.path.isfile(filename):
+        file = open(filename, "a")
     else:
-        _print_descriptive_log("post_fta_trades", "No trade channel avaialble")
+        file = open(filename, "w")
+
+    file.write(_create_file_string_for_trade(trade)+"\n")
+    file.close()
+
+
+def _get_trade_channel_from_file(filename: str) -> discord.TextChannel:
+    if os.path.isfile(filename):
+        file = open(filename, "r")
+        channel_id = file.read().split(",")[0]
+        file.close()
+    else:
+        return None
+
+    return bot.get_channel(int(channel_id))
+
+
+def _write_trade_channel_to_file(filename: str, channel: discord.TextChannel):
+    file = open(filename, "w")
+    file.write(str(channel.id) + "," + channel.name)
+    file.close()
+
+
+def _get_trade_posting_status_from_file(filename: str) -> bool:
+    # Assume default status is false
+    posting_status = False
+
+    if os.path.isfile(filename):
+        file = open(filename, "r")
+        s = file.read()
+
+        if s == 'True':
+            posting_status = True
+        elif s == 'False':
+            posting_status = False
+        else:
+            _print_descriptive_log("_get_trade_posting_status_from_file",
+                                   "Unknown value %s for trade posting status in %s".format(s, filename))
+            posting_status = False
+
+        file.close()
+
+    return posting_status
+
+
+def _write_trade_posting_status_to_file(filename: str, is_active: bool):
+    file = open(filename, "w")
+    file.write(str(is_active))
+    file.close()
+
+
+async def post_all_unposted_trades(trade_channel: discord.TextChannel, all_trades: List[Trade],
+                                   posted_trade_file_path: str):
+    posted_trade_ids = _get_posted_trade_ids_from_file(posted_trade_file_path)
+
+    for trade in all_trades:
+        if trade.id not in posted_trade_ids:
+            message = await trade_channel.send(content=trades.format_trades([trade]))
+            await _react_to_trade(message, len(trade.details))
+            _write_trade_to_file(posted_trade_file_path, trade)
 
 
 async def _react_to_trade(message: discord.Message, trade_size: int):
@@ -307,91 +368,90 @@ async def _react_to_trade(message: discord.Message, trade_size: int):
             await message.add_reaction(reaction)
 
 
+# FTA Trade Commands
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def start_posting_fta_trades(ctx):
+    _print_descriptive_log("start_posting_fta_trades")
+    _write_trade_posting_status_to_file(FTA_TRADE_POSTING_STATUS_PATH, True)
+    post_fta_trades.start()
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def stop_posting_fta_trades(ctx):
+    _print_descriptive_log("stop_posting_fta_trades")
+    _write_trade_posting_status_to_file(FTA_TRADE_POSTING_STATUS_PATH, False)
+    post_fta_trades.cancel()
+
+
 @bot.command()
 @commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def set_fta_trades_channel(ctx, channel: discord.TextChannel):
     _print_descriptive_log("set_fta_trades_channel", "Channel set to " + channel.name)
-    file = open(FTA_TRADE_CHANNEL_PATH, "w")
-    file.write(str(channel.id) + "," + channel.name)
-    file.close()
+    _write_trade_channel_to_file(FTA_TRADE_CHANNEL_PATH, channel)
 
 
-def _get_fta_trade_channel() -> discord.TextChannel:
-    if os.path.isfile(FTA_TRADE_CHANNEL_PATH):
-        file = open(FTA_TRADE_CHANNEL_PATH, "r")
-        channel_id = file.read().split(",")[0]
-        file.close()
+@tasks.loop(minutes=5)
+async def post_fta_trades():
+    _print_descriptive_log("post_fta_trades")
+    trade_channel = _get_trade_channel_from_file(FTA_TRADE_CHANNEL_PATH)
+
+    if trade_channel is not None:
+        _print_descriptive_log("post_fta_trades", "Posting to " + trade_channel.name)
+        all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
+                                             account_identifier=FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
+
+        await post_all_unposted_trades(trade_channel, all_trades, FTA_POSTED_TRADES_PATH)
     else:
-        return None
-
-    return bot.get_channel(int(channel_id))
+        _print_descriptive_log("post_fta_trades", "No trade channel avaialble")
 
 
-def _write_fta_trade_to_file(trade: Trade):
-    if os.path.isfile(FTA_POSTED_TRADES_PATH):
-        file = open(FTA_POSTED_TRADES_PATH, "a")
+# NarFFL Trade Commands
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def start_posting_narffl_trades(ctx):
+    _print_descriptive_log("start_posting_narffl_trades")
+    _write_trade_posting_status_to_file(NARFFL_TRADE_POSTING_STATUS_PATH, True)
+    post_narffl_trades.start()
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def stop_posting_narffl_trades(ctx):
+    _print_descriptive_log("stop_posting_narffl_trades")
+    _write_trade_posting_status_to_file(NARFFL_TRADE_POSTING_STATUS_PATH, False)
+    post_narffl_trades.cancel()
+
+
+@bot.command()
+@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+async def set_narffl_trades_channel(ctx, channel: discord.TextChannel):
+    _print_descriptive_log("set_narffl_trades_channel", "Channel set to " + channel.name)
+    _write_trade_channel_to_file(NARFFL_TRADE_CHANNEL_PATH, channel)
+
+
+@tasks.loop(minutes=10)
+async def post_narffl_trades():
+    _print_descriptive_log("post_narffl_trades")
+    trade_channel = _get_trade_channel_from_file(NARFFL_TRADE_CHANNEL_PATH)
+
+    if trade_channel is not None:
+        _print_descriptive_log("post_narffl_trades", "Posting to " + trade_channel.name)
+        all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
+                                             account_identifier=NARFFL_USER,
+                                             platform_selection=common.PlatformSelection.FLEAFLICKER)
+
+        await post_all_unposted_trades(trade_channel, all_trades, NARFFL_POSTED_TRADES_PATH)
     else:
-        file = open(FTA_POSTED_TRADES_PATH, "w")
-
-    file.write(_create_file_string_for_trade(trade)+"\n")
-    file.close()
+        _print_descriptive_log("post_narffl_trades", "No trade channel avaialble")
 
 
-def _get_all_fta_trade_ids() -> List[str]:
-    result = []
-    if os.path.isfile(FTA_POSTED_TRADES_PATH):
-        file = open(FTA_POSTED_TRADES_PATH, "r")
-        lines = file.readlines()
-        for line in lines:
-            result.append(_get_trade_id_from_file_entry(line))
-        file.close()
-
-    return result
-
-
-def _write_fta_trade_posting_status(is_active: bool):
-    file = open(FTA_TRADE_POSTING_STATUS_PATH, "w")
-    file.write(str(is_active))
-    file.close()
-
-
-def _get_fta_trade_posting_status() -> bool:
-    # Assume default status is false
-    posting_status = False
-
-    if os.path.isfile(FTA_TRADE_POSTING_STATUS_PATH):
-        file = open(FTA_TRADE_POSTING_STATUS_PATH, "r")
-        s = file.read()
-
-        if s == 'True':
-            posting_status = True
-        elif s == 'False':
-            posting_status = False
-        else:
-            _print_descriptive_log("_get_fta_trade_posting_status",
-                                   "Unknown value %s for trade posting status".format(s))
-            posting_status = False
-
-        file.close()
-
-    return posting_status
-
-
-def _create_file_string_for_trade(trade: Trade) -> str:
-    output_list = []
-    output_list.append(trade.id)
-    output_list.append(trade.league.name)
-    output_list.append(trade.trade_time.strftime("%m/%d/%Y - %H:%M:%S"))
-    for details in trade.details:
-        output_list.append(details.team.manager.name)
-
-    return ",".join(output_list)
-
-
-def _get_trade_id_from_file_entry(file_line: str) -> str:
-    split = file_line.split(",")
-    return split[0]
-
+# General bot helper functions
 
 def _print_descriptive_log(log_method: str, log_line: str = ""):
     log_template = "{time:<20}{log_method:40.40}\t{log_line}"
@@ -408,4 +468,5 @@ def _retrieve_token() -> str:
     return token_string
 
 
+# Command to start things
 bot.run(_retrieve_token())
