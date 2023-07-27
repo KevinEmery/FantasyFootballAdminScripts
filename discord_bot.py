@@ -175,9 +175,9 @@ async def post_fta_adp_def(ctx, forum: discord.ForumChannel):
 
 async def _post_fta_position_adp(ctx, forum: discord.ForumChannel, position_short: str,
                                  position_long: str, embed_color: discord.Colour):
-    adp_data = adp.aggregate_adp_data(FTAFFL_USER, 14, position=position_short,
-                                      league_regex_string=FTAFFL_LEAGUE_REGEX,
-                                      output_format=adp.OutputFormat.FORMATTED_CSV)
+    adp_data = await asyncio.to_thread(adp.aggregate_adp_data, account_identifier=FTAFFL_USER, league_size=14,
+                                       position=position_short, league_regex_string=FTAFFL_LEAGUE_REGEX,
+                                       output_format=adp.OutputFormat.FORMATTED_CSV)
     await _post_position_adp_data(ctx, forum, adp_data, position_long, embed_color,
                                   FTA_ADP_THREAD_CONTENT + ADP_GLOSSARY)
 
