@@ -296,7 +296,7 @@ def fetch_and_filter_trades(
     trades = []
 
     for league in leagues:
-        trades.extend(platform.get_all_trades_for_league(league))
+        trades.extend(platform.get_all_trades_for_league(league, year))
 
     filtered_trades = _filter_and_sort_trades_by_date(
         trades, parser.parse(start_date_string), parser.parse(end_date_string))

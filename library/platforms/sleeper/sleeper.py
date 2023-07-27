@@ -93,7 +93,7 @@ class Sleeper(Platform):
 
         return drafted_players
 
-    def get_all_trades_for_league(self, league: League) -> List[Trade]:
+    def get_all_trades_for_league(self, league: League, year: str) -> List[Trade]:
         all_trades = []
         roster_num_to_user = self._league_id_to_roster_num_to_user[
             league.league_id]

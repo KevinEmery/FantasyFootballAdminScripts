@@ -91,7 +91,7 @@ class Fleaflicker(Platform):
 
         return drafted_players
 
-    def get_all_trades_for_league(self, league: League) -> List[Trade]:
+    def get_all_trades_for_league(self, league: League, year: str) -> List[Trade]:
         all_trades = []
 
         team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
@@ -102,7 +102,7 @@ class Fleaflicker(Platform):
                 int(trade_data["approvedOn"]) / 1000)
 
             # Ignore trades not made this year, Fleaflicker's API returns all trades throughout time
-            if str(trade_time.year) != common.DEFAULT_YEAR:
+            if str(trade_time.year) != year:
                 continue
 
             trade_id = trade_data["id"]

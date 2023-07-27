@@ -47,7 +47,7 @@ class Platform:
             year: str = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
         pass
 
-    def get_all_trades_for_league(self, League: League) -> List[Trade]:
+    def get_all_trades_for_league(self, League: League, year: str) -> List[Trade]:
         pass
 
     def get_weekly_scores_for_league_and_week(self, league: League, week: int,
