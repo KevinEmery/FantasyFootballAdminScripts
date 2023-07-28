@@ -451,6 +451,17 @@ async def post_narffl_trades():
         _print_descriptive_log("post_narffl_trades", "No trade channel avaialble")
 
 
+# General Bot Diagnostic Commands
+
+@bot.command()
+@commands.has_role(BOT_DEV_SERVER_ROLE)
+async def get_task_states(ctx):
+    template = "Task {task}.running(): {state}"
+
+    await ctx.send(template.format(task="post_fta_trades", state=post_fta_trades.is_running()))
+    await ctx.send(template.format(task="post_narffl_trades", state=post_narffl_trades.is_running()))
+
+
 # General bot helper functions
 
 def _print_descriptive_log(log_method: str, log_line: str = ""):
