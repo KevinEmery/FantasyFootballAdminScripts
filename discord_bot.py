@@ -56,7 +56,7 @@ NARFFL_USER = "narfflflea@davehenning.net"
 
 FTA_LEAGUE_ADMIN_ROLE = "League Admin"
 NARFFL_ADMIN_ROLE = "Admin"
-LOB_COMMISH_ROLE = "Commissioner"
+BOT_DEV_SERVER_ROLE = "Bot Admin"
 
 intents = discord.Intents.default()
 intents.members = True
@@ -117,7 +117,7 @@ def _get_formatted_date() -> str:
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adps(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adps", "Posting to " + forum.name + " forum")
     await post_fta_adp_all(ctx, forum)
@@ -130,49 +130,49 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_all(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_all", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", ALL_PLAYERS_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_qb", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "QB", "Quarterback", QB_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_wr(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_wr", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "WR", "Wide Receiver", WR_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_rb(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_rb", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "RB", "Running Back", RB_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_te(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_te", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "TE", "Tight End", TE_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_k(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_k", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "K", "Kicker", K_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_def(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_def", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "DEF", "Team Defense", DEF_COLOR)
@@ -190,7 +190,7 @@ async def _post_fta_position_adp(ctx, forum: discord.ForumChannel, position_shor
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adps(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adps", "Posting to " + forum.name + " forum")
     await post_narffl_adp_all(ctx, forum)
@@ -203,49 +203,49 @@ async def post_narffl_adps(ctx, forum: discord.ForumChannel):
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_all(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_all", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", ALL_PLAYERS_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_qb(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_qb", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "QB", "Quarterback", QB_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_wr(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_wr", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "WR", "Wide Receiver", WR_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_rb(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_rb", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "RB", "Running Back", RB_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_te(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_te", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "TE", "Tight End", TE_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_k(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_k", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "K", "Kicker", K_COLOR)
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_def(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_def", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "D/ST", "Team Defense", DEF_COLOR)
@@ -372,7 +372,7 @@ async def _react_to_trade(message: discord.Message, trade_size: int):
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def start_posting_fta_trades(ctx):
     _print_descriptive_log("start_posting_fta_trades")
     _write_trade_posting_status_to_file(FTA_TRADE_POSTING_STATUS_PATH, True)
@@ -380,7 +380,7 @@ async def start_posting_fta_trades(ctx):
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def stop_posting_fta_trades(ctx):
     _print_descriptive_log("stop_posting_fta_trades")
     _write_trade_posting_status_to_file(FTA_TRADE_POSTING_STATUS_PATH, False)
@@ -388,7 +388,7 @@ async def stop_posting_fta_trades(ctx):
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def set_fta_trades_channel(ctx, channel: discord.TextChannel):
     _print_descriptive_log("set_fta_trades_channel", "Channel set to " + channel.name)
     _write_trade_channel_to_file(FTA_TRADE_CHANNEL_PATH, channel)
@@ -413,7 +413,7 @@ async def post_fta_trades():
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def start_posting_narffl_trades(ctx):
     _print_descriptive_log("start_posting_narffl_trades")
     _write_trade_posting_status_to_file(NARFFL_TRADE_POSTING_STATUS_PATH, True)
@@ -421,7 +421,7 @@ async def start_posting_narffl_trades(ctx):
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def stop_posting_narffl_trades(ctx):
     _print_descriptive_log("stop_posting_narffl_trades")
     _write_trade_posting_status_to_file(NARFFL_TRADE_POSTING_STATUS_PATH, False)
@@ -429,7 +429,7 @@ async def stop_posting_narffl_trades(ctx):
 
 
 @bot.command()
-@commands.has_any_role(LOB_COMMISH_ROLE, NARFFL_ADMIN_ROLE)
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def set_narffl_trades_channel(ctx, channel: discord.TextChannel):
     _print_descriptive_log("set_narffl_trades_channel", "Channel set to " + channel.name)
     _write_trade_channel_to_file(NARFFL_TRADE_CHANNEL_PATH, channel)
