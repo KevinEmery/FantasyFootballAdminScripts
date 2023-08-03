@@ -286,6 +286,8 @@ class Sleeper(Platform):
             self,
             league: League,
             week: int,
+            teams_to_ignore: List[str] = [],
+            only_teams : List[str] = [],
             player_names_to_ignore: List[str] = []) -> List[InactiveRoster]:
         inactive_rosters = []
         roster_num_to_user = self._league_id_to_roster_num_to_user[
@@ -312,6 +314,12 @@ class Sleeper(Platform):
                 player = self._player_id_to_player[player_id]
 
                 if player.name in player_names_to_ignore:
+                    continue
+                
+                if player.team in teams_to_ignore:
+                    continue
+                
+                if only_teams and player.team not in only_teams:
                     continue
 
                 if player.is_inactive():
