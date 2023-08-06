@@ -4,12 +4,14 @@ import os
 
 import adp
 import common
+import inactives
 import trades
 
 from datetime import datetime
 from discord.ext import commands, tasks
 from typing import List
 
+from library.model.leagueinactivity import LeagueInactivity
 from library.model.trade import Trade
 
 # Actual limit is 25, we want to steer clear in case we add fields on top of the iteration
@@ -29,6 +31,10 @@ Max: The latest a player was drafted\n\
 ```\n\
 The designation \"X.Y\" represents a selection in Round X, at Pick Y"
 
+FTA_INACTIVE_STARTERS_THREAD_CONTENT = "Below is a list of every team that started an \
+inactive player this week. When generating this, anyone injured this week or ruled out \
+at the last minute should have been ignored."
+
 # These colors mirror the Sleeper draft board
 ALL_PLAYERS_COLOR = discord.Colour.dark_blue()
 QB_COLOR = discord.Colour.from_rgb(192, 94, 133)
@@ -41,6 +47,7 @@ DEF_COLOR = discord.Colour.from_rgb(154, 95, 78)
 FTA_TRADE_CHANNEL_PATH = "./bot_data/fta_trade_channel"
 FTA_POSTED_TRADES_PATH = "./bot_data/fta_posted_trades"
 FTA_TRADE_POSTING_STATUS_PATH = "./bot_data/fta_trade_posting_status"
+FTA_LEAGUE_CHANNEL_MAPPING_PATH = "./bot_data/fta_league_channel_mapping"
 NARFFL_TRADE_CHANNEL_PATH = "./bot_data/narffl_trade_channel"
 NARFFL_POSTED_TRADES_PATH = "./bot_data/narffl_posted_trades"
 NARFFL_TRADE_POSTING_STATUS_PATH = "./bot_data/narffl_trade_posting_status"
@@ -449,6 +456,142 @@ async def post_narffl_trades():
         await post_all_unposted_trades(trade_channel, all_trades, NARFFL_POSTED_TRADES_PATH)
     else:
         _print_descriptive_log("post_narffl_trades", "No trade channel avaialble")
+
+
+# General Inactivity Functions
+
+def _create_embed_for_inactive_league(league_inactivity: LeagueInactivity) -> discord.Embed:
+    embed = discord.Embed(colour=discord.Colour.red(), title=league_inactivity.league.name)
+
+    last_transaction_template = "_Last transaction: {date}_\n"
+    date_format = "%m-%d-%Y"
+    player_template = "{name}, {position} - {status}\n"
+
+    for roster in league_inactivity.rosters:
+        embed_value = ""
+        if roster.last_transaction is not None:
+            embed_value += last_transaction_template.format(
+                date=roster.last_transaction.time.strftime(date_format))
+        for player in roster.inactive_players:
+            embed_value += player_template.format(name=player.name, position=player.position, status=player.status)
+        embed.add_field(name=roster.team.manager.name, value=embed_value, inline=False)
+
+    return embed
+
+
+def _create_file_string_for_league_and_channel(league_name: str, channel: discord.TextChannel) -> str:
+    output_list = []
+    output_list.append(league_name)
+    output_list.append(str(channel.id))
+    output_list.append(channel.name)
+
+    return ",".join(output_list)
+
+
+def _write_channel_mapping_for_league(filename: str, league_name: str, channel: discord.TextChannel):
+    if os.path.isfile(filename):
+        file = open(filename, "a")
+    else:
+        file = open(filename, "w")
+
+    file.write(_create_file_string_for_league_and_channel(league_name, channel)+"\n")
+    file.close()
+
+
+def _get_channel_for_league(filename: str, league_name: str) -> discord.TextChannel:
+    channel_id = None
+
+    if os.path.isfile(filename):
+        file = open(filename, "r")
+        lines = file.readlines()
+        for line in lines:
+            line_split = line.split(",")
+            if line_split[0] == league_name:
+                channel_id = line_split[1]
+                break
+        file.close()
+    else:
+        return None
+
+    if channel_id is None:
+        return None
+    return bot.get_channel(int(channel_id))
+
+
+# FTA Inactivity Commands
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_inactive_fta_rosters_for_select_teams(ctx, week: int, *, only_teams: str = ""):
+    _print_descriptive_log("post_inactive_fta_select_teams")
+    only_teams_list = only_teams.split(",")
+
+    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
+                                               account_identifier=FTAFFL_USER,
+                                               week=week, include_transactions=False,
+                                               only_teams=only_teams_list)
+
+    for league_inactivity in inactive_leagues:
+        channel = _get_channel_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        if channel is not None:
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+        else:
+            _print_descriptive_log("post_inactive_fta_select_teams",
+                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_inactive_fta_rosters_excluding_select_teams(ctx, week: int, *, teams_to_ignore: str = ""):
+    _print_descriptive_log("post_inactive_fta_excluding_teams")
+    teams_to_ignore_list = teams_to_ignore.split(",")
+
+    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
+                                               account_identifier=FTAFFL_USER,
+                                               week=week, include_transactions=False,
+                                               teams_to_ignore=teams_to_ignore_list)
+
+    for league_inactivity in inactive_leagues:
+        channel = _get_channel_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        if channel is not None:
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+        else:
+            _print_descriptive_log("post_inactive_fta_excluding_teams",
+                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_inactives_to_forum(ctx, week: int, forum: discord.ForumChannel, *, player_names_to_ignore: str = ""):
+    _print_descriptive_log("post_fta_inactives_to_forum")
+    player_names_to_ignore_list = player_names_to_ignore.split(",")
+    if player_names_to_ignore_list[0] == '':
+        player_names_to_ignore_list = []
+
+    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
+                                               account_identifier=FTAFFL_USER,
+                                               league_regex_string=FTAFFL_LEAGUE_REGEX,
+                                               week=week, include_transactions=True,
+                                               player_names_to_ignore=player_names_to_ignore_list)
+
+    thread_title = "Week {week} Inactive Starters".format(week=str(week))
+    thread_content = FTA_INACTIVE_STARTERS_THREAD_CONTENT
+    if player_names_to_ignore_list:
+        thread_content += "\n\n"
+        thread_content += "__Players Ignored__\n"
+        for player_name in player_names_to_ignore_list:
+            thread_content += "- {name}\n".format(name=player_name)
+
+    thread = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    for league_inactivity in inactive_leagues:
+        await thread.send(embed=_create_embed_for_inactive_league(league_inactivity))
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def create_fta_league_to_channel_mapping(ctx, league_name: str, channel: discord.TextChannel):
+    _print_descriptive_log("create_fta_league_to_channel_mapping")
+    _write_channel_mapping_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
 
 
 # General Bot Diagnostic Commands
