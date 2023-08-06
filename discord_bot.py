@@ -134,6 +134,7 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
     await post_fta_adp_te(ctx, forum)
     await post_fta_adp_k(ctx, forum)
     await post_fta_adp_def(ctx, forum)
+    _print_descriptive_log("post_fta_adps", "Done")
 
 
 @bot.command()
@@ -141,6 +142,7 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
 async def post_fta_adp_all(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_all", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", ALL_PLAYERS_COLOR)
+    _print_descriptive_log("post_fta_adp_all", "Done")
 
 
 @bot.command()
@@ -148,6 +150,7 @@ async def post_fta_adp_all(ctx, forum: discord.ForumChannel):
 async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_qb", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "QB", "Quarterback", QB_COLOR)
+    _print_descriptive_log("post_fta_adp_qb", "Done")
 
 
 @bot.command()
@@ -155,6 +158,7 @@ async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
 async def post_fta_adp_wr(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_wr", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "WR", "Wide Receiver", WR_COLOR)
+    _print_descriptive_log("post_fta_adp_wr", "Done")
 
 
 @bot.command()
@@ -162,6 +166,7 @@ async def post_fta_adp_wr(ctx, forum: discord.ForumChannel):
 async def post_fta_adp_rb(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_rb", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "RB", "Running Back", RB_COLOR)
+    _print_descriptive_log("post_fta_adp_rb", "Done")
 
 
 @bot.command()
@@ -169,6 +174,7 @@ async def post_fta_adp_rb(ctx, forum: discord.ForumChannel):
 async def post_fta_adp_te(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_te", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "TE", "Tight End", TE_COLOR)
+    _print_descriptive_log("post_fta_adp_te", "Done")
 
 
 @bot.command()
@@ -176,6 +182,7 @@ async def post_fta_adp_te(ctx, forum: discord.ForumChannel):
 async def post_fta_adp_k(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_k", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "K", "Kicker", K_COLOR)
+    _print_descriptive_log("post_fta_adp_k", "Done")
 
 
 @bot.command()
@@ -183,6 +190,7 @@ async def post_fta_adp_k(ctx, forum: discord.ForumChannel):
 async def post_fta_adp_def(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adp_def", "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "DEF", "Team Defense", DEF_COLOR)
+    _print_descriptive_log("post_fta_adp_def", "Done")
 
 
 async def _post_fta_position_adp(ctx, forum: discord.ForumChannel, position_short: str,
@@ -207,6 +215,7 @@ async def post_narffl_adps(ctx, forum: discord.ForumChannel):
     await post_narffl_adp_te(ctx, forum)
     await post_narffl_adp_k(ctx, forum)
     await post_narffl_adp_def(ctx, forum)
+    _print_descriptive_log("post_narffl_adps", "Done")
 
 
 @bot.command()
@@ -214,6 +223,7 @@ async def post_narffl_adps(ctx, forum: discord.ForumChannel):
 async def post_narffl_adp_all(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_all", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", ALL_PLAYERS_COLOR)
+    _print_descriptive_log("post_narffl_adp_all", "Done")
 
 
 @bot.command()
@@ -221,6 +231,7 @@ async def post_narffl_adp_all(ctx, forum: discord.ForumChannel):
 async def post_narffl_adp_qb(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_qb", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "QB", "Quarterback", QB_COLOR)
+    _print_descriptive_log("post_narffl_adp_qb", "Done")
 
 
 @bot.command()
@@ -228,6 +239,7 @@ async def post_narffl_adp_qb(ctx, forum: discord.ForumChannel):
 async def post_narffl_adp_wr(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_wr", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "WR", "Wide Receiver", WR_COLOR)
+    _print_descriptive_log("post_narffl_adp_wr", "Done")
 
 
 @bot.command()
@@ -235,6 +247,7 @@ async def post_narffl_adp_wr(ctx, forum: discord.ForumChannel):
 async def post_narffl_adp_rb(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_rb", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "RB", "Running Back", RB_COLOR)
+    _print_descriptive_log("post_narffl_adp_rb", "Done")
 
 
 @bot.command()
@@ -242,6 +255,7 @@ async def post_narffl_adp_rb(ctx, forum: discord.ForumChannel):
 async def post_narffl_adp_te(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_te", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "TE", "Tight End", TE_COLOR)
+    _print_descriptive_log("post_narffl_adp_te", "Done")
 
 
 @bot.command()
@@ -249,6 +263,7 @@ async def post_narffl_adp_te(ctx, forum: discord.ForumChannel):
 async def post_narffl_adp_k(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_k", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "K", "Kicker", K_COLOR)
+    _print_descriptive_log("post_narffl_adp_k", "Done")
 
 
 @bot.command()
@@ -256,6 +271,7 @@ async def post_narffl_adp_k(ctx, forum: discord.ForumChannel):
 async def post_narffl_adp_def(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adp_def", "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "D/ST", "Team Defense", DEF_COLOR)
+    _print_descriptive_log("post_narffl_adp_def", "Done")
 
 
 async def _post_narffl_position_adp(ctx, forum: discord.ForumChannel, position_short: str,
@@ -403,7 +419,6 @@ async def set_fta_trades_channel(ctx, channel: discord.TextChannel):
 
 @tasks.loop(minutes=5)
 async def post_fta_trades():
-    _print_descriptive_log("post_fta_trades")
     trade_channel = _get_trade_channel_from_file(FTA_TRADE_CHANNEL_PATH)
 
     if trade_channel is not None:
@@ -414,6 +429,8 @@ async def post_fta_trades():
         await post_all_unposted_trades(trade_channel, all_trades, FTA_POSTED_TRADES_PATH)
     else:
         _print_descriptive_log("post_fta_trades", "No trade channel avaialble")
+
+    _print_descriptive_log("post_fta_trades", "Done")
 
 
 # NarFFL Trade Commands
@@ -444,7 +461,6 @@ async def set_narffl_trades_channel(ctx, channel: discord.TextChannel):
 
 @tasks.loop(minutes=10)
 async def post_narffl_trades():
-    _print_descriptive_log("post_narffl_trades")
     trade_channel = _get_trade_channel_from_file(NARFFL_TRADE_CHANNEL_PATH)
 
     if trade_channel is not None:
@@ -457,8 +473,10 @@ async def post_narffl_trades():
     else:
         _print_descriptive_log("post_narffl_trades", "No trade channel avaialble")
 
+    _print_descriptive_log("post_narffl_trades", "Done")
 
 # General Inactivity Functions
+
 
 def _create_embed_for_inactive_league(league_inactivity: LeagueInactivity) -> discord.Embed:
     embed = discord.Embed(colour=discord.Colour.red(), title=league_inactivity.league.name)
@@ -522,8 +540,8 @@ def _get_channel_for_league(filename: str, league_name: str) -> discord.TextChan
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_inactive_fta_rosters_for_select_teams(ctx, week: int, *, only_teams: str = ""):
-    _print_descriptive_log("post_inactive_fta_select_teams")
+async def post_fta_inactives_for_select_teams(ctx, week: int, *, only_teams: str = ""):
+    _print_descriptive_log("post_fta_inactives_for_select_teams")
     only_teams_list = only_teams.split(",")
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
@@ -536,14 +554,16 @@ async def post_inactive_fta_rosters_for_select_teams(ctx, week: int, *, only_tea
         if channel is not None:
             await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
         else:
-            _print_descriptive_log("post_inactive_fta_select_teams",
+            _print_descriptive_log("post_fta_inactives_for_select_teams",
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
+
+    _print_descriptive_log("post_fta_inactives_for_select_teams", "Done")
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_inactive_fta_rosters_excluding_select_teams(ctx, week: int, *, teams_to_ignore: str = ""):
-    _print_descriptive_log("post_inactive_fta_excluding_teams")
+async def post_fta_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore: str = ""):
+    _print_descriptive_log("post_fta_inactives_excluding_teams")
     teams_to_ignore_list = teams_to_ignore.split(",")
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
@@ -556,8 +576,10 @@ async def post_inactive_fta_rosters_excluding_select_teams(ctx, week: int, *, te
         if channel is not None:
             await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
         else:
-            _print_descriptive_log("post_inactive_fta_excluding_teams",
+            _print_descriptive_log("post_fta_inactives_excluding_teams",
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
+
+    _print_descriptive_log("post_fta_inactives_excluding_teams", "Done")
 
 
 @bot.command()
@@ -585,6 +607,8 @@ async def post_fta_inactives_to_forum(ctx, week: int, forum: discord.ForumChanne
     thread = (await forum.create_thread(name=thread_title, content=thread_content))[0]
     for league_inactivity in inactive_leagues:
         await thread.send(embed=_create_embed_for_inactive_league(league_inactivity))
+
+    _print_descriptive_log("post_fta_inactives_to_forum", "Done")
 
 
 @bot.command()
