@@ -213,7 +213,7 @@ class Fleaflicker(Platform):
         return season_scores
 
     def get_last_transaction_for_teams_in_league(
-            self, league: League) -> Dict[Team, Transaction]:
+            self, league: League, year: int) -> Dict[Team, Transaction]:
         transactions = {}
         team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
 
@@ -231,7 +231,7 @@ class Fleaflicker(Platform):
 
             # If the year isn't the current year then just return a default transaction,
             # the team doesn't have one this year
-            if str(transaction_time.year) != common.DEFAULT_YEAR:
+            if transaction_time.year != year:
                 transaction = Transaction(
                     datetime.fromtimestamp(common.DEC_31_1999_SECONDS), "NONE",
                     team)

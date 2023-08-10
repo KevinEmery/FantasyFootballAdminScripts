@@ -59,7 +59,7 @@ class Platform:
         pass
 
     def get_last_transaction_for_teams_in_league(
-            self, league: League) -> Dict[Team, Transaction]:
+            self, league: League, year: int) -> Dict[Team, Transaction]:
         pass
 
     def get_inactive_rosters_for_league_and_week(

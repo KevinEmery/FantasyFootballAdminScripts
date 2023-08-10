@@ -231,7 +231,7 @@ class Sleeper(Platform):
         return season_scores
 
     def get_last_transaction_for_teams_in_league(
-            self, league: League) -> Dict[Team, Transaction]:
+            self, league: League, year: int) -> Dict[Team, Transaction]:
         last_transaction_per_team = {}
         all_transactions = []
         roster_num_to_user = self._league_id_to_roster_num_to_user[

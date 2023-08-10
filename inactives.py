@@ -91,7 +91,7 @@ def get_all_league_inactivity(
 
         if include_transactions:
             most_recent_transaction_per_roster = platform.get_last_transaction_for_teams_in_league(
-                league)
+                league, year)
 
             for roster in inactive_rosters:
                 roster.last_transaction = most_recent_transaction_per_roster[

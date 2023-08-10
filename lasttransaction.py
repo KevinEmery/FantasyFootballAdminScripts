@@ -102,7 +102,7 @@ def main(argv):
 
     for league in leagues:
         team_to_last_transaction = platform.get_last_transaction_for_teams_in_league(
-            league)
+            league, year)
 
         print_recent_transaction_data(
             league.name, sorted(team_to_last_transaction.values(),
