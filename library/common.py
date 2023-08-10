@@ -15,6 +15,7 @@
 """
 
 import requests
+import time
 
 DEC_31_1999_SECONDS = 946684800
 DEFAULT_YEAR = "2023"
@@ -42,9 +43,6 @@ TEAMS_ON_BYE = {
 
 
 def _make_get_request_with_logging(request_url: str, should_retry: bool = True):
-    # Declare this here so that it's defined in all cases, even if the .get call explodes
-    response = None
-
     try:
         response = requests.get(request_url)
         if response.json() is None:
@@ -54,12 +52,8 @@ def _make_get_request_with_logging(request_url: str, should_retry: bool = True):
         print("Request URL: {url}".format(url=request_url))
         print("Exception: {e}".format(e=e))
 
-        # Sometimes this fails without even setting something on the response, such as
-        # in the case of an SSL failure. In those instances don't log the response.
-        if response != None:
-            print("Raw Response\n{response}".format(response=str(response)))
-
         # Give another go for the failed request, in hopes that it's transient
         if should_retry:
             print("Retrying failed request")
+            time.sleep(15)
             return _make_get_request_with_logging(request_url, False)
