@@ -280,6 +280,11 @@ class Fleaflicker(Platform):
 
     def _store_team_and_user_data_for_league(self, league_id: str, year: str):
         raw_league_data = api.fetch_league_standings(league_id, year)
+        
+        # Sometimes the API returns bad data. Attempt a retry here
+        if "divisions" not in raw_league_data:
+            print("Fleaflicker standings did not have divisions, retrying request")
+            raw_league_data = api.fetch_league_standings(league_id, year)
 
         team_id_to_user = {}
 
