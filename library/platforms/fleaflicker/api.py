@@ -1,5 +1,5 @@
 """
-   Copyright 2022 Kevin Emery
+   Copyright 2023 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -77,3 +77,10 @@ def fetch_league_scoreboard(league_id: str, week: int, year: str):
         league_id=league_id, week=str(week), year=year)
 
     return common._make_get_request_with_logging(request_url)
+
+
+def fetch_league_box_score(league_id: str, week: int, game_id: str):
+    request_url = BASE_URL + "FetchLeagueBoxscore?sport=NFL&league_id={league_id}&scoring_period={week}&fantasy_game_id={game_id}".format(
+        league_id=league_id, week=str(week), game_id=game_id)
+
+    return common._make_get_request_with_logging(request_url, False)

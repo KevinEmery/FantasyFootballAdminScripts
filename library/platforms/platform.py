@@ -66,6 +66,7 @@ class Platform:
             self,
             league: League,
             week: int,
+            year: int,
             teams_to_ignore: List[str] = [],
             only_teams : List[str] = [],
             player_names_to_ignore: List[str] = []) -> List[InactiveRoster]:

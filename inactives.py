@@ -74,8 +74,6 @@ def get_all_league_inactivity(
         platform = Sleeper()
     elif platform_selection == common.PlatformSelection.FLEAFLICKER:
         platform = Fleaflicker()
-        print("Not implemented for Fleaflicker")
-        return -1
 
     league_regex = re.compile(league_regex_string)
 
@@ -86,7 +84,7 @@ def get_all_league_inactivity(
 
     for league in leagues:
         inactive_rosters = platform.get_inactive_rosters_for_league_and_week(
-            league, week, teams_to_ignore, only_teams, player_names_to_ignore)
+            league, week, year, teams_to_ignore, only_teams, player_names_to_ignore)
 
         if not inactive_rosters:
             continue
@@ -164,12 +162,14 @@ def main(argv):
     league_regex = args.league_regex
     week = args.week
     include_transactions = args.include_transactions
+    platform_selection = args.platform_selection
     player_names_to_ignore = args.players_to_ignore
 
     inactive_leagues = get_all_league_inactivity(identifier, week, year=year,
                                                  league_regex_string=league_regex,
                                                  include_transactions=include_transactions,
-                                                 player_names_to_ignore=player_names_to_ignore)
+                                                 player_names_to_ignore=player_names_to_ignore,
+                                                 platform_selection=platform_selection)
 
     print_league_inactivity(inactive_leagues)
 

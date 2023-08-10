@@ -1,5 +1,5 @@
 """
-   Copyright 2022 Kevin Emery
+   Copyright 2023 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -256,9 +256,82 @@ class Fleaflicker(Platform):
             self,
             league: League,
             week: int,
+            year: int,
+            teams_to_ignore: List[str] = [],
+            only_teams: List[str] = [],
             player_names_to_ignore: List[str] = []) -> List[InactiveRoster]:
-        print("get_inactive_rosters_for_league_and_week Not implemented")
-        return []
+
+        inactive_rosters = []
+        team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
+        teams_on_bye = common.TEAMS_ON_BYE[week]
+
+        # In order to pull lineups, we have to pull game ids from the scoreboard
+        raw_league_scoreboard = api.fetch_league_scoreboard(
+            league.league_id, week, year)
+
+        game_ids = []
+        for game in raw_league_scoreboard["games"]:
+            game_ids.append(game["id"])
+
+        # Each game is a matchup home/away.
+        for game_id in game_ids:
+            raw_box_score = api.fetch_league_box_score(league.league_id, week, game_id)
+
+            game = raw_box_score["game"]
+
+            home_id = str(game["home"]["id"])
+            home_inactives = []
+            home_team = Team(home_id, team_id_to_user[home_id], self._build_roster_link(league.league_id, home_id))
+
+            away_id = str(game["away"]["id"])
+            away_inactives = []
+            away_team = Team(away_id, team_id_to_user[away_id], self._build_roster_link(league.league_id, away_id))
+
+            for grouping in raw_box_score["lineups"]:
+                # Starters has a definite group, assume all else is just... not starters.
+                try:
+                    group = grouping["group"]
+                except Exception as e:
+                    group = "NOT_START"
+
+                # Within the list of starters, it's split into a "slot" and each team has a player under that slot
+                for slot in grouping["slots"]:
+                    if group == "START":
+                        home_player = self._build_player_from_pro_player(slot["home"]["proPlayer"])
+                        away_player = self._build_player_from_pro_player(slot["away"]["proPlayer"])
+
+                        if self._should_player_be_reported_as_inactive(home_player, teams_to_ignore, only_teams, player_names_to_ignore, teams_on_bye):
+                            home_inactives.append(home_player)
+
+                        if self._should_player_be_reported_as_inactive(away_player, teams_to_ignore, only_teams, player_names_to_ignore, teams_on_bye):
+                            away_inactives.append(away_player)
+
+            if home_inactives:
+                inactive_rosters.append(InactiveRoster(home_team, home_inactives))
+            if away_inactives:
+                inactive_rosters.append(InactiveRoster(away_team, away_inactives))
+
+        return inactive_rosters
+
+    def _should_player_be_reported_as_inactive(self, player: Player,
+                                               teams_to_ignore: List[str],
+                                               only_teams: List[str],
+                                               player_names_to_ignore: List[str],
+                                               teams_on_bye: List[str]) -> bool:
+        if player.name in player_names_to_ignore:
+            return False
+
+        if player.team in teams_to_ignore:
+            return False
+
+        if only_teams and player.team not in only_teams:
+            return False
+
+        if player.team in teams_on_bye:
+            player.status = "BYE"
+
+        if player.is_inactive():
+            return True
 
     def _build_player_from_pro_player(self, player_data: Dict[str,
                                                               str]) -> Player:
@@ -268,9 +341,9 @@ class Fleaflicker(Platform):
         team = player_data["proTeamAbbreviation"]
 
         if "injury" in player_data:
-            status = player_data["injury"]["severity"]
+            status = player_data["injury"]["typeFull"]
         else:
-            status = "HEALTHY"
+            status = ""
 
         return Player(player_id, name, team, position, status)
 
@@ -280,7 +353,7 @@ class Fleaflicker(Platform):
 
     def _store_team_and_user_data_for_league(self, league_id: str, year: str):
         raw_league_data = api.fetch_league_standings(league_id, year)
-        
+
         # Sometimes the API returns bad data. Attempt a retry here
         if "divisions" not in raw_league_data:
             print("Fleaflicker standings did not have divisions, retrying request")
