@@ -423,8 +423,14 @@ async def post_fta_trades():
 
     if trade_channel is not None:
         _print_descriptive_log("post_fta_trades", "Posting to " + trade_channel.name)
-        all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
-                                             account_identifier=FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
+        try:
+            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
+                                                 account_identifier=FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
+        except:
+            # Because this is a periodic task, if there's an intermittent error we can just rely on the
+            # next task loop. But to make sure, let's log
+            _print_descriptive_log("post_fta_trades", "Exception while retrieving trades, ending task run")
+            return
 
         await post_all_unposted_trades(trade_channel, all_trades, FTA_POSTED_TRADES_PATH)
     else:
@@ -465,9 +471,16 @@ async def post_narffl_trades():
 
     if trade_channel is not None:
         _print_descriptive_log("post_narffl_trades", "Posting to " + trade_channel.name)
-        all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
-                                             account_identifier=NARFFL_USER,
-                                             platform_selection=common.PlatformSelection.FLEAFLICKER)
+
+        try:
+            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
+                                                 account_identifier=NARFFL_USER,
+                                                 platform_selection=common.PlatformSelection.FLEAFLICKER)
+        except:
+            # Because this is a periodic task, if there's an intermittent error we can just rely on the
+            # next task loop. But to make sure, let's log
+            _print_descriptive_log("post_narffl_trades", "Exception while retrieving trades, ending task run")
+            return
 
         await post_all_unposted_trades(trade_channel, all_trades, NARFFL_POSTED_TRADES_PATH)
     else:
