@@ -297,8 +297,16 @@ class Fleaflicker(Platform):
                 # Within the list of starters, it's split into a "slot" and each team has a player under that slot
                 for slot in grouping["slots"]:
                     if group == "START":
-                        home_player = self._build_player_from_pro_player(slot["home"]["proPlayer"])
-                        away_player = self._build_player_from_pro_player(slot["away"]["proPlayer"])
+                        # If there isn't a starter in the spot, then "home"/"away" just aren't there
+                        if "home" in slot:
+                            home_player = self._build_player_from_pro_player(slot["home"]["proPlayer"])
+                        else:
+                            home_player = Player("0", "Missing", "None", slot["position"]["label"], "Missing")
+                            
+                        if "away" in slot:
+                            away_player = self._build_player_from_pro_player(slot["away"]["proPlayer"])
+                        else:
+                            away_player = Player("0", "Missing", "None", slot["position"]["label"], "Missing")
 
                         if self._should_player_be_reported_as_inactive(home_player, teams_to_ignore, only_teams, player_names_to_ignore, teams_on_bye):
                             home_inactives.append(home_player)
