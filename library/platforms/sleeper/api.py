@@ -34,9 +34,9 @@ def get_user_from_identifier(identifier: str) -> User:
     return User(response_json["user_id"], response_json["username"])
 
 
-def get_all_leagues_for_user(user: User, year: str):
+def get_all_leagues_for_user(user: User, year: int):
     request_url = BASE_URL + "user/{user_id}/leagues/nfl/{year}".format(
-        user_id=user.user_id, year=year)
+        user_id=user.user_id, year=str(year))
 
     return common._make_get_request_with_logging(request_url)
 

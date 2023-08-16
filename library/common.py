@@ -18,7 +18,7 @@ import requests
 import time
 
 DEC_31_1999_SECONDS = 946684800
-DEFAULT_YEAR = "2023"
+DEFAULT_YEAR = 2023
 
 TEAMS_ON_BYE = {
     1: [],

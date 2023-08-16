@@ -49,7 +49,7 @@ class Fleaflicker(Platform):
 
     def get_all_leagues_for_user(self,
                                  user: User,
-                                 year: str = common.DEFAULT_YEAR,
+                                 year: int = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
                                  store_user_info: bool = True) -> List[League]:
         leagues = []
@@ -72,7 +72,7 @@ class Fleaflicker(Platform):
     def get_drafted_players_for_league(
             self,
             league: League,
-            year: str = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
+            year: int = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
         drafted_players = []
 
         raw_draft_board = api.fetch_league_draft_board(league.league_id, year)
@@ -91,7 +91,7 @@ class Fleaflicker(Platform):
 
         return drafted_players
 
-    def get_all_trades_for_league(self, league: League, year: str) -> List[Trade]:
+    def get_all_trades_for_league(self, league: League, year: int) -> List[Trade]:
         all_trades = []
 
         team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
@@ -102,7 +102,7 @@ class Fleaflicker(Platform):
                 int(trade_data["approvedOn"]) / 1000)
 
             # Ignore trades not made this year, Fleaflicker's API returns all trades throughout time
-            if str(trade_time.year) != year:
+            if trade_time.year != year:
                 continue
 
             trade_id = trade_data["id"]
@@ -148,7 +148,7 @@ class Fleaflicker(Platform):
         return all_trades
 
     def get_weekly_scores_for_league_and_week(self, league: League, week: int,
-                                              year: str) -> List[WeeklyScore]:
+                                              year: int) -> List[WeeklyScore]:
         weekly_scores = []
         team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
 
@@ -178,7 +178,7 @@ class Fleaflicker(Platform):
         return weekly_scores
 
     def get_season_scores_for_league(self, league: League,
-                                     year: str) -> List[SeasonScore]:
+                                     year: int) -> List[SeasonScore]:
         season_scores = []
         team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
 
@@ -359,7 +359,7 @@ class Fleaflicker(Platform):
         template = "https://www.fleaflicker.com/nfl/leagues/{league_id}/teams/{team_id}"
         return template.format(league_id=league_id, team_id=team_id)
 
-    def _store_team_and_user_data_for_league(self, league_id: str, year: str):
+    def _store_team_and_user_data_for_league(self, league_id: str, year: int):
         raw_league_data = api.fetch_league_standings(league_id, year)
 
         # Sometimes the API returns bad data. Attempt a retry here

@@ -20,9 +20,9 @@ from ...model.user import User
 BASE_URL = "https://www.fleaflicker.com/api/"
 
 
-def fetch_user_leagues(user: User, year: str):
+def fetch_user_leagues(user: User, year: int):
     request_url = BASE_URL + "FetchUserLeagues?sport=NFL&season={year}".format(
-        year=year)
+        year=str(year))
 
     if user.user_id != "":
         request_url += "&user_id={id}".format(id=user.user_id)
@@ -35,16 +35,16 @@ def fetch_user_leagues(user: User, year: str):
     return common._make_get_request_with_logging(request_url)["leagues"]
 
 
-def fetch_league_standings(league_id: str, year: str):
+def fetch_league_standings(league_id: str, year: int):
     request_url = BASE_URL + "FetchLeagueStandings?sport=NFL&league_id={league_id}&season={year}".format(
-        league_id=league_id, year=year)
+        league_id=league_id, year=str(year))
 
     return common._make_get_request_with_logging(request_url)
 
 
-def fetch_league_draft_board(league_id: str, year: str):
+def fetch_league_draft_board(league_id: str, year: int):
     request_url = BASE_URL + "FetchLeagueDraftBoard?sport=NFL&season={year}&league_id={league_id}".format(
-        year=year, league_id=league_id)
+        year=str(year), league_id=league_id)
 
     return common._make_get_request_with_logging(request_url)
 
@@ -72,9 +72,9 @@ def fetch_league_transactions_for_team(league_id: str,
     return common._make_get_request_with_logging(request_url)
 
 
-def fetch_league_scoreboard(league_id: str, week: int, year: str):
+def fetch_league_scoreboard(league_id: str, week: int, year: int):
     request_url = BASE_URL + "FetchLeagueScoreboard?sport=NFL&league_id={league_id}&scoring_period={week}&season={year}".format(
-        league_id=league_id, week=str(week), year=year)
+        league_id=league_id, week=str(week), year=str(year))
 
     return common._make_get_request_with_logging(request_url)
 

@@ -36,7 +36,7 @@ class Platform:
 
     def get_all_leagues_for_user(self,
                                  user: User,
-                                 year: str = common.DEFAULT_YEAR,
+                                 year: int = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
                                  store_user_info: bool = True) -> List[League]:
         pass
@@ -44,18 +44,18 @@ class Platform:
     def get_drafted_players_for_league(
             self,
             league: League,
-            year: str = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
+            year: int = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
         pass
 
-    def get_all_trades_for_league(self, League: League, year: str) -> List[Trade]:
+    def get_all_trades_for_league(self, League: League, year: int) -> List[Trade]:
         pass
 
     def get_weekly_scores_for_league_and_week(self, league: League, week: int,
-                                              year: str) -> List[WeeklyScore]:
+                                              year: int) -> List[WeeklyScore]:
         pass
 
     def get_season_scores_for_league(self, league: League,
-                                     year: str) -> List[SeasonScore]:
+                                     year: int) -> List[SeasonScore]:
         pass
 
     def get_last_transaction_for_teams_in_league(

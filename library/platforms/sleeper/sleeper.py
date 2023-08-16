@@ -53,12 +53,12 @@ class Sleeper(Platform):
 
     def get_all_leagues_for_user(self,
                                  user: User,
-                                 year: str = common.DEFAULT_YEAR,
+                                 year: int = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
                                  store_user_info: bool = True) -> List[League]:
         leagues = []
 
-        raw_response_json = api.get_all_leagues_for_user(user, year)
+        raw_response_json = api.get_all_leagues_for_user(user, str(year))
 
         # We can treat None as just an empty response. This can happen in error
         # cases where we don't get a valid user.
@@ -80,7 +80,7 @@ class Sleeper(Platform):
     def get_drafted_players_for_league(
             self,
             league: League,
-            year: str = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
+            year: int = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
         drafted_players = []
 
         raw_draft_data = api.get_all_picks_for_draft(league.draft_id)
@@ -93,7 +93,7 @@ class Sleeper(Platform):
 
         return drafted_players
 
-    def get_all_trades_for_league(self, league: League, year: str) -> List[Trade]:
+    def get_all_trades_for_league(self, league: League, year: int) -> List[Trade]:
         all_trades = []
         roster_num_to_user = self._league_id_to_roster_num_to_user[
             league.league_id]
@@ -188,7 +188,7 @@ class Sleeper(Platform):
         return all_trades
 
     def get_weekly_scores_for_league_and_week(self, league: League, week: int,
-                                              year: str) -> List[WeeklyScore]:
+                                              year: int) -> List[WeeklyScore]:
         weekly_scores = []
 
         weekly_matchups = api.get_matchups_for_league_and_week(
@@ -207,7 +207,7 @@ class Sleeper(Platform):
         return weekly_scores
 
     def get_season_scores_for_league(self, league: League,
-                                     year: str) -> List[SeasonScore]:
+                                     year: int) -> List[SeasonScore]:
         season_scores = []
         raw_league_rosters = api.get_rosters_for_league(league.league_id)
         roster_num_to_user = self._league_id_to_roster_num_to_user[
