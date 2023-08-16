@@ -81,6 +81,8 @@ async def on_ready():
         post_fta_trades.start()
     if _get_trade_posting_status_from_file(NARFFL_TRADE_POSTING_STATUS_PATH):
         post_narffl_trades.start()
+        
+    task_checker.start()
 
 # General ADP Functions
 
@@ -418,7 +420,7 @@ async def set_fta_trades_channel(ctx, channel: discord.TextChannel):
     _write_trade_channel_to_file(FTA_TRADE_CHANNEL_PATH, channel)
 
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def post_fta_trades():
     trade_channel = _get_trade_channel_from_file(FTA_TRADE_CHANNEL_PATH)
 
@@ -696,6 +698,23 @@ async def get_task_states(ctx):
 
     await ctx.send(template.format(task="post_fta_trades", state=post_fta_trades.is_running()))
     await ctx.send(template.format(task="post_narffl_trades", state=post_narffl_trades.is_running()))
+    
+
+@tasks.loop(minutes=7)
+async def task_checker():
+    # Verifies that the tasks are still running, and restarts them if next scheduled
+    # is before now. If this consistently happens, schedule tasks less frequently.
+    next_narffl_trade = post_narffl_trades.next_iteration
+    next_fta_trade = post_fta_trades.next_iteration
+    now = datetime.now(tz=next_narffl_trade.tzinfo)
+ 
+    if next_narffl_trade is not None and next_narffl_trade < now:
+        _print_descriptive_log("task_checker", "NarFFL Trade task is delayed, restarting")
+        post_narffl_trades.restart()
+        
+    if next_fta_trade is not None and next_fta_trade < now:
+        _print_descriptive_log("task_checker", "FTA Trade task is delayed, restarting")
+        post_fta_trades.restart()
 
 
 # General bot helper functions
