@@ -535,7 +535,7 @@ async def post_ff_discord_trades():
 
         try:
             all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
-                                                 account_identifier=FF_DISCORD_ADMIN_ROLE)
+                                                 account_identifier=FF_DISCORD_USER)
         except:
             # Because this is a periodic task, if there's an intermittent error we can just rely on the
             # next task loop. But to make sure, let's log
