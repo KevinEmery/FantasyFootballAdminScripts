@@ -52,6 +52,9 @@ NARFFL_TRADE_CHANNEL_PATH = "./bot_data/narffl_trade_channel"
 NARFFL_POSTED_TRADES_PATH = "./bot_data/narffl_posted_trades"
 NARFFL_TRADE_POSTING_STATUS_PATH = "./bot_data/narffl_trade_posting_status"
 NARFFL_LEAGUE_CHANNEL_MAPPING_PATH = "./bot_data/narffl_league_channel_mapping"
+FF_DISCORD_TRADE_CHANNEL_PATH = "./bot_data/ff_discord_trade_channel"
+FF_DISCORD_POSTED_TRADES_PATH = "./bot_data/ff_discord_posted_trades"
+FF_DISCORD_POSTING_STATUS_PATH = "./bot_data/ff_discord_trade_posting_status"
 
 TWO_TEAM_TRADE_REACTIONS = ['🅰️', '🅱️', '🤷']
 THREE_TEAM_TRADE_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '🤷']
@@ -62,8 +65,11 @@ FTAFFL_LEAGUE_REGEX = "^FTA \#\d+.*$"
 
 NARFFL_USER = "narfflflea@davehenning.net"
 
+FF_DISCORD_USER = "FFDiscordAdmin"
+
 FTA_LEAGUE_ADMIN_ROLE = "League Admin"
 NARFFL_ADMIN_ROLE = "Admin"
+FF_DISCORD_ADMIN_ROLE = "Commissioner"
 BOT_DEV_SERVER_ROLE = "Bot Admin"
 
 intents = discord.Intents.default()
@@ -81,7 +87,9 @@ async def on_ready():
         post_fta_trades.start()
     if _get_trade_posting_status_from_file(NARFFL_TRADE_POSTING_STATUS_PATH):
         post_narffl_trades.start()
-        
+    if _get_trade_posting_status_from_file(FF_DISCORD_POSTING_STATUS_PATH):
+        post_ff_discord_trades.start()
+
     task_checker.start()
 
 # General ADP Functions
@@ -491,6 +499,54 @@ async def post_narffl_trades():
 
     _print_descriptive_log("post_narffl_trades", "Done")
 
+# FF Discord Trade Commands
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
+async def start_posting_ff_discord_trades(ctx):
+    _print_descriptive_log("start_posting_ff_discord_trades")
+    _write_trade_posting_status_to_file(FF_DISCORD_POSTING_STATUS_PATH, True)
+    post_ff_discord_trades.start()
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
+async def stop_posting_ff_discord_trades(ctx):
+    _print_descriptive_log("stop_posting_ff_discord_trades")
+    _write_trade_posting_status_to_file(FF_DISCORD_POSTING_STATUS_PATH, False)
+    post_ff_discord_trades.cancel()
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
+async def set_ff_discord_trades_channel(ctx, channel: discord.TextChannel):
+    _print_descriptive_log("set_ff_discord_trades_channel", "Channel set to " + channel.name)
+    _write_trade_channel_to_file(FF_DISCORD_TRADE_CHANNEL_PATH, channel)
+
+
+@tasks.loop(minutes=10)
+async def post_ff_discord_trades():
+    trade_channel = _get_trade_channel_from_file(FF_DISCORD_TRADE_CHANNEL_PATH)
+
+    if trade_channel is not None:
+        _print_descriptive_log("post_ff_discord_trades", "Posting to " + trade_channel.name)
+
+        try:
+            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
+                                                 account_identifier=FF_DISCORD_ADMIN_ROLE)
+        except:
+            # Because this is a periodic task, if there's an intermittent error we can just rely on the
+            # next task loop. But to make sure, let's log
+            _print_descriptive_log("post_ff_discord_trades", "Exception while retrieving trades, ending task run")
+            return
+
+        await post_all_unposted_trades(trade_channel, all_trades, FF_DISCORD_POSTED_TRADES_PATH)
+    else:
+        _print_descriptive_log("post_ff_discord_trades", "No trade channel avaialble")
+
+    _print_descriptive_log("post_ff_discord_trades", "Done")
+
 # General Inactivity Functions
 
 
@@ -698,7 +754,8 @@ async def get_task_states(ctx):
 
     await ctx.send(template.format(task="post_fta_trades", state=post_fta_trades.is_running()))
     await ctx.send(template.format(task="post_narffl_trades", state=post_narffl_trades.is_running()))
-    
+    await ctx.send(template.format(task="post_ff_discord_trades", state=post_ff_discord_trades.is_running()))
+
 
 @tasks.loop(minutes=7)
 async def task_checker():
@@ -706,15 +763,20 @@ async def task_checker():
     # is before now. If this consistently happens, schedule tasks less frequently.
     next_narffl_trade = post_narffl_trades.next_iteration
     next_fta_trade = post_fta_trades.next_iteration
+    next_ff_discord_trade = post_ff_discord_trades.next_iteration
     now = datetime.now(tz=next_narffl_trade.tzinfo)
- 
+
     if next_narffl_trade is not None and next_narffl_trade < now:
         _print_descriptive_log("task_checker", "NarFFL Trade task is delayed, restarting")
         post_narffl_trades.restart()
-        
+
     if next_fta_trade is not None and next_fta_trade < now:
         _print_descriptive_log("task_checker", "FTA Trade task is delayed, restarting")
         post_fta_trades.restart()
+
+    if next_ff_discord_trade is not None and next_ff_discord_trade < now:
+        _print_descriptive_log("task_checker", "FF Discord Trade task is delayed, restarting")
+        post_ff_discord_trades.restart()
 
 
 # General bot helper functions
