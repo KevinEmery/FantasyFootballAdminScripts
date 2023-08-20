@@ -55,6 +55,7 @@ NARFFL_LEAGUE_CHANNEL_MAPPING_PATH = "./bot_data/narffl_league_channel_mapping"
 FF_DISCORD_TRADE_CHANNEL_PATH = "./bot_data/ff_discord_trade_channel"
 FF_DISCORD_POSTED_TRADES_PATH = "./bot_data/ff_discord_posted_trades"
 FF_DISCORD_POSTING_STATUS_PATH = "./bot_data/ff_discord_trade_posting_status"
+FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH = "/bot_data/ff_discord_league_channel_mapping"
 
 TWO_TEAM_TRADE_REACTIONS = ['🅰️', '🅱️', '🤷']
 THREE_TEAM_TRADE_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '🤷']
@@ -689,7 +690,7 @@ async def create_fta_league_to_channel_mapping(ctx, league_name: str, channel: d
     _print_descriptive_log("create_fta_league_to_channel_mapping")
     _write_channel_mapping_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
 
-# FTA Inactivity Commands
+# NarFFL Inactivity Commands
 
 
 @bot.command()
@@ -743,6 +744,60 @@ async def post_narffl_inactives_excluding_teams(ctx, week: int, *, teams_to_igno
 async def create_narffl_league_to_channel_mapping(ctx, league_name: str, channel: discord.TextChannel):
     _print_descriptive_log("create_narffl_league_to_channel_mapping")
     _write_channel_mapping_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
+    
+    
+# FF Discord Inactivity Commands
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
+async def post_ff_discord_inactives_for_select_teams(ctx, week: int, *, only_teams: str = ""):
+    _print_descriptive_log("post_ff_discord_inactives_for_select_teams")
+    only_teams_list = only_teams.split(",")
+
+    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
+                                               account_identifier=FF_DISCORD_USER,
+                                               week=week, include_transactions=False,
+                                               only_teams=only_teams_list)
+
+    for league_inactivity in inactive_leagues:
+        channel = _get_channel_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        if channel is not None:
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+        else:
+            _print_descriptive_log("post_ff_discord_inactives_for_select_teams",
+                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+
+    _print_descriptive_log("post_ff_discord_inactives_for_select_teams", "Done")
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
+async def post_ff_discord_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore: str = ""):
+    _print_descriptive_log("post_ff_discord_inactives_excluding_teams")
+    teams_to_ignore_list = teams_to_ignore.split(",")
+
+    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
+                                               account_identifier=FF_DISCORD_USER,
+                                               week=week, include_transactions=False,
+                                               teams_to_ignore=teams_to_ignore_list)
+
+    for league_inactivity in inactive_leagues:
+        channel = _get_channel_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        if channel is not None:
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+        else:
+            _print_descriptive_log("post_ff_discord_inactives_excluding_teams",
+                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+
+    _print_descriptive_log("post_ff_discord_inactives_excluding_teams", "Done")
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
+async def create_ff_discord_league_to_channel_mapping(ctx, league_name: str, channel: discord.TextChannel):
+    _print_descriptive_log("create_ff_discord_league_to_channel_mapping")
+    _write_channel_mapping_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
 
 
 # General Bot Diagnostic Commands
