@@ -5,6 +5,8 @@ These scripts are designed with the idea that there is a single user account in 
 
 The primary use case is for people administering multiple leagues who want to pull information about all of the teams, but it can also be a useful analysis tool for your own leagues.
 
+As a secondary item to the scripts, `discord_bot.py` also contains the source code for a basic Discord bot that I use to leverage several of the scripts in a few sets of leagues that I organize.
+
 ## Supported Platforms
 
 Currently these scripts support API calls to either Sleeper or Fleaflicker. Adding additional platforms only requires adding the platform implementation to `/library/platforms` and adding the new platform into the argument parser logic within each top-level script
@@ -18,8 +20,6 @@ Currently these scripts support API calls to either Sleeper or Fleaflicker. Addi
 This script looks through the starting lineups for each team in the league to find every team that is currently starting a player who could be considered inactive. This can be used both before the week to see who might need a little prodding and after a week is complete to see what teams in the league didn't fully set their rosters.
 
 One limitation of this is that the player status is pulled in real time - the platform APIs don't allow for pulling the historical status of a player, so you can't run the script in Week 5 to see who started inactive players in Week 2.
-
-:warning: This script currently does not support Fleaflicker due to issues pulling the starters.
 
 #### Usage
 
@@ -225,6 +225,10 @@ In order to run this scripts, in addition to the base packages that come with Py
 
  - [requests](https://pypi.org/project/requests/), which is used for all HTTP request handling
  - [python-dateutil](https://pypi.org/project/python-dateutil/), which is used to parse user input into a manageable `datetime` object
+
+ Separately, if you're looking to run the bot contained in `discord_bot.py`, you will need the following library
+
+ - [discord.py](https://discordpy.readthedocs.io/en/stable/), used to handle the registration and interactions with Discord
 
 ## License
 
