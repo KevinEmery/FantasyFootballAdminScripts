@@ -139,13 +139,13 @@ def _get_formatted_date() -> str:
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adps(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adps", "Posting to " + forum.name + " forum")
-    await post_fta_adp_all(ctx, forum)
-    await post_fta_adp_qb(ctx, forum)
-    await post_fta_adp_rb(ctx, forum)
-    await post_fta_adp_wr(ctx, forum)
-    await post_fta_adp_te(ctx, forum)
-    await post_fta_adp_k(ctx, forum)
     await post_fta_adp_def(ctx, forum)
+    await post_fta_adp_k(ctx, forum)
+    await post_fta_adp_te(ctx, forum)
+    await post_fta_adp_wr(ctx, forum)
+    await post_fta_adp_rb(ctx, forum)
+    await post_fta_adp_qb(ctx, forum)
+    await post_fta_adp_all(ctx, forum)
     _print_descriptive_log("post_fta_adps", "Done")
 
 
@@ -220,13 +220,13 @@ async def _post_fta_position_adp(ctx, forum: discord.ForumChannel, position_shor
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adps(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adps", "Posting to " + forum.name + " forum")
-    await post_narffl_adp_all(ctx, forum)
-    await post_narffl_adp_qb(ctx, forum)
-    await post_narffl_adp_rb(ctx, forum)
-    await post_narffl_adp_wr(ctx, forum)
-    await post_narffl_adp_te(ctx, forum)
-    await post_narffl_adp_k(ctx, forum)
     await post_narffl_adp_def(ctx, forum)
+    await post_narffl_adp_k(ctx, forum)
+    await post_narffl_adp_te(ctx, forum)
+    await post_narffl_adp_wr(ctx, forum)
+    await post_narffl_adp_rb(ctx, forum)
+    await post_narffl_adp_qb(ctx, forum)
+    await post_narffl_adp_all(ctx, forum)
     _print_descriptive_log("post_narffl_adps", "Done")
 
 
