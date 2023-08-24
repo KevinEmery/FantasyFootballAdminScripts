@@ -796,6 +796,34 @@ async def post_ff_discord_inactives_excluding_teams(ctx, week: int, *, teams_to_
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
+async def post_ff_discord_inactives_to_forum(ctx, week: int, forum: discord.ForumChannel, *, player_names_to_ignore: str = ""):
+    _print_descriptive_log("post_ff_discord_inactives_to_forum")
+    player_names_to_ignore_list = player_names_to_ignore.split(",")
+    if player_names_to_ignore_list[0] == '':
+        player_names_to_ignore_list = []
+
+    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
+                                               account_identifier=FF_DISCORD_USER,
+                                               week=week, include_transactions=True,
+                                               player_names_to_ignore=player_names_to_ignore_list)
+
+    thread_title = "Week {week} Inactive Starters".format(week=str(week))
+    thread_content = FTA_INACTIVE_STARTERS_THREAD_CONTENT
+    if player_names_to_ignore_list:
+        thread_content += "\n\n"
+        thread_content += "__Players Ignored__\n"
+        for player_name in player_names_to_ignore_list:
+            thread_content += "- {name}\n".format(name=player_name)
+
+    thread = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    for league_inactivity in inactive_leagues:
+        await thread.send(embed=_create_embed_for_inactive_league(league_inactivity))
+
+    _print_descriptive_log("post_ff_discord_inactives_to_forum", "Done")
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
 async def create_ff_discord_league_to_channel_mapping(ctx, league_name: str, channel: discord.TextChannel):
     _print_descriptive_log("create_ff_discord_league_to_channel_mapping")
     _write_channel_mapping_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
