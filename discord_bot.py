@@ -381,13 +381,14 @@ def _write_trade_posting_status_to_file(filename: str, is_active: bool):
 
 
 async def post_all_unposted_trades(trade_channel: discord.TextChannel, all_trades: List[Trade],
-                                   posted_trade_file_path: str):
+                                   posted_trade_file_path: str, should_react: bool = True):
     posted_trade_ids = _get_posted_trade_ids_from_file(posted_trade_file_path)
 
     for trade in all_trades:
         if trade.id not in posted_trade_ids:
             message = await trade_channel.send(content=trades.format_trades([trade]))
-            await _react_to_trade(message, len(trade.details))
+            if should_react:
+                await _react_to_trade(message, len(trade.details))
             _write_trade_to_file(posted_trade_file_path, trade)
 
 
@@ -542,7 +543,7 @@ async def post_ff_discord_trades():
             _print_descriptive_log("post_ff_discord_trades", "Exception while retrieving trades, ending task run")
             return
 
-        await post_all_unposted_trades(trade_channel, all_trades, FF_DISCORD_POSTED_TRADES_PATH)
+        await post_all_unposted_trades(trade_channel, all_trades, FF_DISCORD_POSTED_TRADES_PATH, False)
     else:
         _print_descriptive_log("post_ff_discord_trades", "No trade channel avaialble")
 
