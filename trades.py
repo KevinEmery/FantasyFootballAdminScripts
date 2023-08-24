@@ -100,7 +100,7 @@ def _format_two_team_trade(trade: Trade) -> str:
     for pick in trade.details[1].added_draft_picks:
         team_b_adds.append(pick)
     if trade.details[1].faab_added > 0:
-        team_b_adds.append(_format_faab(trade_detail.faab_added))
+        team_b_adds.append(_format_faab(trade_detail.faab_lost))
 
     # Output the trade itself
     output = _append_with_newline(output, "Trade on " + trade.trade_time.strftime(date_template))
