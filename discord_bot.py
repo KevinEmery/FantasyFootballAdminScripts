@@ -385,7 +385,7 @@ async def post_all_unposted_trades(trade_channel: discord.TextChannel, all_trade
     posted_trade_ids = _get_posted_trade_ids_from_file(posted_trade_file_path)
 
     for trade in all_trades:
-        if trade.id not in posted_trade_ids:
+        if str(trade.id) not in posted_trade_ids:
             message = await trade_channel.send(content=trades.format_trades([trade]))
             if should_react:
                 await _react_to_trade(message, len(trade.details))
