@@ -359,6 +359,7 @@ def _get_trade_posting_status_from_file(filename: str) -> bool:
     if os.path.isfile(filename):
         file = open(filename, "r")
         s = file.read()
+        s = s.strip()
 
         if s == 'True':
             posting_status = True
