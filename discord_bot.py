@@ -366,7 +366,7 @@ def _get_trade_posting_status_from_file(filename: str) -> bool:
             posting_status = False
         else:
             _print_descriptive_log("_get_trade_posting_status_from_file",
-                                   "Unknown value %s for trade posting status in %s".format(s, filename))
+                                   "Unknown value {value} for trade posting status in {file}".format(value=s, file=filename))
             posting_status = False
 
         file.close()
@@ -745,8 +745,8 @@ async def post_narffl_inactives_excluding_teams(ctx, week: int, *, teams_to_igno
 async def create_narffl_league_to_channel_mapping(ctx, league_name: str, channel: discord.TextChannel):
     _print_descriptive_log("create_narffl_league_to_channel_mapping")
     _write_channel_mapping_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
-    
-    
+
+
 # FF Discord Inactivity Commands
 
 
