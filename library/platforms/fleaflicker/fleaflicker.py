@@ -15,7 +15,7 @@
 """
 
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import re
 
@@ -76,20 +76,46 @@ class Fleaflicker(Platform):
         drafted_players = []
 
         raw_draft_board = api.fetch_league_draft_board(league.league_id, year)
-        raw_rosters = raw_draft_board["rosters"]
-        for roster in raw_rosters:
-            for lineup_entry in roster["lineup"]:
-                if "player" in lineup_entry:
-                    player_data = lineup_entry["player"]["proPlayer"]
 
-                    player = self._build_player_from_pro_player(player_data)
+        # Most drafts look like this
+        if "rosters" in raw_draft_board:
+            raw_rosters = raw_draft_board["rosters"]
+            for roster in raw_rosters:
+                for lineup_entry in roster["lineup"]:
+                    drafted_player = self._build_drafted_player(lineup_entry)
+                    if drafted_player is not None:
+                        drafted_players.append(drafted_player)
 
-                    draft_position = lineup_entry["draftedAt"]["overall"]
+        # Occassionally (Bacon South 2023) they look like this instead
+        elif "orderedSelections" in raw_draft_board:
+            ordered_selections = raw_draft_board["orderedSelections"]
 
-                    drafted_players.append(
-                        DraftedPlayer(player, draft_position))
+            for selection in ordered_selections:
+                drafted_player = self._build_drafted_player(selection)
+                if drafted_player is not None:
+                    drafted_players.append(drafted_player)
+        
+        # Some other format is out there, quit
+        else:
+            raise Exception("Draft board for {league} missing required field".format(league.name))
 
         return drafted_players
+
+    def _build_drafted_player(self, raw_data: Dict[str, Any]) -> DraftedPlayer:
+        if "player" in raw_data:
+            player_data = raw_data["player"]["proPlayer"]
+            player = self._build_player_from_pro_player(player_data)
+
+            if "draftedAt" in raw_data:
+                draft_position = raw_data["draftedAt"]["overall"]
+            elif "slot" in raw_data:
+                draft_position = raw_data["slot"]["overall"]
+            else:
+                raise Exception("Draft Slot information not available for player\n{data}".format(raw_data))
+
+            return DraftedPlayer(player, draft_position)
+
+        return None
 
     def get_all_trades_for_league(self, league: League, year: int) -> List[Trade]:
         all_trades = []
@@ -302,7 +328,7 @@ class Fleaflicker(Platform):
                             home_player = self._build_player_from_pro_player(slot["home"]["proPlayer"])
                         else:
                             home_player = Player("0", "Missing", "None", slot["position"]["label"], "Missing")
-                            
+
                         if "away" in slot:
                             away_player = self._build_player_from_pro_player(slot["away"]["proPlayer"])
                         else:
