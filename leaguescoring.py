@@ -56,13 +56,19 @@ def get_scoring_results(
     get_min_scores: bool,
     year: int = DEFAULT_YEAR,
     league_regex_string: str = DEFAULT_LEAGUE_REGEX_STRING,
-    platform: common.PlatformSelection = DEFAULT_PLATFORM,
+    platform_selection: common.PlatformSelection = DEFAULT_PLATFORM,
 ) -> ScoringResults:
 
     # Lists containing the raw data from the backend
     weekly_scores = []
     season_scores = []
     results = ScoringResults()
+    
+    # Set platform based on user choice
+    if platform_selection == common.PlatformSelection.SLEEPER:
+        platform = Sleeper()
+    elif platform_selection == common.PlatformSelection.FLEAFLICKER:
+        platform = Fleaflicker()
 
     find_weekly = get_weekly_results or get_current_weeks_results
     find_max_this_week = get_max_scores and get_current_weeks_results
@@ -243,15 +249,10 @@ def main(argv):
     get_current_week = args.current_week
     weekly_score_output_count = args.weekly_count
     seasonal_score_output_count = args.season_count
-
-    # Set platform based on user choice
-    if args.platform_selection == common.PlatformSelection.SLEEPER:
-        platform = Sleeper()
-    elif args.platform_selection == common.PlatformSelection.FLEAFLICKER:
-        platform = Fleaflicker()
+    platform_selection = args.platform_selection
 
     results = get_scoring_results(identifier, starting_week, ending_week, get_weekly,
-                                  get_current_week, get_season, get_max, get_min, year, league_regex_string, platform)
+                                  get_current_week, get_season, get_max, get_min, year, league_regex_string, platform_selection)
 
     # Print out the results
     this_week_template = "{main_header}, Week {week_num}"

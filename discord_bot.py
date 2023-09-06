@@ -5,6 +5,7 @@ import os
 import adp
 import common
 import inactives
+import leaguescoring
 import trades
 
 from datetime import datetime
@@ -34,6 +35,11 @@ The designation \"X.Y\" represents a selection in Round X, at Pick Y"
 FTA_INACTIVE_STARTERS_THREAD_CONTENT = "Below is a list of every team that started an \
 inactive player this week. When generating this, anyone injured this week or ruled out \
 at the last minute should have been ignored."
+
+FTA_LEADERBARD_MAIN_POST_CONTENT_HEADER = "Here are your top-scoring teams across all leagues, as well as the highest single-week score this year so far.\n\n\
+At the end of the regular season, the top-three season-long scorers and the top single-week score for the year are awarded prizes.\n\n"
+FTA_LEADERBOARD_SEASON_LONG_TOP_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - **{score}**\n"
+FTA_LEADERBOARD_WEEKLY_TOP_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - Week {week} - **{score}**\n"
 
 # These colors mirror the Sleeper draft board
 ALL_PLAYERS_COLOR = discord.Colour.dark_blue()
@@ -828,6 +834,65 @@ async def post_ff_discord_inactives_to_forum(ctx, week: int, forum: discord.Foru
 async def create_ff_discord_league_to_channel_mapping(ctx, league_name: str, channel: discord.TextChannel):
     _print_descriptive_log("create_ff_discord_league_to_channel_mapping")
     _write_channel_mapping_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
+
+
+# FTA Leaderboard Commands
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
+async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
+    _print_descriptive_log("post_fta_leaderboard")
+    main_leaderboard_length = 5
+    expanded_leaderboard_length = 15
+    scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=FTAFFL_USER,
+                                              starting_week=1, ending_week=end_week,
+                                              get_weekly_results=True, get_current_weeks_results=True,  get_season_results=True,
+                                              get_max_scores=True, get_min_scores=False, league_regex_string=FTAFFL_LEAGUE_REGEX)
+
+    thread_title = "Week {week} Leaderboard".format(week=end_week)
+    thread_content = FTA_LEADERBARD_MAIN_POST_CONTENT_HEADER
+    thread_content += "__Top {count} Season-Long Scorers__\n".format(count=main_leaderboard_length)
+    for n in range(main_leaderboard_length):
+        result = scoring_results.max_season_scores[n]
+        thread_content += FTA_LEADERBOARD_SEASON_LONG_TOP_TEAM_TEMPLATE.format(
+            rank=n+1, team_name=result.team.manager.name, league=result.league.name, 
+            score=result.score, roster_link=result.team.roster_link)
+        
+    thread_content += "\n__Top Single-Week Scorer__\n"
+    result = scoring_results.max_weekly_scores[0]
+    thread_content += FTA_LEADERBOARD_WEEKLY_TOP_TEAM_TEMPLATE.format(
+        rank="1", team_name=result.team.manager.name, league=result.league.name, 
+        score=result.score, roster_link=result.team.roster_link, week=str(result.week))
+        
+    thread_content += "\nFor the expanded leaderboards, please see the messages below. Good luck everyone!"
+    
+    thread = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    
+    message = "__Top {count} Season-Long Scorers__\n".format(count=expanded_leaderboard_length)
+    for n in range(expanded_leaderboard_length):
+        result = scoring_results.max_season_scores[n]
+        message += FTA_LEADERBOARD_SEASON_LONG_TOP_TEAM_TEMPLATE.format(
+            rank=n+1, team_name=result.team.manager.name, league=result.league.name, 
+            score=result.score, roster_link=result.team.roster_link)
+    await thread.send(content=message)
+    
+    message = "__Top {count} Single-Week Scorers__\n".format(count=expanded_leaderboard_length)
+    for n in range(expanded_leaderboard_length):
+        result = scoring_results.max_weekly_scores[n]
+        message += FTA_LEADERBOARD_WEEKLY_TOP_TEAM_TEMPLATE.format(
+            rank=n+1, team_name=result.team.manager.name, league=result.league.name, 
+            score=result.score, roster_link=result.team.roster_link, week=str(result.week))
+    await thread.send(content=message)
+    
+    message = "__Top {count} Week {week} Scorers__\n".format(count=expanded_leaderboard_length, week=end_week)
+    for n in range(expanded_leaderboard_length):
+        result = scoring_results.max_scores_this_week[n]
+        message += FTA_LEADERBOARD_WEEKLY_TOP_TEAM_TEMPLATE.format(
+            rank=n+1, team_name=result.team.manager.name, league=result.league.name, 
+            score=result.score, roster_link=result.team.roster_link, week=str(result.week))
+    await thread.send(content=message)
+
+    _print_descriptive_log("post_fta_leaderboard", "Done")
 
 
 # General Bot Diagnostic Commands
