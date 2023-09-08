@@ -872,7 +872,7 @@ async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
     main_leaderboard_length = 5
     expanded_leaderboard_length = 15
     scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=FTAFFL_USER,
-                                              starting_week=1, ending_week=end_week, year=2022,
+                                              starting_week=1, ending_week=end_week,
                                               get_weekly_results=True, get_current_weeks_results=True,  get_season_results=True,
                                               get_max_scores=True, get_min_scores=False, league_regex_string=FTAFFL_LEAGUE_REGEX)
 
