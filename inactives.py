@@ -63,6 +63,7 @@ def get_all_league_inactivity(
     year: int = DEFAULT_YEAR,
     league_regex_string: str = DEFAULT_LEAGUE_REGEX_STRING,
     include_transactions: bool = True,
+    user_only: bool = False,
     teams_to_ignore: List[str] = [],
     only_teams: List[str] = [],
     player_names_to_ignore: List[str] = [],
@@ -86,6 +87,10 @@ def get_all_league_inactivity(
         inactive_rosters = platform.get_inactive_rosters_for_league_and_week(
             league, week, year, teams_to_ignore, only_teams, player_names_to_ignore)
 
+        if user_only:
+            # Filter list by the identifier user
+            inactive_rosters[:] = [r for r in inactive_rosters if r.team.manager.name == user.name]
+        
         if not inactive_rosters:
             continue
 
@@ -117,6 +122,13 @@ def parse_user_provided_flags() -> argparse.Namespace:
         help="Regular expression used to select which leagues to analyze",
         type=str,
         default=".*")
+    parser.add_argument(
+        "-u", 
+        "--user-only", 
+        help="Report inactivity only for the passed-in user", 
+        dest="user_only",
+        action="store_true")
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--include_transactions",
@@ -150,6 +162,7 @@ def parse_user_provided_flags() -> argparse.Namespace:
                         default=[])
 
     parser.set_defaults(include_transactions=True,
+                        user_only=False,
                         platform_selection=common.PlatformSelection.SLEEPER)
 
     return parser.parse_args()
@@ -159,6 +172,7 @@ def main(argv):
     args = parse_user_provided_flags()
     identifier = args.identifier
     year = args.year
+    user_only = args.user_only
     league_regex = args.league_regex
     week = args.week
     include_transactions = args.include_transactions
@@ -167,7 +181,8 @@ def main(argv):
 
     inactive_leagues = get_all_league_inactivity(identifier, week, year=year,
                                                  league_regex_string=league_regex,
-                                                 include_transactions=include_transactions,
+                                                 include_transactions=include_transactions, 
+                                                 user_only=user_only,
                                                  player_names_to_ignore=player_names_to_ignore,
                                                  platform_selection=platform_selection)
 
