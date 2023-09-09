@@ -43,6 +43,8 @@ At the end of the regular season, the top-three season-long scorers and the top 
 LEADERBOARD_SEASON_SCORE_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - **{score}**\n"
 LEADERBOARD_WEEKLY_SCORE_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - Week {week} - **{score}**\n"
 
+NARFFL_LEADERBOARD_LEVEL_SPECIFIC_POST_TEMPLATE = "Here are the top-scoring teams looking at the NarFFL {level} leagues"
+
 # These colors mirror the Sleeper draft board
 ALL_PLAYERS_COLOR = discord.Colour.dark_blue()
 QB_COLOR = discord.Colour.from_rgb(192, 94, 133)
@@ -73,6 +75,10 @@ FTAFFL_USER = "FTAFFL"
 FTAFFL_LEAGUE_REGEX = "^FTA \#\d+.*$"
 
 NARFFL_USER = "narfflflea@davehenning.net"
+NARFFL_FARM_LEAGUE_REGEX = "^NarFFL Farm.*$"
+NARFFL_MINORS_LEAGUE_REGEX = "^NarFFL Minors.*$"
+NARFFL_MAJORS_LEAGUE_REGEX = "^NarFFL Majors.*$"
+NARFFL_PREMIER_LEAGUE_REGEX = "^NarFFL Premier.*$"
 
 FF_DISCORD_USER = "FFDiscordAdmin"
 
@@ -840,24 +846,26 @@ async def create_ff_discord_league_to_channel_mapping(ctx, league_name: str, cha
 
 # Generic Leaderboard Helpers
 
-def _build_season_long_leaderboard_string(scores: List[SeasonScore], count: int) -> str:
+def _build_season_long_leaderboard_string(scores: List[SeasonScore], count: int, league_prefix_to_remove: str = "") -> str:
     string = "__Top {count} Season-Long Scorers__\n".format(count=count)
 
     for n in range(count):
         result = scores[n]
+        league_name = result.league.name.removeprefix(league_prefix_to_remove)
         string += LEADERBOARD_SEASON_SCORE_TEAM_TEMPLATE.format(
-            rank=n+1, team_name=result.team.manager.name, league=result.league.name,
+            rank=n+1, team_name=result.team.manager.name, league=league_name,
             score=result.score, roster_link=result.team.roster_link)
 
     return string
 
 
-def _build_weekly_score_leaderboard_string(scores: List[WeeklyScore], count: int, title: str):
+def _build_weekly_score_leaderboard_string(scores: List[WeeklyScore], count: int, title: str, league_prefix_to_remove: str = ""):
     string = title
     for n in range(count):
         result = scores[n]
+        league_name = result.league.name.removeprefix(league_prefix_to_remove)
         string += LEADERBOARD_WEEKLY_SCORE_TEAM_TEMPLATE.format(
-            rank=n+1, team_name=result.team.manager.name, league=result.league.name,
+            rank=n+1, team_name=result.team.manager.name, league=league_name,
             score=result.score, roster_link=result.team.roster_link, week=str(result.week))
 
     return string
@@ -902,6 +910,124 @@ async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
     await thread.send(content=message)
 
     _print_descriptive_log("post_fta_leaderboard", "Done")
+
+
+# NarFFL Leaderboard Commands
+
+async def _post_specific_narffl_leaderboard(league_level: str, league_regex_string: str, end_week: int, forum: discord.ForumChannel):
+    season_leaderboard_length = 15
+    weekly_leaderboard_length = 10
+
+    scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=NARFFL_USER,
+                                              starting_week=1, ending_week=end_week, platform_selection=common.PlatformSelection.FLEAFLICKER,
+                                              get_weekly_results=True, get_current_weeks_results=True,  get_season_results=True,
+                                              get_max_scores=True, get_min_scores=False, league_regex_string=league_regex_string)
+
+    # Create the forum post
+    thread_title = "Week {week} {level} Leaderboard".format(week=end_week, level=league_level)
+    thread_content = NARFFL_LEADERBOARD_LEVEL_SPECIFIC_POST_TEMPLATE.format(level=league_level)
+    post = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+
+    league_prefix_to_remove = "NarFFL {level} - ".format(level=league_level)
+
+    # Send the leaderboards as followup messages
+    message = _build_season_long_leaderboard_string(
+        scoring_results.max_season_scores, season_leaderboard_length, league_prefix_to_remove)
+    print(len(message))
+    await post.send(content=message)
+
+    message = _build_weekly_score_leaderboard_string(scoring_results.max_weekly_scores, weekly_leaderboard_length,
+                                                     "__Top {count} Single-Week Scorers__\n".format(
+                                                         count=weekly_leaderboard_length),
+                                                     league_prefix_to_remove)
+    print(len(message))
+    await post.send(content=message)
+
+    message = _build_weekly_score_leaderboard_string(scoring_results.max_scores_this_week, weekly_leaderboard_length,
+                                                     "__Top {count} Week {week} Scorers__\n".format(
+                                                         count=weekly_leaderboard_length, week=end_week),
+                                                     league_prefix_to_remove)
+    print(len(message))
+    await post.send(content=message)
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_leaderboards(ctx, end_week: int, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_leaderboards", "Posting to {forum}".format(forum=forum.name))
+    await post_narffl_farm_leaderboard(ctx, end_week, forum)
+    await post_narffl_minors_leaderboard(ctx, end_week, forum)
+    await post_narffl_majors_leaderboard(ctx, end_week, forum)
+    await post_narffl_premier_leaderboard(ctx, end_week, forum)
+    await post_narffl_overall_leaderboard(ctx, end_week, forum)
+    _print_descriptive_log("post_narffl_leaderboards", "Done")
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_farm_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_farm_leaderboard", "Posting to {forum}".format(forum=forum.name))
+    await _post_specific_narffl_leaderboard("Farm", NARFFL_FARM_LEAGUE_REGEX, end_week, forum)
+    _print_descriptive_log("post_narffl_farm_leaderboard", "Done")
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_minors_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_minors_leaderboard", "Posting to {forum}".format(forum=forum.name))
+    await _post_specific_narffl_leaderboard("Minors", NARFFL_MINORS_LEAGUE_REGEX, end_week, forum)
+    _print_descriptive_log("post_narffl_minors_leaderboard", "Done")
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_majors_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_majors_leaderboard", "Posting to {forum}".format(forum=forum.name))
+    await _post_specific_narffl_leaderboard("Majors", NARFFL_MAJORS_LEAGUE_REGEX, end_week, forum)
+    _print_descriptive_log("post_narffl_majors_leaderboard", "Done")
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_premier_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_premier_leaderboard", "Posting to {forum}".format(forum=forum.name))
+    await _post_specific_narffl_leaderboard("Premier", NARFFL_PREMIER_LEAGUE_REGEX, end_week, forum)
+    _print_descriptive_log("post_narffl_premier_leaderboard", "Done")
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_overall_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_overall_leaderboard", "Posting to {forum}".format(forum=forum.name))
+
+    leaderboard_length = 10
+
+    scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=NARFFL_USER,
+                                              starting_week=1, ending_week=end_week, platform_selection=common.PlatformSelection.FLEAFLICKER,
+                                              get_weekly_results=True, get_current_weeks_results=True,  get_season_results=True,
+                                              get_max_scores=True, get_min_scores=False)
+
+    # Create the forum post
+    thread_title = "Week {week} Overall Leaderboard".format(week=end_week)
+    thread_content = "Here are the top-scoring teams looking at all NarFFL Leagues."
+    post = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+
+    # Send the leaderboards as followup messages
+    message = _build_season_long_leaderboard_string(scoring_results.max_season_scores, leaderboard_length)
+    print(len(message))
+    await post.send(content=message)
+
+    message = _build_weekly_score_leaderboard_string(scoring_results.max_weekly_scores, leaderboard_length,
+                                                     "__Top {count} Single-Week Scorers__\n".format(count=leaderboard_length))
+    print(len(message))
+    await post.send(content=message)
+
+    message = _build_weekly_score_leaderboard_string(scoring_results.max_scores_this_week, leaderboard_length,
+                                                     "__Top {count} Week {week} Scorers__\n".format(count=leaderboard_length, week=end_week))
+    print(len(message))
+    await post.send(content=message)
+
+    _print_descriptive_log("post_narffl_overall_leaderboard", "Done")
 
 
 # General Bot Diagnostic Commands
