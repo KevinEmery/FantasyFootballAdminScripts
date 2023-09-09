@@ -624,6 +624,24 @@ def _get_channel_for_league(filename: str, league_name: str) -> discord.TextChan
         return None
     return bot.get_channel(int(channel_id))
 
+# Personal Inactivity Commands
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE)
+async def list_inactives_for_sleeper_user(ctx, username: str, week: int):
+    _print_descriptive_log("list_inactives_for_sleeper_user")
+    
+    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
+                                               account_identifier=username,
+                                               week=week, include_transactions=False,
+                                               user_only=True)
+    
+    for league_inactivity in inactive_leagues:
+        await ctx.send(embed=_create_embed_for_inactive_league(league_inactivity))
+        
+    _print_descriptive_log("list_inactives_for_sleeper_user", "Done")
+
+
 
 # FTA Inactivity Commands
 
