@@ -153,6 +153,8 @@ def _get_formatted_date() -> str:
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adps(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_adps", "Posting to " + forum.name + " forum")
+    message = await ctx.reply("Processing...")
+
     await post_fta_adp_def(ctx, forum)
     await post_fta_adp_k(ctx, forum)
     await post_fta_adp_te(ctx, forum)
@@ -160,7 +162,9 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
     await post_fta_adp_rb(ctx, forum)
     await post_fta_adp_qb(ctx, forum)
     await post_fta_adp_all(ctx, forum)
+
     _print_descriptive_log("post_fta_adps", "Done")
+    await message.delete()
 
 
 @bot.command()
@@ -234,6 +238,8 @@ async def _post_fta_position_adp(ctx, forum: discord.ForumChannel, position_shor
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adps(ctx, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_adps", "Posting to " + forum.name + " forum")
+    message = await ctx.reply("Processing...")
+
     await post_narffl_adp_def(ctx, forum)
     await post_narffl_adp_k(ctx, forum)
     await post_narffl_adp_te(ctx, forum)
@@ -241,7 +247,9 @@ async def post_narffl_adps(ctx, forum: discord.ForumChannel):
     await post_narffl_adp_rb(ctx, forum)
     await post_narffl_adp_qb(ctx, forum)
     await post_narffl_adp_all(ctx, forum)
+
     _print_descriptive_log("post_narffl_adps", "Done")
+    await message.delete()
 
 
 @bot.command()
@@ -626,21 +634,23 @@ def _get_channel_for_league(filename: str, league_name: str) -> discord.TextChan
 
 # Personal Inactivity Commands
 
+
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE)
 async def list_inactives_for_sleeper_user(ctx, username: str, week: int):
     _print_descriptive_log("list_inactives_for_sleeper_user")
-    
+    message = await ctx.reply("Processing...")
+
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
                                                account_identifier=username,
                                                week=week, include_transactions=False,
                                                user_only=True)
-    
+
     for league_inactivity in inactive_leagues:
         await ctx.send(embed=_create_embed_for_inactive_league(league_inactivity))
-        
-    _print_descriptive_log("list_inactives_for_sleeper_user", "Done")
 
+    _print_descriptive_log("list_inactives_for_sleeper_user", "Done")
+    await message.delete()
 
 
 # FTA Inactivity Commands
@@ -649,6 +659,8 @@ async def list_inactives_for_sleeper_user(ctx, username: str, week: int):
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_inactives_for_select_teams(ctx, week: int, *, only_teams: str = ""):
     _print_descriptive_log("post_fta_inactives_for_select_teams")
+    message = await ctx.reply("Processing...")
+
     only_teams_list = only_teams.split(",")
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
@@ -665,12 +677,15 @@ async def post_fta_inactives_for_select_teams(ctx, week: int, *, only_teams: str
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
 
     _print_descriptive_log("post_fta_inactives_for_select_teams", "Done")
+    await message.delete()
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore: str = ""):
     _print_descriptive_log("post_fta_inactives_excluding_teams")
+    message = await ctx.reply("Processing...")
+
     teams_to_ignore_list = teams_to_ignore.split(",")
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
@@ -687,12 +702,15 @@ async def post_fta_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore:
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
 
     _print_descriptive_log("post_fta_inactives_excluding_teams", "Done")
+    await message.delete()
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_inactives_to_forum(ctx, week: int, forum: discord.ForumChannel, *, player_names_to_ignore: str = ""):
     _print_descriptive_log("post_fta_inactives_to_forum")
+    message = await ctx.reply("Processing...")
+
     player_names_to_ignore_list = player_names_to_ignore.split(",")
     if player_names_to_ignore_list[0] == '':
         player_names_to_ignore_list = []
@@ -716,6 +734,7 @@ async def post_fta_inactives_to_forum(ctx, week: int, forum: discord.ForumChanne
         await thread.send(embed=_create_embed_for_inactive_league(league_inactivity))
 
     _print_descriptive_log("post_fta_inactives_to_forum", "Done")
+    await message.delete()
 
 
 @bot.command()
@@ -731,6 +750,8 @@ async def create_fta_league_to_channel_mapping(ctx, league_name: str, channel: d
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_inactives_for_select_teams(ctx, week: int, *, only_teams: str = ""):
     _print_descriptive_log("post_narffl_inactives_for_select_teams")
+    message = await ctx.reply("Processing...")
+
     only_teams_list = only_teams.split(",")
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
@@ -748,12 +769,15 @@ async def post_narffl_inactives_for_select_teams(ctx, week: int, *, only_teams: 
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
 
     _print_descriptive_log("post_narffl_inactives_for_select_teams", "Done")
+    await message.delete()
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore: str = ""):
     _print_descriptive_log("post_narffl_inactives_excluding_teams")
+    message = await ctx.reply("Processing...")
+
     teams_to_ignore_list = teams_to_ignore.split(",")
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
@@ -771,6 +795,7 @@ async def post_narffl_inactives_excluding_teams(ctx, week: int, *, teams_to_igno
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
 
     _print_descriptive_log("post_narffl_inactives_excluding_teams", "Done")
+    await message.delete()
 
 
 @bot.command()
@@ -787,6 +812,8 @@ async def create_narffl_league_to_channel_mapping(ctx, league_name: str, channel
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
 async def post_ff_discord_inactives_for_select_teams(ctx, week: int, *, only_teams: str = ""):
     _print_descriptive_log("post_ff_discord_inactives_for_select_teams")
+    message = await ctx.reply("Processing...")
+
     only_teams_list = only_teams.split(",")
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
@@ -803,12 +830,15 @@ async def post_ff_discord_inactives_for_select_teams(ctx, week: int, *, only_tea
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
 
     _print_descriptive_log("post_ff_discord_inactives_for_select_teams", "Done")
+    await message.delete()
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
 async def post_ff_discord_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore: str = ""):
     _print_descriptive_log("post_ff_discord_inactives_excluding_teams")
+    message = await ctx.reply("Processing...")
+
     teams_to_ignore_list = teams_to_ignore.split(",")
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
@@ -825,12 +855,15 @@ async def post_ff_discord_inactives_excluding_teams(ctx, week: int, *, teams_to_
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
 
     _print_descriptive_log("post_ff_discord_inactives_excluding_teams", "Done")
+    await message.delete()
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
 async def post_ff_discord_inactives_to_forum(ctx, week: int, forum: discord.ForumChannel, *, player_names_to_ignore: str = ""):
     _print_descriptive_log("post_ff_discord_inactives_to_forum")
+    message = await ctx.reply("Processing...")
+
     player_names_to_ignore_list = player_names_to_ignore.split(",")
     if player_names_to_ignore_list[0] == '':
         player_names_to_ignore_list = []
@@ -853,6 +886,7 @@ async def post_ff_discord_inactives_to_forum(ctx, week: int, forum: discord.Foru
         await thread.send(embed=_create_embed_for_inactive_league(league_inactivity))
 
     _print_descriptive_log("post_ff_discord_inactives_to_forum", "Done")
+    await message.delete()
 
 
 @bot.command()
@@ -895,6 +929,8 @@ def _build_weekly_score_leaderboard_string(scores: List[WeeklyScore], count: int
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_leaderboard")
+    message = await ctx.reply("Processing...")
+
     main_leaderboard_length = 5
     expanded_leaderboard_length = 15
     scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=FTAFFL_USER,
@@ -928,6 +964,7 @@ async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
     await thread.send(content=message)
 
     _print_descriptive_log("post_fta_leaderboard", "Done")
+    message.delete()
 
 
 # NarFFL Leaderboard Commands
@@ -973,12 +1010,16 @@ async def _post_specific_narffl_leaderboard(league_level: str, league_regex_stri
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_leaderboards(ctx, end_week: int, forum: discord.ForumChannel):
     _print_descriptive_log("post_narffl_leaderboards", "Posting to {forum}".format(forum=forum.name))
+    message = await ctx.reply("Processing...")
+
     await post_narffl_farm_leaderboard(ctx, end_week, forum)
     await post_narffl_minors_leaderboard(ctx, end_week, forum)
     await post_narffl_majors_leaderboard(ctx, end_week, forum)
     await post_narffl_premier_leaderboard(ctx, end_week, forum)
     await post_narffl_overall_leaderboard(ctx, end_week, forum)
+
     _print_descriptive_log("post_narffl_leaderboards", "Done")
+    await message.delete()
 
 
 @bot.command()
