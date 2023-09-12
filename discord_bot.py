@@ -988,21 +988,18 @@ async def _post_specific_narffl_leaderboard(league_level: str, league_regex_stri
     # Send the leaderboards as followup messages
     message = _build_season_long_leaderboard_string(
         scoring_results.max_season_scores, season_leaderboard_length, league_prefix_to_remove)
-    print(len(message))
     await post.send(content=message)
 
     message = _build_weekly_score_leaderboard_string(scoring_results.max_weekly_scores, weekly_leaderboard_length,
                                                      "__Top {count} Single-Week Scorers__\n".format(
                                                          count=weekly_leaderboard_length),
                                                      league_prefix_to_remove)
-    print(len(message))
     await post.send(content=message)
 
     message = _build_weekly_score_leaderboard_string(scoring_results.max_scores_this_week, weekly_leaderboard_length,
                                                      "__Top {count} Week {week} Scorers__\n".format(
                                                          count=weekly_leaderboard_length, week=end_week),
                                                      league_prefix_to_remove)
-    print(len(message))
     await post.send(content=message)
 
 
@@ -1108,7 +1105,7 @@ async def post_ff_discord_leaderboard(ctx, end_week: int, channel: discord.TextC
     post_content += _build_season_long_leaderboard_string(
         scoring_results.max_season_scores, leaderboard_length) + "\n"
     post_content += _build_weekly_score_leaderboard_string(
-        scoring_results.max_scores_this_week, leaderboard_length, 
+        scoring_results.max_scores_this_week, leaderboard_length,
         "__Top {count} Week {week} Scores__\n".format(count=leaderboard_length, week=end_week)) + "\n"
 
     post_content += "Full standings at https://www.flexspotff.com/leagues/leaderboard/2023/{week}".format(week=end_week)
