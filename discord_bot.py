@@ -1089,6 +1089,36 @@ async def post_narffl_overall_leaderboard(ctx, end_week: int, forum: discord.For
     _print_descriptive_log("post_narffl_overall_leaderboard", "Done")
 
 
+# FF Discord Leaderboard Commands
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
+async def post_ff_discord_leaderboard(ctx, end_week: int, channel: discord.TextChannel):
+    _print_descriptive_log("post_ff_discord_leaderboard")
+    processing_message = await ctx.reply("Processing...")
+
+    leaderboard_length = 5
+    scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=FF_DISCORD_USER,
+                                              starting_week=1, ending_week=end_week,
+                                              get_weekly_results=False, get_current_weeks_results=True,  get_season_results=True,
+                                              get_max_scores=True, get_min_scores=False)
+
+    post_content = "## Week {week} Leaderboard\n\n\n".format(week=end_week)
+
+    post_content += _build_season_long_leaderboard_string(
+        scoring_results.max_season_scores, leaderboard_length) + "\n"
+    post_content += _build_weekly_score_leaderboard_string(
+        scoring_results.max_scores_this_week, leaderboard_length, 
+        "__Top {count} Week {week} Scores__\n".format(count=leaderboard_length, week=end_week)) + "\n"
+
+    post_content += "Full standings at https://www.flexspotff.com/leagues/leaderboard/2023/{week}".format(week=end_week)
+
+    await channel.send(content=post_content)
+
+    _print_descriptive_log("post_ff_discord_leaderboard", "Done")
+    await processing_message.delete()
+
+
 # General Bot Diagnostic Commands
 
 @bot.command()
