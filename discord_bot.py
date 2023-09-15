@@ -688,6 +688,8 @@ def _create_username_to_discord_id_map(filename: str) -> Dict[str, Set[str]]:
 @bot.command()
 async def register_sleeper_username(ctx, sleeper_username: str):
     author = ctx.message.author
+    _print_descriptive_log("register_sleeper_username", 
+                           "{username}: {discord_user}".format(username=sleeper_username, discord_user=author.name))
 
     _write_platform_user_to_discord_id_mapping(SLEEPER_USERNAME_TO_DISCORD_ID_PATH, sleeper_username, author)
 
@@ -695,6 +697,8 @@ async def register_sleeper_username(ctx, sleeper_username: str):
 @bot.command()
 async def register_fleaflicker_username(ctx, fleaflicker_username: str):
     author = ctx.message.author
+    _print_descriptive_log("register_fleaflicker_username", 
+                           "{username}: {discord_user}".format(username=fleaflicker_username, discord_user=author.name))
 
     _write_platform_user_to_discord_id_mapping(FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH, fleaflicker_username, author)
 
