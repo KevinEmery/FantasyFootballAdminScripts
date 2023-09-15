@@ -640,7 +640,7 @@ def _create_discord_mention_from_id(discord_id: str) -> str:
     return "<@{id}>".format(id=discord_id)
 
 
-def _generate_mentions_string_from_league_inactivity(username_to_discord_id_mapping: Dict[str, Set[str]], 
+def _generate_mentions_string_from_league_inactivity(username_to_discord_id_mapping: Dict[str, Set[str]],
                                                      league_inactivity: LeagueInactivity) -> str:
     mentions_string = ""
 
@@ -688,19 +688,24 @@ def _create_username_to_discord_id_map(filename: str) -> Dict[str, Set[str]]:
 @bot.command()
 async def register_sleeper_username(ctx, sleeper_username: str):
     author = ctx.message.author
-    _print_descriptive_log("register_sleeper_username", 
+    _print_descriptive_log("register_sleeper_username",
                            "{username}: {discord_user}".format(username=sleeper_username, discord_user=author.name))
 
     _write_platform_user_to_discord_id_mapping(SLEEPER_USERNAME_TO_DISCORD_ID_PATH, sleeper_username, author)
+
+    await ctx.reply("{username} has been registered to {discord_user}.".format(username=sleeper_username, discord_user=author.name))
 
 
 @bot.command()
 async def register_fleaflicker_username(ctx, fleaflicker_username: str):
     author = ctx.message.author
-    _print_descriptive_log("register_fleaflicker_username", 
+    _print_descriptive_log("register_fleaflicker_username",
                            "{username}: {discord_user}".format(username=fleaflicker_username, discord_user=author.name))
 
     _write_platform_user_to_discord_id_mapping(FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH, fleaflicker_username, author)
+
+    await ctx.reply("{username} has been registered to {discord_user}.".format(username=fleaflicker_username, discord_user=author.name))
+
 
 # Personal Inactivity Commands
 
