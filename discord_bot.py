@@ -586,7 +586,7 @@ def _create_embed_for_inactive_league(league_inactivity: LeagueInactivity) -> di
     player_template = "{name}, {position} - {status}\n"
 
     for roster in league_inactivity.rosters:
-        embed_value = ""
+        embed_value = "[Current Roster]({roster_link})\n".format(roster_link=roster.team.roster_link)
         if roster.last_transaction is not None:
             embed_value += last_transaction_template.format(
                 date=roster.last_transaction.time.strftime(date_format))
