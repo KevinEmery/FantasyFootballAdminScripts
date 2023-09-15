@@ -10,7 +10,7 @@ import trades
 
 from datetime import datetime
 from discord.ext import commands, tasks
-from typing import List
+from typing import Dict, List, Set
 
 from library.model.leagueinactivity import LeagueInactivity
 from library.model.trade import Trade
@@ -65,7 +65,10 @@ NARFFL_LEAGUE_CHANNEL_MAPPING_PATH = "./bot_data/narffl_league_channel_mapping"
 FF_DISCORD_TRADE_CHANNEL_PATH = "./bot_data/ff_discord_trade_channel"
 FF_DISCORD_POSTED_TRADES_PATH = "./bot_data/ff_discord_posted_trades"
 FF_DISCORD_POSTING_STATUS_PATH = "./bot_data/ff_discord_trade_posting_status"
-FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH = "/bot_data/ff_discord_league_channel_mapping"
+FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH = "./bot_data/ff_discord_league_channel_mapping"
+
+SLEEPER_USERNAME_TO_DISCORD_ID_PATH = "./bot_data/sleeper_username_to_discord_id"
+FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH = "./bot_data/fleaflicker_username_to_discord_id"
 
 TWO_TEAM_TRADE_REACTIONS = ['🅰️', '🅱️', '🤷']
 THREE_TEAM_TRADE_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '🤷']
@@ -632,6 +635,69 @@ def _get_channel_for_league(filename: str, league_name: str) -> discord.TextChan
         return None
     return bot.get_channel(int(channel_id))
 
+
+def _create_discord_mention_from_id(discord_id: str) -> str:
+    return "<@{id}>".format(id=discord_id)
+
+
+def _generate_mentions_string_from_league_inactivity(username_to_discord_id_mapping: Dict[str, Set[str]], 
+                                                     league_inactivity: LeagueInactivity) -> str:
+    mentions_string = ""
+
+    for roster in league_inactivity.rosters:
+        username = roster.team.manager.name
+
+        if username in username_to_discord_id_mapping:
+            discord_users = username_to_discord_id_mapping[username]
+            for id in discord_users:
+                mentions_string += _create_discord_mention_from_id(id) + " "
+
+    return mentions_string
+
+
+def _write_platform_user_to_discord_id_mapping(filename: str, platform_id: str, discord_user: discord.User):
+    if os.path.isfile(filename):
+        file = open(filename, "a")
+    else:
+        file = open(filename, "w")
+
+    file.write("{platform},{discord_id},{discord_name}\n".format(
+        platform=platform_id.lower(), discord_id=discord_user.id, discord_name=discord_user.name))
+
+
+def _create_username_to_discord_id_map(filename: str) -> Dict[str, Set[str]]:
+    result = {}
+
+    if os.path.isfile(filename):
+        file = open(filename, "r")
+        lines = file.readlines()
+        for line in lines:
+            line_split = line.split(",")
+            username = line_split[0]
+
+            if username not in result:
+                result[username] = set()
+
+            result[username].add(line_split[1].strip())
+
+        file.close()
+
+    return result
+
+
+@bot.command()
+async def register_sleeper_username(ctx, sleeper_username: str):
+    author = ctx.message.author
+
+    _write_platform_user_to_discord_id_mapping(SLEEPER_USERNAME_TO_DISCORD_ID_PATH, sleeper_username, author)
+
+
+@bot.command()
+async def register_fleaflicker_username(ctx, fleaflicker_username: str):
+    author = ctx.message.author
+
+    _write_platform_user_to_discord_id_mapping(FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH, fleaflicker_username, author)
+
 # Personal Inactivity Commands
 
 
@@ -662,6 +728,7 @@ async def post_fta_inactives_for_select_teams(ctx, week: int, *, only_teams: str
     message = await ctx.reply("Processing...")
 
     only_teams_list = only_teams.split(",")
+    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
                                                account_identifier=FTAFFL_USER,
@@ -671,7 +738,14 @@ async def post_fta_inactives_for_select_teams(ctx, week: int, *, only_teams: str
     for league_inactivity in inactive_leagues:
         channel = _get_channel_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
         if channel is not None:
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+            message_content = "__**Current Inactive Starters**__"
+
+            mentions_string = _generate_mentions_string_from_league_inactivity(sleeper_username_to_discord_id_mapping,
+                                                                               league_inactivity)
+            if mentions_string:
+                message_content += "\n" + mentions_string
+
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
         else:
             _print_descriptive_log("post_fta_inactives_for_select_teams",
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
@@ -687,6 +761,7 @@ async def post_fta_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore:
     message = await ctx.reply("Processing...")
 
     teams_to_ignore_list = teams_to_ignore.split(",")
+    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
                                                account_identifier=FTAFFL_USER,
@@ -696,7 +771,14 @@ async def post_fta_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore:
     for league_inactivity in inactive_leagues:
         channel = _get_channel_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
         if channel is not None:
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+            message_content = "__**Current Inactive Starters**__"
+
+            mentions_string = _generate_mentions_string_from_league_inactivity(sleeper_username_to_discord_id_mapping,
+                                                                               league_inactivity)
+            if mentions_string:
+                message_content += "\n" + mentions_string
+
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
         else:
             _print_descriptive_log("post_fta_inactives_excluding_teams",
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
@@ -753,6 +835,8 @@ async def post_narffl_inactives_for_select_teams(ctx, week: int, *, only_teams: 
     message = await ctx.reply("Processing...")
 
     only_teams_list = only_teams.split(",")
+    fleaflicker_username_to_discord_id_mapping = _create_username_to_discord_id_map(
+        FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH)
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
                                                account_identifier=NARFFL_USER,
@@ -763,7 +847,14 @@ async def post_narffl_inactives_for_select_teams(ctx, week: int, *, only_teams: 
     for league_inactivity in inactive_leagues:
         channel = _get_channel_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
         if channel is not None:
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+            message_content = "__**Current Inactive Starters**__"
+
+            mentions_string = _generate_mentions_string_from_league_inactivity(fleaflicker_username_to_discord_id_mapping,
+                                                                               league_inactivity)
+            if mentions_string:
+                message_content += "\n" + mentions_string
+
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
         else:
             _print_descriptive_log("post_narffl_inactives_for_select_teams",
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
@@ -779,6 +870,8 @@ async def post_narffl_inactives_excluding_teams(ctx, week: int, *, teams_to_igno
     message = await ctx.reply("Processing...")
 
     teams_to_ignore_list = teams_to_ignore.split(",")
+    fleaflicker_username_to_discord_id_mapping = _create_username_to_discord_id_map(
+        FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH)
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
                                                account_identifier=NARFFL_USER,
@@ -789,7 +882,14 @@ async def post_narffl_inactives_excluding_teams(ctx, week: int, *, teams_to_igno
     for league_inactivity in inactive_leagues:
         channel = _get_channel_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
         if channel is not None:
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+            message_content = "__**Current Inactive Starters**__"
+
+            mentions_string = _generate_mentions_string_from_league_inactivity(fleaflicker_username_to_discord_id_mapping,
+                                                                               league_inactivity)
+            if mentions_string:
+                message_content += "\n" + mentions_string
+
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
         else:
             _print_descriptive_log("post_narffl_inactives_excluding_teams",
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
@@ -815,6 +915,7 @@ async def post_ff_discord_inactives_for_select_teams(ctx, week: int, *, only_tea
     message = await ctx.reply("Processing...")
 
     only_teams_list = only_teams.split(",")
+    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
                                                account_identifier=FF_DISCORD_USER,
@@ -824,7 +925,14 @@ async def post_ff_discord_inactives_for_select_teams(ctx, week: int, *, only_tea
     for league_inactivity in inactive_leagues:
         channel = _get_channel_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
         if channel is not None:
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+            message_content = "__**Current Inactive Starters**__"
+
+            mentions_string = _generate_mentions_string_from_league_inactivity(sleeper_username_to_discord_id_mapping,
+                                                                               league_inactivity)
+            if mentions_string:
+                message_content += "\n" + mentions_string
+
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
         else:
             _print_descriptive_log("post_ff_discord_inactives_for_select_teams",
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
@@ -840,6 +948,7 @@ async def post_ff_discord_inactives_excluding_teams(ctx, week: int, *, teams_to_
     message = await ctx.reply("Processing...")
 
     teams_to_ignore_list = teams_to_ignore.split(",")
+    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
 
     inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
                                                account_identifier=FF_DISCORD_USER,
@@ -849,7 +958,14 @@ async def post_ff_discord_inactives_excluding_teams(ctx, week: int, *, teams_to_
     for league_inactivity in inactive_leagues:
         channel = _get_channel_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
         if channel is not None:
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content="__**Current Inactive Starters**__")
+            message_content = "__**Current Inactive Starters**__"
+
+            mentions_string = _generate_mentions_string_from_league_inactivity(sleeper_username_to_discord_id_mapping,
+                                                                               league_inactivity)
+            if mentions_string:
+                message_content += "\n" + mentions_string
+
+            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
         else:
             _print_descriptive_log("post_ff_discord_inactives_excluding_teams",
                                    "Failed to post for league {name}".format(name=league_inactivity.league.name))
