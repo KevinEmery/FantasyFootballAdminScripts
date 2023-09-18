@@ -19,14 +19,54 @@ import re
 import sys
 
 import common
+import library.common as libCommon
 
-from library.model.league import League
-from library.model.user import User
+from typing import List
+
 from library.model.weeklyscore import WeeklyScore
 
-from library.platforms.platform import Platform
 from library.platforms.fleaflicker.fleaflicker import Fleaflicker
 from library.platforms.sleeper.sleeper import Sleeper
+
+DEFAULT_YEAR = libCommon.DEFAULT_YEAR
+DEFAULT_LEAGUE_REGEX_STRING = ".*"
+DEFAULT_PLATFORM = common.PlatformSelection.SLEEPER
+
+def get_top_weekly_score_for_each_league(account_identifier: str,
+                                         starting_week: int,
+                                         ending_week: int,
+                                         year: int = DEFAULT_YEAR,
+                                         league_regex_string: str = DEFAULT_LEAGUE_REGEX_STRING,
+                                         platform_selection: common.PlatformSelection = DEFAULT_PLATFORM,) -> List[WeeklyScore]:
+
+    if platform_selection == common.PlatformSelection.SLEEPER:
+        platform = Sleeper()
+    elif platform_selection == common.PlatformSelection.FLEAFLICKER:
+        platform = Fleaflicker()
+
+    league_regex = re.compile(league_regex_string)
+
+    top_scores = []
+
+    user = platform.get_admin_user_by_identifier(account_identifier)
+    leagues = platform.get_all_leagues_for_user(user, year, league_regex)
+
+    for league in leagues:
+        weekly_scores = []
+        for week_num in range(starting_week, ending_week + 1):
+            weekly_scores.extend(
+                platform.get_weekly_scores_for_league_and_week(
+                    league, week_num, year))
+
+        weekly_scores.sort(key=lambda weekly_score: weekly_score.score,
+                           reverse=True)
+
+        if len(weekly_scores) > 0:
+            top_scores.append(weekly_scores[0])
+
+    top_scores.sort(key=lambda weekly_score: weekly_score.league.name)
+
+    return top_scores
 
 
 def parse_user_provided_flags() -> argparse.Namespace:
@@ -82,36 +122,14 @@ def main(argv):
     # Convert the computed args into our more-verbose local fields
     identifier = args.identifier
     year = args.year
-    league_regex = re.compile(args.league_regex)
+    league_regex_string = args.league_regex
     starting_week = args.start
     ending_week = args.end
+    platform_selection = args.platform_selection
 
-    # Set platform based on user choice
-    if args.platform_selection == common.PlatformSelection.SLEEPER:
-        platform = Sleeper()
-    elif args.platform_selection == common.PlatformSelection.FLEAFLICKER:
-        platform = Fleaflicker()
+    top_scores = get_top_weekly_score_for_each_league(
+        identifier, year, league_regex_string, starting_week, ending_week, platform_selection)
 
-    # Lists containing all of the collated data
-    top_scores = []
-
-    user = platform.get_admin_user_by_identifier(identifier)
-    leagues = platform.get_all_leagues_for_user(user, year, league_regex)
-
-    for league in leagues:
-        weekly_scores = []
-        for week_num in range(starting_week, ending_week + 1):
-            weekly_scores.extend(
-                platform.get_weekly_scores_for_league_and_week(
-                    league, week_num, year))
-
-        weekly_scores.sort(key=lambda weekly_score: weekly_score.score,
-                           reverse=True)
-
-        if len(weekly_scores) > 0:
-            top_scores.append(weekly_scores[0])
-
-    top_scores.sort(key=lambda weekly_score: weekly_score.league.name)
     common.print_weekly_scores_with_header(top_scores,
                                            "TOP WEEKLY SCORE IN EACH LEAGUE")
 
