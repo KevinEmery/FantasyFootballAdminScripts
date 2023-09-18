@@ -6,6 +6,7 @@ import adp
 import common
 import inactives
 import leaguescoring
+import topleaguescore
 import trades
 
 from datetime import datetime
@@ -42,8 +43,12 @@ FTA_LEADERBARD_MAIN_POST_CONTENT_HEADER = "Here are your top-scoring teams acros
 At the end of the regular season, the top-three season-long scorers and the top single-week score for the year are awarded prizes.\n\n"
 LEADERBOARD_SEASON_SCORE_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - **{score}**\n"
 LEADERBOARD_WEEKLY_SCORE_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - Week {week} - **{score}**\n"
+LEADERBOARD_UNORDERED_WEEKLY_SCORE_TEMPLATE = "- **[{team_name}](<{roster_link}>)** (_{league}_)  - Week {week} - **{score}**\n"
 
 NARFFL_LEADERBOARD_LEVEL_SPECIFIC_POST_TEMPLATE = "Here are the top-scoring teams looking at the NarFFL {level} leagues"
+NARFFL_TOP_FARM_LEAGUE_SCORES_CONTENT = "These are the top single-week scores in each individual Farm League. \
+At the end of the year, the team with the highest single-week score during the regular season (excluding the Champion) earns a promotion to Minors. \
+This is meant to serve as an unofficial sneak-preview of what that bar will be in each league."
 
 # These colors mirror the Sleeper draft board
 ALL_PLAYERS_COLOR = discord.Colour.dark_blue()
@@ -1048,6 +1053,17 @@ def _build_weekly_score_leaderboard_string(scores: List[WeeklyScore], count: int
     return string
 
 
+def _build_unordered_weekly_score_leaderboard_string(scores: List[WeeklyScore], count: int, title: str = "", league_prefix_to_remove: str = ""):
+    string = title
+    for n in range(count):
+        result = scores[n]
+        league_name = result.league.name.removeprefix(league_prefix_to_remove)
+        string += LEADERBOARD_UNORDERED_WEEKLY_SCORE_TEMPLATE.format(
+            team_name=result.team.manager.name, league=league_name,
+            score=result.score, roster_link=result.team.roster_link, week=str(result.week))
+
+    return string
+
 # FTA Leaderboard Commands
 
 @bot.command()
@@ -1135,6 +1151,7 @@ async def post_narffl_leaderboards(ctx, end_week: int, forum: discord.ForumChann
     message = await ctx.reply("Processing...")
 
     await post_narffl_farm_leaderboard(ctx, end_week, forum)
+    await post_narffl_top_farm_scores_leaderboard(ctx, end_week, forum)
     await post_narffl_minors_leaderboard(ctx, end_week, forum)
     await post_narffl_majors_leaderboard(ctx, end_week, forum)
     await post_narffl_premier_leaderboard(ctx, end_week, forum)
@@ -1142,6 +1159,38 @@ async def post_narffl_leaderboards(ctx, end_week: int, forum: discord.ForumChann
 
     _print_descriptive_log("post_narffl_leaderboards", "Done")
     await message.delete()
+
+
+@bot.command()
+@commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
+async def post_narffl_top_farm_scores_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_top_farm_scores_leaderboard", "Posting to {forum}".format(forum=forum.name))
+    
+    # It's assumed that this divides evenly into the total number of leagues
+    leagues_posted = 0
+    batch_size = 4
+
+    top_scores = await asyncio.to_thread(topleaguescore.get_top_weekly_score_for_each_league, 
+                                         account_identifier=NARFFL_USER, league_regex_string=NARFFL_FARM_LEAGUE_REGEX,
+                                         starting_week=1, ending_week=end_week,
+                                         platform_selection=common.PlatformSelection.FLEAFLICKER)
+    
+    # Create the forum post
+    thread_title = "Week {week} Farm Top Scores".format(week=end_week)
+    thread_content = NARFFL_TOP_FARM_LEAGUE_SCORES_CONTENT
+    post = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+
+    farm_prefix = "NarFFL Farm - "
+
+    # Loop over the top scores until they're all posted, using the specified batch_size
+    while leagues_posted < len(top_scores):
+        content = _build_unordered_weekly_score_leaderboard_string(top_scores[leagues_posted:leagues_posted+batch_size], batch_size, league_prefix_to_remove=farm_prefix)
+        
+        await post.send(content=content)
+                                        
+        leagues_posted += batch_size                                
+
+    _print_descriptive_log("post_narffl_top_farm_scores_leaderboard", "Done")
 
 
 @bot.command()
