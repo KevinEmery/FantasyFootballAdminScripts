@@ -1244,17 +1244,14 @@ async def post_narffl_overall_leaderboard(ctx, end_week: int, forum: discord.For
 
     # Send the leaderboards as followup messages
     message = _build_season_long_leaderboard_string(scoring_results.max_season_scores, leaderboard_length)
-    print(len(message))
     await post.send(content=message)
 
     message = _build_weekly_score_leaderboard_string(scoring_results.max_weekly_scores, leaderboard_length,
                                                      "__Top {count} Single-Week Scorers__\n".format(count=leaderboard_length))
-    print(len(message))
     await post.send(content=message)
 
     message = _build_weekly_score_leaderboard_string(scoring_results.max_scores_this_week, leaderboard_length,
                                                      "__Top {count} Week {week} Scorers__\n".format(count=leaderboard_length, week=end_week))
-    print(len(message))
     await post.send(content=message)
 
     _print_descriptive_log("post_narffl_overall_leaderboard", "Done")
