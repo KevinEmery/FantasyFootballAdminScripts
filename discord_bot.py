@@ -1105,7 +1105,7 @@ async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
     await thread.send(content=message)
 
     _print_descriptive_log("post_fta_leaderboard", "Done")
-    processing_message.delete()
+    await processing_message.delete()
 
 
 # NarFFL Leaderboard Commands
