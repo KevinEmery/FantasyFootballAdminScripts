@@ -1070,7 +1070,7 @@ def _build_unordered_weekly_score_leaderboard_string(scores: List[WeeklyScore], 
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_leaderboard")
-    message = await ctx.reply("Processing...")
+    processing_message = await ctx.reply("Processing...")
 
     main_leaderboard_length = 5
     expanded_leaderboard_length = 15
@@ -1105,7 +1105,7 @@ async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
     await thread.send(content=message)
 
     _print_descriptive_log("post_fta_leaderboard", "Done")
-    message.delete()
+    processing_message.delete()
 
 
 # NarFFL Leaderboard Commands
