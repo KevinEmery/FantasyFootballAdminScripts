@@ -128,7 +128,7 @@ def main(argv):
     platform_selection = args.platform_selection
 
     top_scores = get_top_weekly_score_for_each_league(
-        identifier, year, league_regex_string, starting_week, ending_week, platform_selection)
+        identifier, starting_week, ending_week, year, league_regex_string, platform_selection)
 
     common.print_weekly_scores_with_header(top_scores,
                                            "TOP WEEKLY SCORE IN EACH LEAGUE")
