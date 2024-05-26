@@ -19,3 +19,6 @@ class User(object):
         self.user_id = user_id
         self.name = name
         self.email = email
+
+    def __eq__(self, other):
+        return self.user_id == other.user_id or self.email == other.email

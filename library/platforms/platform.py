@@ -71,3 +71,6 @@ class Platform:
             only_teams : List[str] = [],
             player_names_to_ignore: List[str] = []) -> List[InactiveRoster]:
         pass
+
+    def get_team_for_user(self, league: League, user: User) -> Team:
+        pass

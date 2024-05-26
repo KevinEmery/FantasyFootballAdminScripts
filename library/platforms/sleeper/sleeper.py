@@ -337,6 +337,17 @@ class Sleeper(Platform):
 
         return inactive_rosters
 
+    def get_team_for_user(self, league: League, user: User) -> Team:
+        roster_num_to_user = self._league_id_to_roster_num_to_user[
+            league.league_id]
+
+        for roster_id, stored_user in roster_num_to_user.items():
+            if user == stored_user:
+                team = Team(
+                    roster_id, user,
+                    self._create_roster_link(league.league_id, roster_id))
+                return team
+
     def _create_draft_from_response(self, raw_draft) -> Draft:
         raw_draft_type = raw_draft["type"]
         if raw_draft_type == "snake":

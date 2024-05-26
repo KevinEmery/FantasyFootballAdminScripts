@@ -367,6 +367,12 @@ class Fleaflicker(Platform):
         if player.is_inactive():
             return True
 
+    def get_team_for_user(self, league: League, user: User) -> Team:
+        # The league only includes user ids, which you can't fetch from email, which
+        # is the only think on the `user` object being passed in
+        print("Unimplemented!")
+        return Team("0", user, "empty")
+
     def _build_player_from_pro_player(self, player_data: Dict[str,
                                                               str]) -> Player:
         player_id = player_data["id"]
