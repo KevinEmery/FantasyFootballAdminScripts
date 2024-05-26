@@ -1,3 +1,19 @@
+"""
+   Copyright 2024 Kevin Emery
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+"""
+
 import argparse
 import re
 import sys
@@ -62,6 +78,9 @@ def main(argv):
     if platform_selection == common.PlatformSelection.SLEEPER:
         platform = Sleeper()
     elif platform_selection == common.PlatformSelection.FLEAFLICKER:
+        # We can't currently map the fleaflicker user below (created with email) to a user id,
+        # preventing us from finding the team information for the script.
+        print("Fleaflicker not implemented")
         platform = Fleaflicker()
 
     league_regex = re.compile(league_regex_string)
@@ -69,9 +88,10 @@ def main(argv):
     user = platform.get_admin_user_by_identifier(identifier)
     leagues = platform.get_all_leagues_for_user(user, year, league_regex)
 
-    league_format = "{league_name}\n{draft_link}"
+    league_format = "{league_name}\nDraft: {draft_link}\nTeam: {team_link}\n"
     for league in leagues:
-        print(league_format.format(league_name=league.name, draft_link=create_sleeper_draft_url_from_id(league.draft_id)))
+        team = platform.get_team_for_user(league, user)
+        print(league_format.format(league_name=league.name, draft_link=create_sleeper_draft_url_from_id(league.draft_id), team_link=team.roster_link))
 
 
 if __name__ == "__main__":
