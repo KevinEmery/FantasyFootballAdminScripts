@@ -1,5 +1,5 @@
 """
-   Copyright 2023 Kevin Emery
+   Copyright 2024 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,23 +18,23 @@ import requests
 import time
 
 DEC_31_1999_SECONDS = 946684800
-DEFAULT_YEAR = 2023
+DEFAULT_YEAR = 2024
 
 TEAMS_ON_BYE = {
     1: [],
     2: [],
     3: [],
     4: [],
-    5: ["CLE", "LAC", "SEA", "TB"],
-    6: ["GB", "PIT"],
-    7: ["CAR", "CIN", "DAL", "NYJ", "TEN", "HOU"],
+    5: ["DET", "LAC", "PHI", "TEN"],
+    6: ["KC", "LAR", "MIA", "MIN"],
+    7: ["CHI", "DAL"],
     8: [],
-    9: ["DEN", "DET", "JAX", "SF"],
-    10: ["KC", "MIA", "PHI", "LAR"],
-    11: ["ATL", "IND", "NE", "NO"],
-    12: [],
-    13: ["BAL", "BUF", "CHI", "MIN", "NYG", "LV"],
-    14: ["ARI", "WAS"],
+    9: ["PIT", "SF"],
+    10: ["CLE", "GB", "LV", "SEA"],
+    11: ["ARI", "CAR", "NYG", "TB"],
+    12: ["ATL", "BUF", "CIN", "JAX", "NO", "NYJ"],
+    13: [],
+    14: ["BAL", "DEN", "HOU", "IND", "NE", "WAS"],
     15: [],
     16: [],
     17: [],

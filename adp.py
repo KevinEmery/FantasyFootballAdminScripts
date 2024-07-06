@@ -1,5 +1,5 @@
 """
-   Copyright 2023 Kevin Emery
+   Copyright 2024 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ class OutputFormat(Enum):
 
 
 INCLUDE_ALL = "all"
-DEFAULT_YEAR = libCommon.DEFAULT_YEAR
 DEFAULT_POSITION = INCLUDE_ALL
 DEFAULT_TEAM = INCLUDE_ALL
 DEFAULT_MAX_RESULTS = -1
@@ -174,9 +173,9 @@ def _parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument(
         "-y",
         "--year",
-        help="The year to run the analysis on, defaults to 2023",
+        help="The year to run the analysis on, defaults to 2024",
         type=int,
-        default=DEFAULT_YEAR)
+        default=libCommon.DEFAULT_YEAR)
     parser.add_argument(
         "-r",
         "--league_regex",
@@ -246,7 +245,7 @@ def _parse_user_provided_flags() -> argparse.Namespace:
 def aggregate_adp_data(
     account_identifier: str,
     league_size: int = DEFAULT_LEAGUE_SIZE,
-    year: int = DEFAULT_YEAR,
+    year: int = libCommon.DEFAULT_YEAR,
     position: str = DEFAULT_POSITION,
     team: str = DEFAULT_TEAM,
     max_results: int = DEFAULT_MAX_RESULTS,

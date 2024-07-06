@@ -1,5 +1,5 @@
 """
-   Copyright 2023 Kevin Emery
+   Copyright 2024 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ from library.platforms.fleaflicker.fleaflicker import Fleaflicker
 from library.platforms.sleeper.sleeper import Sleeper
 
 
-DEFAULT_YEAR = libCommon.DEFAULT_YEAR
 DEFAULT_LEAGUE_REGEX_STRING = ".*"
 DEFAULT_PLATFORM = common.PlatformSelection.SLEEPER
 
@@ -54,7 +53,7 @@ def get_scoring_results(
     get_season_results: bool,
     get_max_scores: bool,
     get_min_scores: bool,
-    year: int = DEFAULT_YEAR,
+    year: int = libCommon.DEFAULT_YEAR,
     league_regex_string: str = DEFAULT_LEAGUE_REGEX_STRING,
     platform_selection: common.PlatformSelection = DEFAULT_PLATFORM,
 ) -> ScoringResults:
@@ -151,9 +150,9 @@ def parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument(
         "-y",
         "--year",
-        help="The year to run the analysis on, defaults to 2023",
+        help="The year to run the analysis on, defaults to 2024",
         type=int,
-        default=DEFAULT_YEAR)
+        default=libCommon.DEFAULT_YEAR)
     parser.add_argument(
         "-r",
         "--league_regex",

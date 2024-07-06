@@ -34,9 +34,9 @@ def parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument(
         "-y",
         "--year",
-        help="The year to run the analysis on, defaults to 2023",
+        help="The year to run the analysis on, defaults to 2024",
         type=int,
-        default=2023)
+        default=libCommon.DEFAULT_YEAR)
     parser.add_argument(
         "-r",
         "--league_regex",

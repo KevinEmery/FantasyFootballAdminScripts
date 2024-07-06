@@ -1,5 +1,5 @@
 """
-   Copyright 2023 Kevin Emery
+   Copyright 2024 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ from library.platforms.sleeper.sleeper import Sleeper
 # Needs to be large enough for longest player name plus a couple (MVS)
 OUTPUT_COLUMN_WIDTH = 30
 
-DEFAULT_YEAR = libCommon.DEFAULT_YEAR
 DEFAULT_LEAGUE_REGEX_STRING = ".*"
 DEFAULT_START = "12-31-1999"
 DEFAULT_END = "12-31-2099"
@@ -234,9 +233,9 @@ def _parse_user_provided_flags() -> argparse.Namespace:
     arg_parser.add_argument(
         "-y",
         "--year",
-        help="The year to run the analysis on, defaults to 2023",
+        help="The year to run the analysis on, defaults to 2024",
         type=int,
-        default=DEFAULT_YEAR)
+        default=libCommon.DEFAULT_YEAR)
     arg_parser.add_argument(
         "-r",
         "--league_regex",
@@ -279,7 +278,7 @@ def _parse_user_provided_flags() -> argparse.Namespace:
 
 def fetch_and_filter_trades(
     account_identifier: str,
-    year: int = DEFAULT_YEAR,
+    year: int = libCommon.DEFAULT_YEAR,
     league_regex_string: str = DEFAULT_LEAGUE_REGEX_STRING,
     start_date_string: str = DEFAULT_START,
     end_date_string: str = DEFAULT_END,
