@@ -14,7 +14,6 @@
    limitations under the License.
 """
 
-
 import asyncio
 import discord
 import os
@@ -40,9 +39,11 @@ EMBED_FIELD_LIMIT = 20
 FTA_ADP_THREAD_CONTENT = "The data here is for the FTA league format. \
 These leagues are 14-team, 0.5 PPR Leagues that start \
 1 QB, 2 RBs, 3 WRs, 1 TE, 1 W/R/T Flex, 1 K, and 1 DEF.\n\n"
+
 NARFFL_ADP_THREAD_CONTENT = "The data here is for the NarFFL league format. \
 These leagues are 12-team, 1.0 PPR Leagues that start \
 1 QB, 2 RBs, 2 WRs, 1 TE, 1 W/R/T Flex, 1 K, and 1 DEF.\n\n"
+
 ADP_GLOSSARY = "__**Glossary Terms**__\
 ```\n\
 Av:  The average draft position across all drafts\n\
@@ -58,6 +59,7 @@ at the last minute should have been ignored."
 
 FTA_LEADERBARD_MAIN_POST_CONTENT_HEADER = "Here are your top-scoring teams across all leagues, as well as the highest single-week score this year so far.\n\n\
 At the end of the regular season, the top-three season-long scorers and the top single-week score for the year are awarded prizes.\n\n"
+
 LEADERBOARD_SEASON_SCORE_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - **{score}**\n"
 LEADERBOARD_WEEKLY_SCORE_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - Week {week} - **{score}**\n"
 LEADERBOARD_UNORDERED_WEEKLY_SCORE_TEMPLATE = "- **[{team_name}](<{roster_link}>)** (_{league}_)  - Week {week} - **{score}**\n"
@@ -132,19 +134,25 @@ async def on_ready():
 
     task_checker.start()
 
+
 # General ADP Functions
 
 
-async def _post_position_adp_data(ctx, forum: discord.ForumChannel, adp_data: List[str],
-                                  position_long: str, embed_color: discord.Colour, thread_content: str):
+async def _post_position_adp_data(ctx, forum: discord.ForumChannel,
+                                  adp_data: List[str], position_long: str,
+                                  embed_color: discord.Colour,
+                                  thread_content: str):
     messages = _break_adp_content_into_messages(adp_data, embed_color)
     thread_title = _get_formatted_date() + ": " + position_long
-    thread = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    thread = (await forum.create_thread(name=thread_title,
+                                        content=thread_content))[0]
     for message in messages:
         await thread.send(embed=message)
 
 
-def _break_adp_content_into_messages(content: List[str], embed_color: discord.Colour) -> List[discord.Embed]:
+def _break_adp_content_into_messages(
+        content: List[str],
+        embed_color: discord.Colour) -> List[discord.Embed]:
     split_content = []
     current_embed = discord.Embed(colour=embed_color)
 
@@ -163,13 +171,18 @@ def _break_adp_content_into_messages(content: List[str], embed_color: discord.Co
 def _convert_adp_csv_to_embed_field(content: str, embed: discord.Embed):
     player_data = content.split(",")
     template = "`Av: {adp:<5} Min: {min:<5} Max: {max:<5} ({n})`"
-    embed.add_field(name=player_data[0], value=template.format(n=player_data[4],
-                    adp=player_data[1], min=player_data[2], max=player_data[3]), inline=False)
+    embed.add_field(name=player_data[0],
+                    value=template.format(n=player_data[4],
+                                          adp=player_data[1],
+                                          min=player_data[2],
+                                          max=player_data[3]),
+                    inline=False)
 
 
 def _get_formatted_date() -> str:
     now = datetime.now()
     return now.strftime("%m/%d/%y")
+
 
 # FTA ADP Commands
 
@@ -177,7 +190,8 @@ def _get_formatted_date() -> str:
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adps(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adps", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_fta_adps",
+                           "Posting to " + forum.name + " forum")
     message = await ctx.reply("Processing...")
 
     await post_fta_adp_def(ctx, forum)
@@ -195,15 +209,18 @@ async def post_fta_adps(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_all(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_all", "Posting to " + forum.name + " forum")
-    await _post_fta_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", ALL_PLAYERS_COLOR)
+    _print_descriptive_log("post_fta_adp_all",
+                           "Posting to " + forum.name + " forum")
+    await _post_fta_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players",
+                                 ALL_PLAYERS_COLOR)
     _print_descriptive_log("post_fta_adp_all", "Done")
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_qb", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_fta_adp_qb",
+                           "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "QB", "Quarterback", QB_COLOR)
     _print_descriptive_log("post_fta_adp_qb", "Done")
 
@@ -211,7 +228,8 @@ async def post_fta_adp_qb(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_wr(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_wr", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_fta_adp_wr",
+                           "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "WR", "Wide Receiver", WR_COLOR)
     _print_descriptive_log("post_fta_adp_wr", "Done")
 
@@ -219,7 +237,8 @@ async def post_fta_adp_wr(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_rb(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_rb", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_fta_adp_rb",
+                           "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "RB", "Running Back", RB_COLOR)
     _print_descriptive_log("post_fta_adp_rb", "Done")
 
@@ -227,7 +246,8 @@ async def post_fta_adp_rb(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_te(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_te", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_fta_adp_te",
+                           "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "TE", "Tight End", TE_COLOR)
     _print_descriptive_log("post_fta_adp_te", "Done")
 
@@ -235,7 +255,8 @@ async def post_fta_adp_te(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_k(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_k", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_fta_adp_k",
+                           "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "K", "Kicker", K_COLOR)
     _print_descriptive_log("post_fta_adp_k", "Done")
 
@@ -243,18 +264,26 @@ async def post_fta_adp_k(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def post_fta_adp_def(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_fta_adp_def", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_fta_adp_def",
+                           "Posting to " + forum.name + " forum")
     await _post_fta_position_adp(ctx, forum, "DEF", "Team Defense", DEF_COLOR)
     _print_descriptive_log("post_fta_adp_def", "Done")
 
 
-async def _post_fta_position_adp(ctx, forum: discord.ForumChannel, position_short: str,
-                                 position_long: str, embed_color: discord.Colour):
-    adp_data = await asyncio.to_thread(adp.aggregate_adp_data, account_identifier=FTAFFL_USER, league_size=14,
-                                       position=position_short, league_regex_string=FTAFFL_LEAGUE_REGEX,
-                                       output_format=adp.OutputFormat.FORMATTED_CSV)
-    await _post_position_adp_data(ctx, forum, adp_data, position_long, embed_color,
+async def _post_fta_position_adp(ctx, forum: discord.ForumChannel,
+                                 position_short: str, position_long: str,
+                                 embed_color: discord.Colour):
+    adp_data = await asyncio.to_thread(
+        adp.aggregate_adp_data,
+        account_identifier=FTAFFL_USER,
+        league_size=14,
+        position=position_short,
+        league_regex_string=FTAFFL_LEAGUE_REGEX,
+        output_format=adp.OutputFormat.FORMATTED_CSV)
+    await _post_position_adp_data(ctx, forum, adp_data, position_long,
+                                  embed_color,
                                   FTA_ADP_THREAD_CONTENT + ADP_GLOSSARY)
+
 
 # NarFFL ADP Commands
 
@@ -262,7 +291,8 @@ async def _post_fta_position_adp(ctx, forum: discord.ForumChannel, position_shor
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adps(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_adps", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_narffl_adps",
+                           "Posting to " + forum.name + " forum")
     message = await ctx.reply("Processing...")
 
     await post_narffl_adp_def(ctx, forum)
@@ -280,15 +310,18 @@ async def post_narffl_adps(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_all(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_adp_all", "Posting to " + forum.name + " forum")
-    await _post_narffl_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players", ALL_PLAYERS_COLOR)
+    _print_descriptive_log("post_narffl_adp_all",
+                           "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, adp.INCLUDE_ALL, "All Players",
+                                    ALL_PLAYERS_COLOR)
     _print_descriptive_log("post_narffl_adp_all", "Done")
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_qb(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_adp_qb", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_narffl_adp_qb",
+                           "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "QB", "Quarterback", QB_COLOR)
     _print_descriptive_log("post_narffl_adp_qb", "Done")
 
@@ -296,15 +329,18 @@ async def post_narffl_adp_qb(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_wr(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_adp_wr", "Posting to " + forum.name + " forum")
-    await _post_narffl_position_adp(ctx, forum, "WR", "Wide Receiver", WR_COLOR)
+    _print_descriptive_log("post_narffl_adp_wr",
+                           "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, "WR", "Wide Receiver",
+                                    WR_COLOR)
     _print_descriptive_log("post_narffl_adp_wr", "Done")
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_rb(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_adp_rb", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_narffl_adp_rb",
+                           "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "RB", "Running Back", RB_COLOR)
     _print_descriptive_log("post_narffl_adp_rb", "Done")
 
@@ -312,7 +348,8 @@ async def post_narffl_adp_rb(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_te(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_adp_te", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_narffl_adp_te",
+                           "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "TE", "Tight End", TE_COLOR)
     _print_descriptive_log("post_narffl_adp_te", "Done")
 
@@ -320,7 +357,8 @@ async def post_narffl_adp_te(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_k(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_adp_k", "Posting to " + forum.name + " forum")
+    _print_descriptive_log("post_narffl_adp_k",
+                           "Posting to " + forum.name + " forum")
     await _post_narffl_position_adp(ctx, forum, "K", "Kicker", K_COLOR)
     _print_descriptive_log("post_narffl_adp_k", "Done")
 
@@ -328,18 +366,27 @@ async def post_narffl_adp_k(ctx, forum: discord.ForumChannel):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def post_narffl_adp_def(ctx, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_adp_def", "Posting to " + forum.name + " forum")
-    await _post_narffl_position_adp(ctx, forum, "D/ST", "Team Defense", DEF_COLOR)
+    _print_descriptive_log("post_narffl_adp_def",
+                           "Posting to " + forum.name + " forum")
+    await _post_narffl_position_adp(ctx, forum, "D/ST", "Team Defense",
+                                    DEF_COLOR)
     _print_descriptive_log("post_narffl_adp_def", "Done")
 
 
-async def _post_narffl_position_adp(ctx, forum: discord.ForumChannel, position_short: str,
-                                    position_long: str, embed_color: discord.Colour):
-    adp_data = await asyncio.to_thread(adp.aggregate_adp_data, account_identifier=NARFFL_USER, league_size=12,
-                                       position=position_short, output_format=adp.OutputFormat.FORMATTED_CSV,
-                                       platform_selection=common.PlatformSelection.FLEAFLICKER)
-    await _post_position_adp_data(ctx, forum, adp_data, position_long, embed_color,
+async def _post_narffl_position_adp(ctx, forum: discord.ForumChannel,
+                                    position_short: str, position_long: str,
+                                    embed_color: discord.Colour):
+    adp_data = await asyncio.to_thread(
+        adp.aggregate_adp_data,
+        account_identifier=NARFFL_USER,
+        league_size=12,
+        position=position_short,
+        output_format=adp.OutputFormat.FORMATTED_CSV,
+        platform_selection=common.PlatformSelection.FLEAFLICKER)
+    await _post_position_adp_data(ctx, forum, adp_data, position_long,
+                                  embed_color,
                                   NARFFL_ADP_THREAD_CONTENT + ADP_GLOSSARY)
+
 
 # General Trade Functions
 
@@ -378,7 +425,7 @@ def _write_trade_to_file(filename: str, trade: Trade):
     else:
         file = open(filename, "w")
 
-    file.write(_create_file_string_for_trade(trade)+"\n")
+    file.write(_create_file_string_for_trade(trade) + "\n")
     file.close()
 
 
@@ -413,8 +460,10 @@ def _get_trade_posting_status_from_file(filename: str) -> bool:
         elif s == 'False':
             posting_status = False
         else:
-            _print_descriptive_log("_get_trade_posting_status_from_file",
-                                   "Unknown value {value} for trade posting status in {file}".format(value=s, file=filename))
+            _print_descriptive_log(
+                "_get_trade_posting_status_from_file",
+                "Unknown value {value} for trade posting status in {file}".
+                format(value=s, file=filename))
             posting_status = False
 
         file.close()
@@ -428,13 +477,16 @@ def _write_trade_posting_status_to_file(filename: str, is_active: bool):
     file.close()
 
 
-async def post_all_unposted_trades(trade_channel: discord.TextChannel, all_trades: List[Trade],
-                                   posted_trade_file_path: str, should_react: bool = True):
+async def post_all_unposted_trades(trade_channel: discord.TextChannel,
+                                   all_trades: List[Trade],
+                                   posted_trade_file_path: str,
+                                   should_react: bool = True):
     posted_trade_ids = _get_posted_trade_ids_from_file(posted_trade_file_path)
 
     for trade in all_trades:
         if str(trade.id) not in posted_trade_ids:
-            message = await trade_channel.send(content=trades.format_trades([trade]))
+            message = await trade_channel.send(
+                content=trades.format_trades([trade]))
             if should_react:
                 await _react_to_trade(message, len(trade.details))
             _write_trade_to_file(posted_trade_file_path, trade)
@@ -474,7 +526,8 @@ async def stop_posting_fta_trades(ctx):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
 async def set_fta_trades_channel(ctx, channel: discord.TextChannel):
-    _print_descriptive_log("set_fta_trades_channel", "Channel set to " + channel.name)
+    _print_descriptive_log("set_fta_trades_channel",
+                           "Channel set to " + channel.name)
     _write_trade_channel_to_file(FTA_TRADE_CHANNEL_PATH, channel)
 
 
@@ -483,17 +536,23 @@ async def post_fta_trades():
     trade_channel = _get_trade_channel_from_file(FTA_TRADE_CHANNEL_PATH)
 
     if trade_channel is not None:
-        _print_descriptive_log("post_fta_trades", "Posting to " + trade_channel.name)
+        _print_descriptive_log("post_fta_trades",
+                               "Posting to " + trade_channel.name)
         try:
-            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
-                                                 account_identifier=FTAFFL_USER, league_regex_string=FTAFFL_LEAGUE_REGEX)
+            all_trades = await asyncio.to_thread(
+                trades.fetch_and_filter_trades,
+                account_identifier=FTAFFL_USER,
+                league_regex_string=FTAFFL_LEAGUE_REGEX)
         except:
             # Because this is a periodic task, if there's an intermittent error we can just rely on the
             # next task loop. But to make sure, let's log
-            _print_descriptive_log("post_fta_trades", "Exception while retrieving trades, ending task run")
+            _print_descriptive_log(
+                "post_fta_trades",
+                "Exception while retrieving trades, ending task run")
             return
 
-        await post_all_unposted_trades(trade_channel, all_trades, FTA_POSTED_TRADES_PATH)
+        await post_all_unposted_trades(trade_channel, all_trades,
+                                       FTA_POSTED_TRADES_PATH)
     else:
         _print_descriptive_log("post_fta_trades", "No trade channel avaialble")
 
@@ -515,14 +574,16 @@ async def start_posting_narffl_trades(ctx):
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def stop_posting_narffl_trades(ctx):
     _print_descriptive_log("stop_posting_narffl_trades")
-    _write_trade_posting_status_to_file(NARFFL_TRADE_POSTING_STATUS_PATH, False)
+    _write_trade_posting_status_to_file(NARFFL_TRADE_POSTING_STATUS_PATH,
+                                        False)
     post_narffl_trades.cancel()
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
 async def set_narffl_trades_channel(ctx, channel: discord.TextChannel):
-    _print_descriptive_log("set_narffl_trades_channel", "Channel set to " + channel.name)
+    _print_descriptive_log("set_narffl_trades_channel",
+                           "Channel set to " + channel.name)
     _write_trade_channel_to_file(NARFFL_TRADE_CHANNEL_PATH, channel)
 
 
@@ -531,23 +592,30 @@ async def post_narffl_trades():
     trade_channel = _get_trade_channel_from_file(NARFFL_TRADE_CHANNEL_PATH)
 
     if trade_channel is not None:
-        _print_descriptive_log("post_narffl_trades", "Posting to " + trade_channel.name)
+        _print_descriptive_log("post_narffl_trades",
+                               "Posting to " + trade_channel.name)
 
         try:
-            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
-                                                 account_identifier=NARFFL_USER,
-                                                 platform_selection=common.PlatformSelection.FLEAFLICKER)
+            all_trades = await asyncio.to_thread(
+                trades.fetch_and_filter_trades,
+                account_identifier=NARFFL_USER,
+                platform_selection=common.PlatformSelection.FLEAFLICKER)
         except:
             # Because this is a periodic task, if there's an intermittent error we can just rely on the
             # next task loop. But to make sure, let's log
-            _print_descriptive_log("post_narffl_trades", "Exception while retrieving trades, ending task run")
+            _print_descriptive_log(
+                "post_narffl_trades",
+                "Exception while retrieving trades, ending task run")
             return
 
-        await post_all_unposted_trades(trade_channel, all_trades, NARFFL_POSTED_TRADES_PATH)
+        await post_all_unposted_trades(trade_channel, all_trades,
+                                       NARFFL_POSTED_TRADES_PATH)
     else:
-        _print_descriptive_log("post_narffl_trades", "No trade channel avaialble")
+        _print_descriptive_log("post_narffl_trades",
+                               "No trade channel avaialble")
 
     _print_descriptive_log("post_narffl_trades", "Done")
+
 
 # FF Discord Trade Commands
 
@@ -571,7 +639,8 @@ async def stop_posting_ff_discord_trades(ctx):
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
 async def set_ff_discord_trades_channel(ctx, channel: discord.TextChannel):
-    _print_descriptive_log("set_ff_discord_trades_channel", "Channel set to " + channel.name)
+    _print_descriptive_log("set_ff_discord_trades_channel",
+                           "Channel set to " + channel.name)
     _write_trade_channel_to_file(FF_DISCORD_TRADE_CHANNEL_PATH, channel)
 
 
@@ -580,46 +649,61 @@ async def post_ff_discord_trades():
     trade_channel = _get_trade_channel_from_file(FF_DISCORD_TRADE_CHANNEL_PATH)
 
     if trade_channel is not None:
-        _print_descriptive_log("post_ff_discord_trades", "Posting to " + trade_channel.name)
+        _print_descriptive_log("post_ff_discord_trades",
+                               "Posting to " + trade_channel.name)
 
         try:
-            all_trades = await asyncio.to_thread(trades.fetch_and_filter_trades,
-                                                 account_identifier=FF_DISCORD_USER)
+            all_trades = await asyncio.to_thread(
+                trades.fetch_and_filter_trades,
+                account_identifier=FF_DISCORD_USER)
         except:
             # Because this is a periodic task, if there's an intermittent error we can just rely on the
             # next task loop. But to make sure, let's log
-            _print_descriptive_log("post_ff_discord_trades", "Exception while retrieving trades, ending task run")
+            _print_descriptive_log(
+                "post_ff_discord_trades",
+                "Exception while retrieving trades, ending task run")
             return
 
-        await post_all_unposted_trades(trade_channel, all_trades, FF_DISCORD_POSTED_TRADES_PATH, False)
+        await post_all_unposted_trades(trade_channel, all_trades,
+                                       FF_DISCORD_POSTED_TRADES_PATH, False)
     else:
-        _print_descriptive_log("post_ff_discord_trades", "No trade channel avaialble")
+        _print_descriptive_log("post_ff_discord_trades",
+                               "No trade channel avaialble")
 
     _print_descriptive_log("post_ff_discord_trades", "Done")
+
 
 # General Inactivity Functions
 
 
-def _create_embed_for_inactive_league(league_inactivity: LeagueInactivity) -> discord.Embed:
-    embed = discord.Embed(colour=discord.Colour.red(), title=league_inactivity.league.name)
+def _create_embed_for_inactive_league(
+        league_inactivity: LeagueInactivity) -> discord.Embed:
+    embed = discord.Embed(colour=discord.Colour.red(),
+                          title=league_inactivity.league.name)
 
     last_transaction_template = "_Last transaction: {date}_\n"
     date_format = "%m-%d-%Y"
     player_template = "{name}, {position} - {status}\n"
 
     for roster in league_inactivity.rosters:
-        embed_value = "[Current Roster]({roster_link})\n".format(roster_link=roster.team.roster_link)
+        embed_value = "[Current Roster]({roster_link})\n".format(
+            roster_link=roster.team.roster_link)
         if roster.last_transaction is not None:
             embed_value += last_transaction_template.format(
                 date=roster.last_transaction.time.strftime(date_format))
         for player in roster.inactive_players:
-            embed_value += player_template.format(name=player.name, position=player.position, status=player.status)
-        embed.add_field(name=roster.team.manager.name, value=embed_value, inline=False)
+            embed_value += player_template.format(name=player.name,
+                                                  position=player.position,
+                                                  status=player.status)
+        embed.add_field(name=roster.team.manager.name,
+                        value=embed_value,
+                        inline=False)
 
     return embed
 
 
-def _create_file_string_for_league_and_channel(league_name: str, channel: discord.TextChannel) -> str:
+def _create_file_string_for_league_and_channel(
+        league_name: str, channel: discord.TextChannel) -> str:
     output_list = []
     output_list.append(league_name)
     output_list.append(str(channel.id))
@@ -628,17 +712,21 @@ def _create_file_string_for_league_and_channel(league_name: str, channel: discor
     return ",".join(output_list)
 
 
-def _write_channel_mapping_for_league(filename: str, league_name: str, channel: discord.TextChannel):
+def _write_channel_mapping_for_league(filename: str, league_name: str,
+                                      channel: discord.TextChannel):
     if os.path.isfile(filename):
         file = open(filename, "a")
     else:
         file = open(filename, "w")
 
-    file.write(_create_file_string_for_league_and_channel(league_name, channel)+"\n")
+    file.write(
+        _create_file_string_for_league_and_channel(league_name, channel) +
+        "\n")
     file.close()
 
 
-def _get_channel_for_league(filename: str, league_name: str) -> discord.TextChannel:
+def _get_channel_for_league(filename: str,
+                            league_name: str) -> discord.TextChannel:
     channel_id = None
 
     if os.path.isfile(filename):
@@ -662,8 +750,9 @@ def _create_discord_mention_from_id(discord_id: str) -> str:
     return "<@{id}>".format(id=discord_id)
 
 
-def _generate_mentions_string_from_league_inactivity(username_to_discord_id_mapping: Dict[str, Set[str]],
-                                                     league_inactivity: LeagueInactivity) -> str:
+def _generate_mentions_string_from_league_inactivity(
+        username_to_discord_id_mapping: Dict[str, Set[str]],
+        league_inactivity: LeagueInactivity) -> str:
     mentions_string = ""
 
     for roster in league_inactivity.rosters:
@@ -677,14 +766,17 @@ def _generate_mentions_string_from_league_inactivity(username_to_discord_id_mapp
     return mentions_string
 
 
-def _write_platform_user_to_discord_id_mapping(filename: str, platform_id: str, discord_user: discord.User):
+def _write_platform_user_to_discord_id_mapping(filename: str, platform_id: str,
+                                               discord_user: discord.User):
     if os.path.isfile(filename):
         file = open(filename, "a")
     else:
         file = open(filename, "w")
 
     file.write("{platform},{discord_id},{discord_name}\n".format(
-        platform=platform_id.lower(), discord_id=discord_user.id, discord_name=discord_user.name))
+        platform=platform_id.lower(),
+        discord_id=discord_user.id,
+        discord_name=discord_user.name))
 
 
 def _create_username_to_discord_id_map(filename: str) -> Dict[str, Set[str]]:
@@ -705,6 +797,7 @@ def _create_username_to_discord_id_map(filename: str) -> Dict[str, Set[str]]:
         file.close()
 
     return result
+
 
 def _get_usernames_for_discord_id(filename: str, discord_id: str) -> Set[str]:
     usernames = set()
@@ -738,19 +831,25 @@ def _create_printable_username_list_from_set(usernames: Set) -> str:
 @bot.command()
 async def register_sleeper_username(ctx, sleeper_username: str):
     author = ctx.message.author
-    _print_descriptive_log("register_sleeper_username",
-                           "{username}: {discord_user}".format(username=sleeper_username, discord_user=author.name))
+    _print_descriptive_log(
+        "register_sleeper_username",
+        "{username}: {discord_user}".format(username=sleeper_username,
+                                            discord_user=author.name))
 
-    _write_platform_user_to_discord_id_mapping(SLEEPER_USERNAME_TO_DISCORD_ID_PATH, sleeper_username, author)
+    _write_platform_user_to_discord_id_mapping(
+        SLEEPER_USERNAME_TO_DISCORD_ID_PATH, sleeper_username, author)
 
-    await ctx.reply("{username} has been registered to {discord_user}.".format(username=sleeper_username, discord_user=author.name))
+    await ctx.reply("{username} has been registered to {discord_user}.".format(
+        username=sleeper_username, discord_user=author.name))
+
 
 @bot.command()
 async def check_sleeper_username_registration(ctx):
     author = ctx.message.author
     _print_descriptive_log("check_sleeper_username_registration", author.name)
 
-    usernames = _get_usernames_for_discord_id(SLEEPER_USERNAME_TO_DISCORD_ID_PATH, author.id)
+    usernames = _get_usernames_for_discord_id(
+        SLEEPER_USERNAME_TO_DISCORD_ID_PATH, author.id)
 
     if len(usernames) == 0:
         return_message = "No Sleeper username registered"
@@ -765,20 +864,26 @@ async def check_sleeper_username_registration(ctx):
 @bot.command()
 async def register_fleaflicker_username(ctx, fleaflicker_username: str):
     author = ctx.message.author
-    _print_descriptive_log("register_fleaflicker_username",
-                           "{username}: {discord_user}".format(username=fleaflicker_username, discord_user=author.name))
+    _print_descriptive_log(
+        "register_fleaflicker_username",
+        "{username}: {discord_user}".format(username=fleaflicker_username,
+                                            discord_user=author.name))
 
-    _write_platform_user_to_discord_id_mapping(FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH, fleaflicker_username, author)
+    _write_platform_user_to_discord_id_mapping(
+        FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH, fleaflicker_username, author)
 
-    await ctx.reply("{username} has been registered to {discord_user}.".format(username=fleaflicker_username, discord_user=author.name))
+    await ctx.reply("{username} has been registered to {discord_user}.".format(
+        username=fleaflicker_username, discord_user=author.name))
 
 
 @bot.command()
 async def check_fleaflicker_username_registration(ctx):
     author = ctx.message.author
-    _print_descriptive_log("check_fleaflicker_username_registration", author.name)
+    _print_descriptive_log("check_fleaflicker_username_registration",
+                           author.name)
 
-    usernames = _get_usernames_for_discord_id(FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH, author.id)
+    usernames = _get_usernames_for_discord_id(
+        FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH, author.id)
 
     if len(usernames) == 0:
         return_message = "No Fleaflicker username registered"
@@ -789,6 +894,7 @@ async def check_fleaflicker_username_registration(ctx):
     _print_descriptive_log("check_fleaflicker_username_registration", "Done")
     await ctx.reply(return_message)
 
+
 # Personal Inactivity Commands
 
 
@@ -798,13 +904,16 @@ async def list_inactives_for_sleeper_user(ctx, username: str, week: int):
     _print_descriptive_log("list_inactives_for_sleeper_user")
     message = await ctx.reply("Processing...")
 
-    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
-                                               account_identifier=username,
-                                               week=week, include_transactions=False,
-                                               user_only=True)
+    inactive_leagues = await asyncio.to_thread(
+        inactives.get_all_league_inactivity,
+        account_identifier=username,
+        week=week,
+        include_transactions=False,
+        user_only=True)
 
     for league_inactivity in inactive_leagues:
-        await ctx.send(embed=_create_embed_for_inactive_league(league_inactivity))
+        await ctx.send(
+            embed=_create_embed_for_inactive_league(league_inactivity))
 
     _print_descriptive_log("list_inactives_for_sleeper_user", "Done")
     await message.delete()
@@ -812,34 +921,46 @@ async def list_inactives_for_sleeper_user(ctx, username: str, week: int):
 
 # FTA Inactivity Commands
 
+
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_inactives_for_select_teams(ctx, week: int, *, only_teams: str = ""):
+async def post_fta_inactives_for_select_teams(ctx,
+                                              week: int,
+                                              *,
+                                              only_teams: str = ""):
     _print_descriptive_log("post_fta_inactives_for_select_teams")
     message = await ctx.reply("Processing...")
 
     only_teams_list = only_teams.split(",")
-    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
+    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(
+        SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
 
-    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
-                                               account_identifier=FTAFFL_USER,
-                                               week=week, include_transactions=False,
-                                               only_teams=only_teams_list)
+    inactive_leagues = await asyncio.to_thread(
+        inactives.get_all_league_inactivity,
+        account_identifier=FTAFFL_USER,
+        week=week,
+        include_transactions=False,
+        only_teams=only_teams_list)
 
     for league_inactivity in inactive_leagues:
-        channel = _get_channel_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        channel = _get_channel_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH,
+                                          league_inactivity.league.name)
         if channel is not None:
             message_content = "__**Current Inactive Starters**__"
 
-            mentions_string = _generate_mentions_string_from_league_inactivity(sleeper_username_to_discord_id_mapping,
-                                                                               league_inactivity)
+            mentions_string = _generate_mentions_string_from_league_inactivity(
+                sleeper_username_to_discord_id_mapping, league_inactivity)
             if mentions_string:
                 message_content += "\n" + mentions_string
 
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
+            await channel.send(
+                embed=_create_embed_for_inactive_league(league_inactivity),
+                content=message_content)
         else:
-            _print_descriptive_log("post_fta_inactives_for_select_teams",
-                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+            _print_descriptive_log(
+                "post_fta_inactives_for_select_teams",
+                "Failed to post for league {name}".format(
+                    name=league_inactivity.league.name))
 
     _print_descriptive_log("post_fta_inactives_for_select_teams", "Done")
     await message.delete()
@@ -847,32 +968,43 @@ async def post_fta_inactives_for_select_teams(ctx, week: int, *, only_teams: str
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore: str = ""):
+async def post_fta_inactives_excluding_teams(ctx,
+                                             week: int,
+                                             *,
+                                             teams_to_ignore: str = ""):
     _print_descriptive_log("post_fta_inactives_excluding_teams")
     message = await ctx.reply("Processing...")
 
     teams_to_ignore_list = teams_to_ignore.split(",")
-    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
+    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(
+        SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
 
-    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
-                                               account_identifier=FTAFFL_USER,
-                                               week=week, include_transactions=False,
-                                               teams_to_ignore=teams_to_ignore_list)
+    inactive_leagues = await asyncio.to_thread(
+        inactives.get_all_league_inactivity,
+        account_identifier=FTAFFL_USER,
+        week=week,
+        include_transactions=False,
+        teams_to_ignore=teams_to_ignore_list)
 
     for league_inactivity in inactive_leagues:
-        channel = _get_channel_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        channel = _get_channel_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH,
+                                          league_inactivity.league.name)
         if channel is not None:
             message_content = "__**Current Inactive Starters**__"
 
-            mentions_string = _generate_mentions_string_from_league_inactivity(sleeper_username_to_discord_id_mapping,
-                                                                               league_inactivity)
+            mentions_string = _generate_mentions_string_from_league_inactivity(
+                sleeper_username_to_discord_id_mapping, league_inactivity)
             if mentions_string:
                 message_content += "\n" + mentions_string
 
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
+            await channel.send(
+                embed=_create_embed_for_inactive_league(league_inactivity),
+                content=message_content)
         else:
-            _print_descriptive_log("post_fta_inactives_excluding_teams",
-                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+            _print_descriptive_log(
+                "post_fta_inactives_excluding_teams",
+                "Failed to post for league {name}".format(
+                    name=league_inactivity.league.name))
 
     _print_descriptive_log("post_fta_inactives_excluding_teams", "Done")
     await message.delete()
@@ -880,7 +1012,11 @@ async def post_fta_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore:
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_inactives_to_forum(ctx, week: int, forum: discord.ForumChannel, *, player_names_to_ignore: str = ""):
+async def post_fta_inactives_to_forum(ctx,
+                                      week: int,
+                                      forum: discord.ForumChannel,
+                                      *,
+                                      player_names_to_ignore: str = ""):
     _print_descriptive_log("post_fta_inactives_to_forum")
     message = await ctx.reply("Processing...")
 
@@ -888,11 +1024,13 @@ async def post_fta_inactives_to_forum(ctx, week: int, forum: discord.ForumChanne
     if player_names_to_ignore_list[0] == '':
         player_names_to_ignore_list = []
 
-    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
-                                               account_identifier=FTAFFL_USER,
-                                               league_regex_string=FTAFFL_LEAGUE_REGEX,
-                                               week=week, include_transactions=True,
-                                               player_names_to_ignore=player_names_to_ignore_list)
+    inactive_leagues = await asyncio.to_thread(
+        inactives.get_all_league_inactivity,
+        account_identifier=FTAFFL_USER,
+        league_regex_string=FTAFFL_LEAGUE_REGEX,
+        week=week,
+        include_transactions=True,
+        player_names_to_ignore=player_names_to_ignore_list)
 
     thread_title = "Week {week} Inactive Starters".format(week=str(week))
     thread_content = FTA_INACTIVE_STARTERS_THREAD_CONTENT
@@ -902,9 +1040,11 @@ async def post_fta_inactives_to_forum(ctx, week: int, forum: discord.ForumChanne
         for player_name in player_names_to_ignore_list:
             thread_content += "- {name}\n".format(name=player_name)
 
-    thread = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    thread = (await forum.create_thread(name=thread_title,
+                                        content=thread_content))[0]
     for league_inactivity in inactive_leagues:
-        await thread.send(embed=_create_embed_for_inactive_league(league_inactivity))
+        await thread.send(
+            embed=_create_embed_for_inactive_league(league_inactivity))
 
     _print_descriptive_log("post_fta_inactives_to_forum", "Done")
     await message.delete()
@@ -912,16 +1052,22 @@ async def post_fta_inactives_to_forum(ctx, week: int, forum: discord.ForumChanne
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def create_fta_league_to_channel_mapping(ctx, league_name: str, channel: discord.TextChannel):
+async def create_fta_league_to_channel_mapping(ctx, league_name: str,
+                                               channel: discord.TextChannel):
     _print_descriptive_log("create_fta_league_to_channel_mapping")
-    _write_channel_mapping_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
+    _write_channel_mapping_for_league(FTA_LEAGUE_CHANNEL_MAPPING_PATH,
+                                      league_name, channel)
+
 
 # NarFFL Inactivity Commands
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def post_narffl_inactives_for_select_teams(ctx, week: int, *, only_teams: str = ""):
+async def post_narffl_inactives_for_select_teams(ctx,
+                                                 week: int,
+                                                 *,
+                                                 only_teams: str = ""):
     _print_descriptive_log("post_narffl_inactives_for_select_teams")
     message = await ctx.reply("Processing...")
 
@@ -929,26 +1075,33 @@ async def post_narffl_inactives_for_select_teams(ctx, week: int, *, only_teams: 
     fleaflicker_username_to_discord_id_mapping = _create_username_to_discord_id_map(
         FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH)
 
-    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
-                                               account_identifier=NARFFL_USER,
-                                               week=week, include_transactions=False,
-                                               platform_selection=common.PlatformSelection.FLEAFLICKER,
-                                               only_teams=only_teams_list)
+    inactive_leagues = await asyncio.to_thread(
+        inactives.get_all_league_inactivity,
+        account_identifier=NARFFL_USER,
+        week=week,
+        include_transactions=False,
+        platform_selection=common.PlatformSelection.FLEAFLICKER,
+        only_teams=only_teams_list)
 
     for league_inactivity in inactive_leagues:
-        channel = _get_channel_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        channel = _get_channel_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH,
+                                          league_inactivity.league.name)
         if channel is not None:
             message_content = "__**Current Inactive Starters**__"
 
-            mentions_string = _generate_mentions_string_from_league_inactivity(fleaflicker_username_to_discord_id_mapping,
-                                                                               league_inactivity)
+            mentions_string = _generate_mentions_string_from_league_inactivity(
+                fleaflicker_username_to_discord_id_mapping, league_inactivity)
             if mentions_string:
                 message_content += "\n" + mentions_string
 
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
+            await channel.send(
+                embed=_create_embed_for_inactive_league(league_inactivity),
+                content=message_content)
         else:
-            _print_descriptive_log("post_narffl_inactives_for_select_teams",
-                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+            _print_descriptive_log(
+                "post_narffl_inactives_for_select_teams",
+                "Failed to post for league {name}".format(
+                    name=league_inactivity.league.name))
 
     _print_descriptive_log("post_narffl_inactives_for_select_teams", "Done")
     await message.delete()
@@ -956,7 +1109,10 @@ async def post_narffl_inactives_for_select_teams(ctx, week: int, *, only_teams: 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def post_narffl_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore: str = ""):
+async def post_narffl_inactives_excluding_teams(ctx,
+                                                week: int,
+                                                *,
+                                                teams_to_ignore: str = ""):
     _print_descriptive_log("post_narffl_inactives_excluding_teams")
     message = await ctx.reply("Processing...")
 
@@ -964,26 +1120,33 @@ async def post_narffl_inactives_excluding_teams(ctx, week: int, *, teams_to_igno
     fleaflicker_username_to_discord_id_mapping = _create_username_to_discord_id_map(
         FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH)
 
-    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
-                                               account_identifier=NARFFL_USER,
-                                               week=week, include_transactions=False,
-                                               platform_selection=common.PlatformSelection.FLEAFLICKER,
-                                               teams_to_ignore=teams_to_ignore_list)
+    inactive_leagues = await asyncio.to_thread(
+        inactives.get_all_league_inactivity,
+        account_identifier=NARFFL_USER,
+        week=week,
+        include_transactions=False,
+        platform_selection=common.PlatformSelection.FLEAFLICKER,
+        teams_to_ignore=teams_to_ignore_list)
 
     for league_inactivity in inactive_leagues:
-        channel = _get_channel_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        channel = _get_channel_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH,
+                                          league_inactivity.league.name)
         if channel is not None:
             message_content = "__**Current Inactive Starters**__"
 
-            mentions_string = _generate_mentions_string_from_league_inactivity(fleaflicker_username_to_discord_id_mapping,
-                                                                               league_inactivity)
+            mentions_string = _generate_mentions_string_from_league_inactivity(
+                fleaflicker_username_to_discord_id_mapping, league_inactivity)
             if mentions_string:
                 message_content += "\n" + mentions_string
 
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
+            await channel.send(
+                embed=_create_embed_for_inactive_league(league_inactivity),
+                content=message_content)
         else:
-            _print_descriptive_log("post_narffl_inactives_excluding_teams",
-                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+            _print_descriptive_log(
+                "post_narffl_inactives_excluding_teams",
+                "Failed to post for league {name}".format(
+                    name=league_inactivity.league.name))
 
     _print_descriptive_log("post_narffl_inactives_excluding_teams", "Done")
     await message.delete()
@@ -991,9 +1154,11 @@ async def post_narffl_inactives_excluding_teams(ctx, week: int, *, teams_to_igno
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def create_narffl_league_to_channel_mapping(ctx, league_name: str, channel: discord.TextChannel):
+async def create_narffl_league_to_channel_mapping(
+        ctx, league_name: str, channel: discord.TextChannel):
     _print_descriptive_log("create_narffl_league_to_channel_mapping")
-    _write_channel_mapping_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
+    _write_channel_mapping_for_league(NARFFL_LEAGUE_CHANNEL_MAPPING_PATH,
+                                      league_name, channel)
 
 
 # FF Discord Inactivity Commands
@@ -1001,65 +1166,90 @@ async def create_narffl_league_to_channel_mapping(ctx, league_name: str, channel
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
-async def post_ff_discord_inactives_for_select_teams(ctx, week: int, *, only_teams: str = ""):
+async def post_ff_discord_inactives_for_select_teams(ctx,
+                                                     week: int,
+                                                     *,
+                                                     only_teams: str = ""):
     _print_descriptive_log("post_ff_discord_inactives_for_select_teams")
     message = await ctx.reply("Processing...")
 
     only_teams_list = only_teams.split(",")
-    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
+    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(
+        SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
 
-    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
-                                               account_identifier=FF_DISCORD_USER,
-                                               week=week, include_transactions=False,
-                                               only_teams=only_teams_list)
+    inactive_leagues = await asyncio.to_thread(
+        inactives.get_all_league_inactivity,
+        account_identifier=FF_DISCORD_USER,
+        week=week,
+        include_transactions=False,
+        only_teams=only_teams_list)
 
     for league_inactivity in inactive_leagues:
-        channel = _get_channel_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        channel = _get_channel_for_league(
+            FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH,
+            league_inactivity.league.name)
         if channel is not None:
             message_content = "__**Current Inactive Starters**__"
 
-            mentions_string = _generate_mentions_string_from_league_inactivity(sleeper_username_to_discord_id_mapping,
-                                                                               league_inactivity)
+            mentions_string = _generate_mentions_string_from_league_inactivity(
+                sleeper_username_to_discord_id_mapping, league_inactivity)
             if mentions_string:
                 message_content += "\n" + mentions_string
 
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
+            await channel.send(
+                embed=_create_embed_for_inactive_league(league_inactivity),
+                content=message_content)
         else:
-            _print_descriptive_log("post_ff_discord_inactives_for_select_teams",
-                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+            _print_descriptive_log(
+                "post_ff_discord_inactives_for_select_teams",
+                "Failed to post for league {name}".format(
+                    name=league_inactivity.league.name))
 
-    _print_descriptive_log("post_ff_discord_inactives_for_select_teams", "Done")
+    _print_descriptive_log("post_ff_discord_inactives_for_select_teams",
+                           "Done")
     await message.delete()
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
-async def post_ff_discord_inactives_excluding_teams(ctx, week: int, *, teams_to_ignore: str = ""):
+async def post_ff_discord_inactives_excluding_teams(ctx,
+                                                    week: int,
+                                                    *,
+                                                    teams_to_ignore: str = ""):
     _print_descriptive_log("post_ff_discord_inactives_excluding_teams")
     message = await ctx.reply("Processing...")
 
     teams_to_ignore_list = teams_to_ignore.split(",")
-    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
+    sleeper_username_to_discord_id_mapping = _create_username_to_discord_id_map(
+        SLEEPER_USERNAME_TO_DISCORD_ID_PATH)
 
-    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
-                                               account_identifier=FF_DISCORD_USER,
-                                               week=week, include_transactions=False,
-                                               teams_to_ignore=teams_to_ignore_list)
+    inactive_leagues = await asyncio.to_thread(
+        inactives.get_all_league_inactivity,
+        account_identifier=FF_DISCORD_USER,
+        week=week,
+        include_transactions=False,
+        teams_to_ignore=teams_to_ignore_list)
 
     for league_inactivity in inactive_leagues:
-        channel = _get_channel_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_inactivity.league.name)
+        channel = _get_channel_for_league(
+            FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH,
+            league_inactivity.league.name)
         if channel is not None:
             message_content = "__**Current Inactive Starters**__"
 
-            mentions_string = _generate_mentions_string_from_league_inactivity(sleeper_username_to_discord_id_mapping,
-                                                                               league_inactivity)
+            mentions_string = _generate_mentions_string_from_league_inactivity(
+                sleeper_username_to_discord_id_mapping, league_inactivity)
             if mentions_string:
                 message_content += "\n" + mentions_string
 
-            await channel.send(embed=_create_embed_for_inactive_league(league_inactivity), content=message_content)
+            await channel.send(
+                embed=_create_embed_for_inactive_league(league_inactivity),
+                content=message_content)
         else:
-            _print_descriptive_log("post_ff_discord_inactives_excluding_teams",
-                                   "Failed to post for league {name}".format(name=league_inactivity.league.name))
+            _print_descriptive_log(
+                "post_ff_discord_inactives_excluding_teams",
+                "Failed to post for league {name}".format(
+                    name=league_inactivity.league.name))
 
     _print_descriptive_log("post_ff_discord_inactives_excluding_teams", "Done")
     await message.delete()
@@ -1067,7 +1257,11 @@ async def post_ff_discord_inactives_excluding_teams(ctx, week: int, *, teams_to_
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
-async def post_ff_discord_inactives_to_forum(ctx, week: int, forum: discord.ForumChannel, *, player_names_to_ignore: str = ""):
+async def post_ff_discord_inactives_to_forum(ctx,
+                                             week: int,
+                                             forum: discord.ForumChannel,
+                                             *,
+                                             player_names_to_ignore: str = ""):
     _print_descriptive_log("post_ff_discord_inactives_to_forum")
     message = await ctx.reply("Processing...")
 
@@ -1075,10 +1269,12 @@ async def post_ff_discord_inactives_to_forum(ctx, week: int, forum: discord.Foru
     if player_names_to_ignore_list[0] == '':
         player_names_to_ignore_list = []
 
-    inactive_leagues = await asyncio.to_thread(inactives.get_all_league_inactivity,
-                                               account_identifier=FF_DISCORD_USER,
-                                               week=week, include_transactions=True,
-                                               player_names_to_ignore=player_names_to_ignore_list)
+    inactive_leagues = await asyncio.to_thread(
+        inactives.get_all_league_inactivity,
+        account_identifier=FF_DISCORD_USER,
+        week=week,
+        include_transactions=True,
+        player_names_to_ignore=player_names_to_ignore_list)
 
     thread_title = "Week {week} Inactive Starters".format(week=str(week))
     thread_content = FTA_INACTIVE_STARTERS_THREAD_CONTENT
@@ -1088,9 +1284,11 @@ async def post_ff_discord_inactives_to_forum(ctx, week: int, forum: discord.Foru
         for player_name in player_names_to_ignore_list:
             thread_content += "- {name}\n".format(name=player_name)
 
-    thread = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    thread = (await forum.create_thread(name=thread_title,
+                                        content=thread_content))[0]
     for league_inactivity in inactive_leagues:
-        await thread.send(embed=_create_embed_for_inactive_league(league_inactivity))
+        await thread.send(
+            embed=_create_embed_for_inactive_league(league_inactivity))
 
     _print_descriptive_log("post_ff_discord_inactives_to_forum", "Done")
     await message.delete()
@@ -1098,63 +1296,96 @@ async def post_ff_discord_inactives_to_forum(ctx, week: int, forum: discord.Foru
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
-async def create_ff_discord_league_to_channel_mapping(ctx, league_name: str, channel: discord.TextChannel):
+async def create_ff_discord_league_to_channel_mapping(
+        ctx, league_name: str, channel: discord.TextChannel):
     _print_descriptive_log("create_ff_discord_league_to_channel_mapping")
-    _write_channel_mapping_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH, league_name, channel)
+    _write_channel_mapping_for_league(FF_DISCORD_LEAGUE_CHANNEL_MAPPING_PATH,
+                                      league_name, channel)
 
 
 # Generic Leaderboard Helpers
 
-def _build_season_long_leaderboard_string(scores: List[SeasonScore], count: int, league_prefix_to_remove: str = "") -> str:
+
+def _build_season_long_leaderboard_string(
+        scores: List[SeasonScore],
+        count: int,
+        league_prefix_to_remove: str = "") -> str:
     string = "__Top {count} Season-Long Scorers__\n".format(count=count)
 
     for n in range(count):
         result = scores[n]
         league_name = result.league.name.removeprefix(league_prefix_to_remove)
         string += LEADERBOARD_SEASON_SCORE_TEAM_TEMPLATE.format(
-            rank=n+1, team_name=result.team.manager.name, league=league_name,
-            score=result.score, roster_link=result.team.roster_link)
+            rank=n + 1,
+            team_name=result.team.manager.name,
+            league=league_name,
+            score=result.score,
+            roster_link=result.team.roster_link)
 
     return string
 
 
-def _build_weekly_score_leaderboard_string(scores: List[WeeklyScore], count: int, title: str, league_prefix_to_remove: str = ""):
+def _build_weekly_score_leaderboard_string(scores: List[WeeklyScore],
+                                           count: int,
+                                           title: str,
+                                           league_prefix_to_remove: str = ""):
     string = title
     for n in range(count):
         result = scores[n]
         league_name = result.league.name.removeprefix(league_prefix_to_remove)
         string += LEADERBOARD_WEEKLY_SCORE_TEAM_TEMPLATE.format(
-            rank=n+1, team_name=result.team.manager.name, league=league_name,
-            score=result.score, roster_link=result.team.roster_link, week=str(result.week))
+            rank=n + 1,
+            team_name=result.team.manager.name,
+            league=league_name,
+            score=result.score,
+            roster_link=result.team.roster_link,
+            week=str(result.week))
 
     return string
 
 
-def _build_unordered_weekly_score_leaderboard_string(scores: List[WeeklyScore], count: int, title: str = "", league_prefix_to_remove: str = ""):
+def _build_unordered_weekly_score_leaderboard_string(
+        scores: List[WeeklyScore],
+        count: int,
+        title: str = "",
+        league_prefix_to_remove: str = ""):
     string = title
     for n in range(count):
         result = scores[n]
         league_name = result.league.name.removeprefix(league_prefix_to_remove)
         string += LEADERBOARD_UNORDERED_WEEKLY_SCORE_TEMPLATE.format(
-            team_name=result.team.manager.name, league=league_name,
-            score=result.score, roster_link=result.team.roster_link, week=str(result.week))
+            team_name=result.team.manager.name,
+            league=league_name,
+            score=result.score,
+            roster_link=result.team.roster_link,
+            week=str(result.week))
 
     return string
 
+
 # FTA Leaderboard Commands
+
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FTA_LEAGUE_ADMIN_ROLE)
-async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
+async def post_fta_leaderboard(ctx, end_week: int,
+                               forum: discord.ForumChannel):
     _print_descriptive_log("post_fta_leaderboard")
     processing_message = await ctx.reply("Processing...")
 
     main_leaderboard_length = 5
     expanded_leaderboard_length = 15
-    scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=FTAFFL_USER,
-                                              starting_week=1, ending_week=end_week,
-                                              get_weekly_results=True, get_current_weeks_results=True,  get_season_results=True,
-                                              get_max_scores=True, get_min_scores=False, league_regex_string=FTAFFL_LEAGUE_REGEX)
+    scoring_results = await asyncio.to_thread(
+        leaguescoring.get_scoring_results,
+        account_identifier=FTAFFL_USER,
+        starting_week=1,
+        ending_week=end_week,
+        get_weekly_results=True,
+        get_current_weeks_results=True,
+        get_season_results=True,
+        get_max_scores=True,
+        get_min_scores=False,
+        league_regex_string=FTAFFL_LEAGUE_REGEX)
 
     # Build the main leaderboard for the thread content
     thread_title = "Week {week} Leaderboard".format(week=end_week)
@@ -1163,22 +1394,29 @@ async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
     thread_content += _build_season_long_leaderboard_string(
         scoring_results.max_season_scores, main_leaderboard_length) + "\n"
     thread_content += _build_weekly_score_leaderboard_string(
-        scoring_results.max_weekly_scores, 1, "__Top Single-Week Scorer__\n") + "\n"
+        scoring_results.max_weekly_scores, 1,
+        "__Top Single-Week Scorer__\n") + "\n"
     thread_content += "\nFor the expanded leaderboards, please see the messages below. Good luck everyone!"
 
     # Create the forum thread
-    thread = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    thread = (await forum.create_thread(name=thread_title,
+                                        content=thread_content))[0]
 
     # Send the expanded leaderboards as followup messages
-    message = _build_season_long_leaderboard_string(scoring_results.max_season_scores, expanded_leaderboard_length)
+    message = _build_season_long_leaderboard_string(
+        scoring_results.max_season_scores, expanded_leaderboard_length)
     await thread.send(content=message)
 
-    message = _build_weekly_score_leaderboard_string(scoring_results.max_weekly_scores, expanded_leaderboard_length,
-                                                     "__Top {count} Single-Week Scorers__\n".format(count=expanded_leaderboard_length))
+    message = _build_weekly_score_leaderboard_string(
+        scoring_results.max_weekly_scores, expanded_leaderboard_length,
+        "__Top {count} Single-Week Scorers__\n".format(
+            count=expanded_leaderboard_length))
     await thread.send(content=message)
 
-    message = _build_weekly_score_leaderboard_string(scoring_results.max_scores_this_week, expanded_leaderboard_length,
-                                                     "__Top {count} Week {week} Scorers__\n".format(count=expanded_leaderboard_length, week=end_week))
+    message = _build_weekly_score_leaderboard_string(
+        scoring_results.max_scores_this_week, expanded_leaderboard_length,
+        "__Top {count} Week {week} Scorers__\n".format(
+            count=expanded_leaderboard_length, week=end_week))
     await thread.send(content=message)
 
     _print_descriptive_log("post_fta_leaderboard", "Done")
@@ -1187,44 +1425,63 @@ async def post_fta_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
 
 # NarFFL Leaderboard Commands
 
-async def _post_specific_narffl_leaderboard(league_level: str, league_regex_string: str, end_week: int, forum: discord.ForumChannel):
+
+async def _post_specific_narffl_leaderboard(league_level: str,
+                                            league_regex_string: str,
+                                            end_week: int,
+                                            forum: discord.ForumChannel):
     season_leaderboard_length = 15
     weekly_leaderboard_length = 10
 
-    scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=NARFFL_USER,
-                                              starting_week=1, ending_week=end_week, platform_selection=common.PlatformSelection.FLEAFLICKER,
-                                              get_weekly_results=True, get_current_weeks_results=True,  get_season_results=True,
-                                              get_max_scores=True, get_min_scores=False, league_regex_string=league_regex_string)
+    scoring_results = await asyncio.to_thread(
+        leaguescoring.get_scoring_results,
+        account_identifier=NARFFL_USER,
+        starting_week=1,
+        ending_week=end_week,
+        platform_selection=common.PlatformSelection.FLEAFLICKER,
+        get_weekly_results=True,
+        get_current_weeks_results=True,
+        get_season_results=True,
+        get_max_scores=True,
+        get_min_scores=False,
+        league_regex_string=league_regex_string)
 
     # Create the forum post
-    thread_title = "Week {week} {level} Leaderboard".format(week=end_week, level=league_level)
-    thread_content = NARFFL_LEADERBOARD_LEVEL_SPECIFIC_POST_TEMPLATE.format(level=league_level)
-    post = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    thread_title = "Week {week} {level} Leaderboard".format(week=end_week,
+                                                            level=league_level)
+    thread_content = NARFFL_LEADERBOARD_LEVEL_SPECIFIC_POST_TEMPLATE.format(
+        level=league_level)
+    post = (await forum.create_thread(name=thread_title,
+                                      content=thread_content))[0]
 
     league_prefix_to_remove = "NarFFL {level} - ".format(level=league_level)
 
     # Send the leaderboards as followup messages
     message = _build_season_long_leaderboard_string(
-        scoring_results.max_season_scores, season_leaderboard_length, league_prefix_to_remove)
+        scoring_results.max_season_scores, season_leaderboard_length,
+        league_prefix_to_remove)
     await post.send(content=message)
 
-    message = _build_weekly_score_leaderboard_string(scoring_results.max_weekly_scores, weekly_leaderboard_length,
-                                                     "__Top {count} Single-Week Scorers__\n".format(
-                                                         count=weekly_leaderboard_length),
-                                                     league_prefix_to_remove)
+    message = _build_weekly_score_leaderboard_string(
+        scoring_results.max_weekly_scores, weekly_leaderboard_length,
+        "__Top {count} Single-Week Scorers__\n".format(
+            count=weekly_leaderboard_length), league_prefix_to_remove)
     await post.send(content=message)
 
-    message = _build_weekly_score_leaderboard_string(scoring_results.max_scores_this_week, weekly_leaderboard_length,
-                                                     "__Top {count} Week {week} Scorers__\n".format(
-                                                         count=weekly_leaderboard_length, week=end_week),
-                                                     league_prefix_to_remove)
+    message = _build_weekly_score_leaderboard_string(
+        scoring_results.max_scores_this_week, weekly_leaderboard_length,
+        "__Top {count} Week {week} Scorers__\n".format(
+            count=weekly_leaderboard_length, week=end_week),
+        league_prefix_to_remove)
     await post.send(content=message)
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def post_narffl_leaderboards(ctx, end_week: int, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_leaderboards", "Posting to {forum}".format(forum=forum.name))
+async def post_narffl_leaderboards(ctx, end_week: int,
+                                   forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_leaderboards",
+                           "Posting to {forum}".format(forum=forum.name))
     message = await ctx.reply("Processing...")
 
     await post_narffl_farm_leaderboard(ctx, end_week, forum)
@@ -1240,95 +1497,134 @@ async def post_narffl_leaderboards(ctx, end_week: int, forum: discord.ForumChann
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def post_narffl_top_farm_scores_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_top_farm_scores_leaderboard", "Posting to {forum}".format(forum=forum.name))
-    
+async def post_narffl_top_farm_scores_leaderboard(ctx, end_week: int,
+                                                  forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_top_farm_scores_leaderboard",
+                           "Posting to {forum}".format(forum=forum.name))
+
     # It's assumed that this divides evenly into the total number of leagues
     leagues_posted = 0
     batch_size = 4
 
-    top_scores = await asyncio.to_thread(topleaguescore.get_top_weekly_score_for_each_league, 
-                                         account_identifier=NARFFL_USER, league_regex_string=NARFFL_FARM_LEAGUE_REGEX,
-                                         starting_week=1, ending_week=end_week,
-                                         platform_selection=common.PlatformSelection.FLEAFLICKER)
-    
+    top_scores = await asyncio.to_thread(
+        topleaguescore.get_top_weekly_score_for_each_league,
+        account_identifier=NARFFL_USER,
+        league_regex_string=NARFFL_FARM_LEAGUE_REGEX,
+        starting_week=1,
+        ending_week=end_week,
+        platform_selection=common.PlatformSelection.FLEAFLICKER)
+
     # Create the forum post
     thread_title = "Week {week} Farm Top Scores".format(week=end_week)
     thread_content = NARFFL_TOP_FARM_LEAGUE_SCORES_CONTENT
-    post = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    post = (await forum.create_thread(name=thread_title,
+                                      content=thread_content))[0]
 
     farm_prefix = "NarFFL Farm - "
 
     # Loop over the top scores until they're all posted, using the specified batch_size
     while leagues_posted < len(top_scores):
-        content = _build_unordered_weekly_score_leaderboard_string(top_scores[leagues_posted:leagues_posted+batch_size], batch_size, league_prefix_to_remove=farm_prefix)
-        
+        content = _build_unordered_weekly_score_leaderboard_string(
+            top_scores[leagues_posted:leagues_posted + batch_size],
+            batch_size,
+            league_prefix_to_remove=farm_prefix)
+
         await post.send(content=content)
-                                        
-        leagues_posted += batch_size                                
+
+        leagues_posted += batch_size
 
     _print_descriptive_log("post_narffl_top_farm_scores_leaderboard", "Done")
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def post_narffl_farm_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_farm_leaderboard", "Posting to {forum}".format(forum=forum.name))
-    await _post_specific_narffl_leaderboard("Farm", NARFFL_FARM_LEAGUE_REGEX, end_week, forum)
+async def post_narffl_farm_leaderboard(ctx, end_week: int,
+                                       forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_farm_leaderboard",
+                           "Posting to {forum}".format(forum=forum.name))
+    await _post_specific_narffl_leaderboard("Farm", NARFFL_FARM_LEAGUE_REGEX,
+                                            end_week, forum)
     _print_descriptive_log("post_narffl_farm_leaderboard", "Done")
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def post_narffl_minors_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_minors_leaderboard", "Posting to {forum}".format(forum=forum.name))
-    await _post_specific_narffl_leaderboard("Minors", NARFFL_MINORS_LEAGUE_REGEX, end_week, forum)
+async def post_narffl_minors_leaderboard(ctx, end_week: int,
+                                         forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_minors_leaderboard",
+                           "Posting to {forum}".format(forum=forum.name))
+    await _post_specific_narffl_leaderboard("Minors",
+                                            NARFFL_MINORS_LEAGUE_REGEX,
+                                            end_week, forum)
     _print_descriptive_log("post_narffl_minors_leaderboard", "Done")
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def post_narffl_majors_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_majors_leaderboard", "Posting to {forum}".format(forum=forum.name))
-    await _post_specific_narffl_leaderboard("Majors", NARFFL_MAJORS_LEAGUE_REGEX, end_week, forum)
+async def post_narffl_majors_leaderboard(ctx, end_week: int,
+                                         forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_majors_leaderboard",
+                           "Posting to {forum}".format(forum=forum.name))
+    await _post_specific_narffl_leaderboard("Majors",
+                                            NARFFL_MAJORS_LEAGUE_REGEX,
+                                            end_week, forum)
     _print_descriptive_log("post_narffl_majors_leaderboard", "Done")
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def post_narffl_premier_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_premier_leaderboard", "Posting to {forum}".format(forum=forum.name))
-    await _post_specific_narffl_leaderboard("Premier", NARFFL_PREMIER_LEAGUE_REGEX, end_week, forum)
+async def post_narffl_premier_leaderboard(ctx, end_week: int,
+                                          forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_premier_leaderboard",
+                           "Posting to {forum}".format(forum=forum.name))
+    await _post_specific_narffl_leaderboard("Premier",
+                                            NARFFL_PREMIER_LEAGUE_REGEX,
+                                            end_week, forum)
     _print_descriptive_log("post_narffl_premier_leaderboard", "Done")
 
 
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, NARFFL_ADMIN_ROLE)
-async def post_narffl_overall_leaderboard(ctx, end_week: int, forum: discord.ForumChannel):
-    _print_descriptive_log("post_narffl_overall_leaderboard", "Posting to {forum}".format(forum=forum.name))
+async def post_narffl_overall_leaderboard(ctx, end_week: int,
+                                          forum: discord.ForumChannel):
+    _print_descriptive_log("post_narffl_overall_leaderboard",
+                           "Posting to {forum}".format(forum=forum.name))
 
     leaderboard_length = 10
 
-    scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=NARFFL_USER,
-                                              starting_week=1, ending_week=end_week, platform_selection=common.PlatformSelection.FLEAFLICKER,
-                                              get_weekly_results=True, get_current_weeks_results=True,  get_season_results=True,
-                                              get_max_scores=True, get_min_scores=False)
+    scoring_results = await asyncio.to_thread(
+        leaguescoring.get_scoring_results,
+        account_identifier=NARFFL_USER,
+        starting_week=1,
+        ending_week=end_week,
+        platform_selection=common.PlatformSelection.FLEAFLICKER,
+        get_weekly_results=True,
+        get_current_weeks_results=True,
+        get_season_results=True,
+        get_max_scores=True,
+        get_min_scores=False)
 
     # Create the forum post
     thread_title = "Week {week} Overall Leaderboard".format(week=end_week)
     thread_content = "Here are the top-scoring teams looking at all NarFFL Leagues."
-    post = (await forum.create_thread(name=thread_title, content=thread_content))[0]
+    post = (await forum.create_thread(name=thread_title,
+                                      content=thread_content))[0]
 
     # Send the leaderboards as followup messages
-    message = _build_season_long_leaderboard_string(scoring_results.max_season_scores, leaderboard_length)
+    message = _build_season_long_leaderboard_string(
+        scoring_results.max_season_scores, leaderboard_length)
     await post.send(content=message)
 
-    message = _build_weekly_score_leaderboard_string(scoring_results.max_weekly_scores, leaderboard_length,
-                                                     "__Top {count} Single-Week Scorers__\n".format(count=leaderboard_length))
+    message = _build_weekly_score_leaderboard_string(
+        scoring_results.max_weekly_scores, leaderboard_length,
+        "__Top {count} Single-Week Scorers__\n".format(
+            count=leaderboard_length))
     await post.send(content=message)
 
-    message = _build_weekly_score_leaderboard_string(scoring_results.max_scores_this_week, leaderboard_length,
-                                                     "__Top {count} Week {week} Scorers__\n".format(count=leaderboard_length, week=end_week))
+    message = _build_weekly_score_leaderboard_string(
+        scoring_results.max_scores_this_week, leaderboard_length,
+        "__Top {count} Week {week} Scorers__\n".format(
+            count=leaderboard_length, week=end_week))
     await post.send(content=message)
 
     _print_descriptive_log("post_narffl_overall_leaderboard", "Done")
@@ -1336,17 +1632,25 @@ async def post_narffl_overall_leaderboard(ctx, end_week: int, forum: discord.For
 
 # FF Discord Leaderboard Commands
 
+
 @bot.command()
 @commands.has_any_role(BOT_DEV_SERVER_ROLE, FF_DISCORD_ADMIN_ROLE)
-async def post_ff_discord_leaderboard(ctx, end_week: int, channel: discord.TextChannel):
+async def post_ff_discord_leaderboard(ctx, end_week: int,
+                                      channel: discord.TextChannel):
     _print_descriptive_log("post_ff_discord_leaderboard")
     processing_message = await ctx.reply("Processing...")
 
     leaderboard_length = 5
-    scoring_results = await asyncio.to_thread(leaguescoring.get_scoring_results, account_identifier=FF_DISCORD_USER,
-                                              starting_week=1, ending_week=end_week,
-                                              get_weekly_results=False, get_current_weeks_results=True,  get_season_results=True,
-                                              get_max_scores=True, get_min_scores=False)
+    scoring_results = await asyncio.to_thread(
+        leaguescoring.get_scoring_results,
+        account_identifier=FF_DISCORD_USER,
+        starting_week=1,
+        ending_week=end_week,
+        get_weekly_results=False,
+        get_current_weeks_results=True,
+        get_season_results=True,
+        get_max_scores=True,
+        get_min_scores=False)
 
     post_content = "## Week {week} Leaderboard\n\n\n".format(week=end_week)
 
@@ -1354,9 +1658,11 @@ async def post_ff_discord_leaderboard(ctx, end_week: int, channel: discord.TextC
         scoring_results.max_season_scores, leaderboard_length) + "\n"
     post_content += _build_weekly_score_leaderboard_string(
         scoring_results.max_scores_this_week, leaderboard_length,
-        "__Top {count} Week {week} Scores__\n".format(count=leaderboard_length, week=end_week)) + "\n"
+        "__Top {count} Week {week} Scores__\n".format(count=leaderboard_length,
+                                                      week=end_week)) + "\n"
 
-    post_content += "Full standings at https://www.flexspotff.com/leagues/leaderboard/2024/{week}".format(week=end_week)
+    post_content += "Full standings at https://www.flexspotff.com/leagues/leaderboard/2024/{week}".format(
+        week=end_week)
 
     await channel.send(content=post_content)
 
@@ -1366,14 +1672,21 @@ async def post_ff_discord_leaderboard(ctx, end_week: int, channel: discord.TextC
 
 # General Bot Diagnostic Commands
 
+
 @bot.command()
 @commands.has_role(BOT_DEV_SERVER_ROLE)
 async def get_task_states(ctx):
     template = "Task {task}.running(): {state}"
 
-    await ctx.send(template.format(task="post_fta_trades", state=post_fta_trades.is_running()))
-    await ctx.send(template.format(task="post_narffl_trades", state=post_narffl_trades.is_running()))
-    await ctx.send(template.format(task="post_ff_discord_trades", state=post_ff_discord_trades.is_running()))
+    await ctx.send(
+        template.format(task="post_fta_trades",
+                        state=post_fta_trades.is_running()))
+    await ctx.send(
+        template.format(task="post_narffl_trades",
+                        state=post_narffl_trades.is_running()))
+    await ctx.send(
+        template.format(task="post_ff_discord_trades",
+                        state=post_ff_discord_trades.is_running()))
 
 
 @tasks.loop(minutes=7)
@@ -1386,25 +1699,32 @@ async def task_checker():
     now = datetime.now(tz=next_narffl_trade.tzinfo)
 
     if next_narffl_trade is not None and next_narffl_trade < now:
-        _print_descriptive_log("task_checker", "NarFFL Trade task is delayed, restarting")
+        _print_descriptive_log("task_checker",
+                               "NarFFL Trade task is delayed, restarting")
         post_narffl_trades.restart()
 
     if next_fta_trade is not None and next_fta_trade < now:
-        _print_descriptive_log("task_checker", "FTA Trade task is delayed, restarting")
+        _print_descriptive_log("task_checker",
+                               "FTA Trade task is delayed, restarting")
         post_fta_trades.restart()
 
     if next_ff_discord_trade is not None and next_ff_discord_trade < now:
-        _print_descriptive_log("task_checker", "FF Discord Trade task is delayed, restarting")
+        _print_descriptive_log("task_checker",
+                               "FF Discord Trade task is delayed, restarting")
         post_ff_discord_trades.restart()
 
 
 # General bot helper functions
 
+
 def _print_descriptive_log(log_method: str, log_line: str = ""):
     log_template = "{time:<20}{log_method:40.40}\t{log_line}"
     formatted_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    print(log_template.format(time=formatted_time, log_method=log_method, log_line=log_line))
+    print(
+        log_template.format(time=formatted_time,
+                            log_method=log_method,
+                            log_line=log_line))
 
 
 def _retrieve_token() -> str:
