@@ -17,6 +17,7 @@
 import asyncio
 import discord
 import os
+import re
 
 import adp
 import common
@@ -799,7 +800,7 @@ def _create_username_to_discord_id_map(filename: str) -> Dict[str, Set[str]]:
     return result
 
 
-def _get_usernames_for_discord_id(filename: str, discord_id: str) -> Set[str]:
+def _get_usernames_for_discord_id(filename: str, discord_id: int) -> Set[str]:
     usernames = set()
 
     if os.path.isfile(filename):
@@ -826,6 +827,29 @@ def _create_printable_username_list_from_set(usernames: Set) -> str:
         username_list += "`" + name + "`"
 
     return username_list
+
+
+def _remove_username_registration_for_discord_id(filename: str,
+                                                 discord_id: int) -> int:
+    discord_id_regex = re.compile(
+        ".*,{discord_id},.*".format(discord_id=str(discord_id)))
+    removed_count = 0
+
+    with open(filename, "r+") as file:
+        lines = file.readlines()
+        file.seek(0)
+        file.truncate()
+
+        for line in lines:
+            if not discord_id_regex.match(line):
+                file.write(line)
+            else:
+                _print_descriptive_log(
+                    "_remove_username_registration_for_discord_id",
+                    "Removing line: {line}".format(line=line))
+                removed_count += 1
+
+    return removed_count
 
 
 @bot.command()
@@ -862,6 +886,19 @@ async def check_sleeper_username_registration(ctx):
 
 
 @bot.command()
+async def delete_sleeper_username_registrations(ctx):
+    author = ctx.message.author
+    _print_descriptive_log("delete_sleeper_username_registration", author.name)
+
+    removed = _remove_username_registration_for_discord_id(
+        SLEEPER_USERNAME_TO_DISCORD_ID_PATH, author.id)
+
+    _print_descriptive_log("delete_sleeper_username_registration", "Done")
+    await ctx.reply("Removed {count} registration{plural}.".format(
+        count=removed, plural=("s" if removed != 1 else "")))
+
+
+@bot.command()
 async def register_fleaflicker_username(ctx, fleaflicker_username: str):
     author = ctx.message.author
     _print_descriptive_log(
@@ -893,6 +930,20 @@ async def check_fleaflicker_username_registration(ctx):
 
     _print_descriptive_log("check_fleaflicker_username_registration", "Done")
     await ctx.reply(return_message)
+
+
+@bot.command()
+async def delete_fleaflicker_username_registrations(ctx):
+    author = ctx.message.author
+    _print_descriptive_log("delete_fleaflicker_username_registration",
+                           author.name)
+
+    removed = _remove_username_registration_for_discord_id(
+        FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH, author.id)
+
+    _print_descriptive_log("delete_fleaflicker_username_registration", "Done")
+    await ctx.reply("Removed {count} registration{plural}.".format(
+        count=removed, plural=("s" if removed != 1 else "")))
 
 
 # Personal Inactivity Commands
