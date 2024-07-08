@@ -28,7 +28,8 @@ class DiscordBot(commands.Bot):
         super().__init__(command_prefix="&", intents=intents)
 
         self.cogs_list = [
-            'cogs.test'
+            'cogs.adp',
+            'cogs.test',
         ]
 
     async def setup_hook(self):
