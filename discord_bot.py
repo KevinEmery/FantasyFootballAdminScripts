@@ -706,6 +706,34 @@ def _create_username_to_discord_id_map(filename: str) -> Dict[str, Set[str]]:
 
     return result
 
+def _get_usernames_for_discord_id(filename: str, discord_id: str) -> Set[str]:
+    usernames = set()
+
+    if os.path.isfile(filename):
+        file = open(filename, "r")
+
+        lines = file.readlines()
+        for line in lines:
+            line_split = line.split(",")
+            d_id = str(line_split[1].strip())
+
+            if d_id == str(discord_id):
+                usernames.add(line_split[0])
+
+        file.close()
+
+    return usernames
+
+
+def _create_printable_username_list_from_set(usernames: Set) -> str:
+    username_list = ""
+    for name in usernames:
+        if not len(username_list) == 0:
+            username_list += ","
+        username_list += "`" + name + "`"
+
+    return username_list
+
 
 @bot.command()
 async def register_sleeper_username(ctx, sleeper_username: str):
@@ -716,6 +744,22 @@ async def register_sleeper_username(ctx, sleeper_username: str):
     _write_platform_user_to_discord_id_mapping(SLEEPER_USERNAME_TO_DISCORD_ID_PATH, sleeper_username, author)
 
     await ctx.reply("{username} has been registered to {discord_user}.".format(username=sleeper_username, discord_user=author.name))
+
+@bot.command()
+async def check_sleeper_username_registration(ctx):
+    author = ctx.message.author
+    _print_descriptive_log("check_sleeper_username_registration", author.name)
+
+    usernames = _get_usernames_for_discord_id(SLEEPER_USERNAME_TO_DISCORD_ID_PATH, author.id)
+
+    if len(usernames) == 0:
+        return_message = "No Sleeper username registered"
+    else:
+        username_list = _create_printable_username_list_from_set(usernames)
+        return_message = "The following Sleeper usernames are registered to you: " + username_list
+
+    _print_descriptive_log("check_sleeper_username_registration", "Done")
+    await ctx.reply(return_message)
 
 
 @bot.command()
@@ -728,6 +772,22 @@ async def register_fleaflicker_username(ctx, fleaflicker_username: str):
 
     await ctx.reply("{username} has been registered to {discord_user}.".format(username=fleaflicker_username, discord_user=author.name))
 
+
+@bot.command()
+async def check_fleaflicker_username_registration(ctx):
+    author = ctx.message.author
+    _print_descriptive_log("check_fleaflicker_username_registration", author.name)
+
+    usernames = _get_usernames_for_discord_id(FLEAFLICKER_USERNAME_TO_DISCORD_ID_PATH, author.id)
+
+    if len(usernames) == 0:
+        return_message = "No Fleaflicker username registered"
+    else:
+        username_list = _create_printable_username_list_from_set(usernames)
+        return_message = "The following Fleaflicker usernames are registered to you: " + username_list
+
+    _print_descriptive_log("check_fleaflicker_username_registration", "Done")
+    await ctx.reply(return_message)
 
 # Personal Inactivity Commands
 
