@@ -16,7 +16,7 @@
 
 import discord
 
-import cogs.common
+import cogs.constants
 
 from discord.ext import commands
 
@@ -36,7 +36,7 @@ class DiscordBot(commands.Bot):
         for ext in self.cogs_list:
             await self.load_extension(ext)
 
-        await self.tree.sync(guild=discord.Object(id=cogs.common.DEV_SERVER_GUILD_ID))
+        await self.tree.sync(guild=discord.Object(id=cogs.constants.DEV_SERVER_GUILD_ID))
 
 
     async def on_ready(self):

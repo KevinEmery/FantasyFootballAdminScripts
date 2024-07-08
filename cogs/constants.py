@@ -1,0 +1,13 @@
+# ID of my personal dev server
+DEV_SERVER_GUILD_ID = 1134308260812423168
+
+FTAFFL_USER = "FTAFFL"
+FTAFFL_LEAGUE_REGEX = "^FTA \#\d+.*$"
+
+NARFFL_USER = "narfflflea@davehenning.net"
+NARFFL_FARM_LEAGUE_REGEX = "^NarFFL Farm.*$"
+NARFFL_MINORS_LEAGUE_REGEX = "^NarFFL Minors.*$"
+NARFFL_MAJORS_LEAGUE_REGEX = "^NarFFL Majors.*$"
+NARFFL_PREMIER_LEAGUE_REGEX = "^NarFFL Premier.*$"
+
+FF_DISCORD_USER = "FFDiscordAdmin"

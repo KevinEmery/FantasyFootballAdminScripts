@@ -17,6 +17,7 @@
 import discord
 
 import cogs.common as cogCommon
+import cogs.constants as cogConstants
 
 from discord import app_commands
 from discord.ext import commands
@@ -26,7 +27,7 @@ class TestCog(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="helloworld", description="The only logical first command")
-    @app_commands.guilds(cogCommon.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
     async def testing(self, interaction: discord.Interaction):
         cogCommon.print_descriptive_log("helloworld", "Log Testing!")
         await interaction.response.send_message("Hello, World!")
