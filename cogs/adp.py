@@ -355,7 +355,6 @@ class ADPCog(commands.Cog):
             adp.aggregate_adp_data,
             account_identifier=cogConstants.FTAFFL_USER,
             league_size=14,
-            year=2023,
             position=position_short,
             league_regex_string=cogConstants.FTAFFL_LEAGUE_REGEX,
             output_format=adp.OutputFormat.FORMATTED_CSV)
@@ -371,7 +370,6 @@ class ADPCog(commands.Cog):
             adp.aggregate_adp_data,
             account_identifier=cogConstants.NARFFL_USER,
             league_size=12,
-            year=2023,
             position=position_short,
             output_format=adp.OutputFormat.FORMATTED_CSV,
             platform_selection=common.PlatformSelection.FLEAFLICKER)
