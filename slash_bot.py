@@ -17,8 +17,11 @@
 import discord
 
 import cogs.constants
+import cogs.common
 
+from discord import app_commands
 from discord.ext import commands
+
 
 class DiscordBot(commands.Bot):
     def __init__(self):
@@ -36,8 +39,8 @@ class DiscordBot(commands.Bot):
         for ext in self.cogs_list:
             await self.load_extension(ext)
 
-        await self.tree.sync(guild=discord.Object(id=cogs.constants.DEV_SERVER_GUILD_ID))
-
+        await self.tree.sync(guild=discord.Object(
+            id=cogs.constants.DEV_SERVER_GUILD_ID))
 
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -51,5 +54,24 @@ def _retrieve_token() -> str:
 
     return token_string
 
+
 bot = DiscordBot()
+
+
+@bot.tree.error
+async def on_app_command_error(interaction: discord.Interaction,
+                               error: app_commands.AppCommandError):
+    await interaction.followup.send(
+        "Error during execution, please reach out to the author for more information"
+    )
+    if isinstance(error, app_commands.CommandInvokeError):
+        message_template = "Error during execution of {command_name}: {error}"
+        cogs.common.print_descriptive_log(
+            "on_app_command_error",
+            message_template.format(command_name=error.command.name,
+                                    error=error.original))
+    else:
+        cogs.common.print_descriptive_log("on_app_command_error", error)
+
+
 bot.run(_retrieve_token())
