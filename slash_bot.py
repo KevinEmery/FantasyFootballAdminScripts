@@ -34,6 +34,7 @@ class DiscordBot(commands.Bot):
             'cogs.adp',
             'cogs.leaderboards',
             'cogs.test',
+            'cogs.trades',
         ]
 
     async def setup_hook(self):
