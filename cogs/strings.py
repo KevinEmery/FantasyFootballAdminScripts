@@ -30,3 +30,15 @@ Max: The latest a player was drafted\n\
 (#): Number of times a player has been drafted\
 ```\n\
 The designation \"X.Y\" represents a selection in Round X, at Pick Y"
+
+LEADERBOARD_SEASON_SCORE_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - **{score}**\n"
+LEADERBOARD_WEEKLY_SCORE_TEAM_TEMPLATE = "{rank}. **[{team_name}](<{roster_link}>)** (_{league}_)  - Week {week} - **{score}**\n"
+LEADERBOARD_UNORDERED_WEEKLY_SCORE_TEMPLATE = "- **[{team_name}](<{roster_link}>)** (_{league}_)  - Week {week} - **{score}**\n"
+
+FTA_LEADERBARD_MAIN_POST_CONTENT_HEADER = "Here are your top-scoring teams across all leagues, as well as the highest single-week score this year so far.\n\n\
+At the end of the regular season, the top-three season-long scorers and the top single-week score for the year are awarded prizes.\n\n"
+
+NARFFL_LEADERBOARD_LEVEL_SPECIFIC_POST_TEMPLATE = "Here are the top-scoring teams looking at the NarFFL {level} leagues"
+NARFFL_TOP_FARM_LEAGUE_SCORES_CONTENT = "These are the top single-week scores in each individual Farm League. \
+At the end of the year, the team with the highest single-week score during the regular season (excluding the Champion) earns a promotion to Minors. \
+This is meant to serve as an unofficial sneak-preview of what that bar will be in each league."
