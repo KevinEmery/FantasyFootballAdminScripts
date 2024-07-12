@@ -48,7 +48,8 @@ class ADPCog(commands.Cog):
     # FTA Commands
     @app_commands.command(name="send_all_fta_adp_posts",
                           description="Creates all of the FTA ADP Forum posts")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def send_all_fta_adp_posts(self, interaction: discord.Interaction,
                                      forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("send_all_fta_adp_posts",
@@ -72,7 +73,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_fta_overall_adp",
                           description="Posts the FTA ADP for all positions")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_fta_overall_adp(self, interaction: discord.Interaction,
                                    forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_fta_overall_adp",
@@ -87,7 +89,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_fta_qb_adp",
                           description="Posts the FTA ADP for QBs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_fta_qb_adp(self, interaction: discord.Interaction,
                               forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_fta_qb_adp",
@@ -101,7 +104,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_fta_wr_adp",
                           description="Posts the FTA ADP for WRs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_fta_wr_adp(self, interaction: discord.Interaction,
                               forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_fta_wr_adp",
@@ -116,7 +120,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_fta_rb_adp",
                           description="Posts the FTA ADP for RBs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_fta_rb_adp(self, interaction: discord.Interaction,
                               forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_fta_rb_adp",
@@ -131,7 +136,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_fta_te_adp",
                           description="Posts the FTA ADP for TEs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_fta_te_adp(self, interaction: discord.Interaction,
                               forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_fta_te_adp",
@@ -145,7 +151,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_fta_k_adp",
                           description="Posts the FTA ADP for Ks")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_fta_k_adp(self, interaction: discord.Interaction,
                              forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_fta_k_adp",
@@ -159,7 +166,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_fta_dst_adp",
                           description="Posts the FTA ADP for DSTs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_fta_dst_adp(self, interaction: discord.Interaction,
                                forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_fta_dst_adp",
@@ -176,7 +184,8 @@ class ADPCog(commands.Cog):
     @app_commands.command(
         name="send_all_narffl_adp_posts",
         description="Creates all of the NarFFL ADP Forum posts")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def send_all_narffl_adp_posts(self, interaction: discord.Interaction,
                                         forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("send_all_narffl_adp_posts",
@@ -202,7 +211,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_narffl_overall_adp",
                           description="Posts the NarFFL ADP for all positions")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_overall_adp(self, interaction: discord.Interaction,
                                       forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_narffl_overall_adp",
@@ -217,7 +227,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_narffl_qb_adp",
                           description="Posts the NarFFL ADP for QBs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_qb_adp(self, interaction: discord.Interaction,
                                  forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_narffl_qb_adp",
@@ -232,7 +243,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_narffl_wr_adp",
                           description="Posts the NarFFL ADP for WRs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_wr_adp(self, interaction: discord.Interaction,
                                  forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_narffl_wr_adp",
@@ -247,7 +259,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_narffl_rb_adp",
                           description="Posts the NarFFL ADP for RBs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_rb_adp(self, interaction: discord.Interaction,
                                  forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_narffl_rb_adp",
@@ -262,7 +275,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_narffl_te_adp",
                           description="Posts the NarFFL ADP for TEs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_te_adp(self, interaction: discord.Interaction,
                                  forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_narffl_te_adp",
@@ -277,7 +291,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_narffl_k_adp",
                           description="Posts the NarFFL ADP for Ks")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_k_adp(self, interaction: discord.Interaction,
                                 forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_narffl_k_adp",
@@ -291,7 +306,8 @@ class ADPCog(commands.Cog):
 
     @app_commands.command(name="post_narffl_dst_adp",
                           description="Posts the NarFFL ADP for DSTs")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_dst_adp(self, interaction: discord.Interaction,
                                   forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_narffl_dst_adp",
