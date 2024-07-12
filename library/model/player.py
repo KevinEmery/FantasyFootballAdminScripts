@@ -1,5 +1,5 @@
 """
-   Copyright 2022 Kevin Emery
+   Copyright 2024 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
    limitations under the License.
 """
 
+from json import JSONEncoder
+
 class Player(object):
     def __init__(self, player_id: str, name: str, team: str, position: str,
                  status: str):
@@ -25,3 +27,9 @@ class Player(object):
 
     def is_inactive(self):
         return self.status is not None and self.status != "" and self.status != "Questionable"
+
+class PlayerEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Player):
+            return obj.__dict__
+        return super().default(obj)

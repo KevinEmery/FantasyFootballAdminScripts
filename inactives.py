@@ -71,7 +71,7 @@ def get_all_league_inactivity(
 
     # Set platform based on user choice
     if platform_selection == common.PlatformSelection.SLEEPER:
-        platform = Sleeper()
+        platform = Sleeper(force_player_data_refresh=True)
     elif platform_selection == common.PlatformSelection.FLEAFLICKER:
         platform = Fleaflicker()
 

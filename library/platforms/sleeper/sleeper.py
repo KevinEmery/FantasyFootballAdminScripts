@@ -1,5 +1,5 @@
 """
-   Copyright 2023 Kevin Emery
+   Copyright 2024 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
    limitations under the License.
 """
 
+import json
+import os
 import re
+import time
 
 from datetime import datetime
 from typing import Dict, List
@@ -30,6 +33,7 @@ from ...model.draftedplayer import DraftedPlayer
 from ...model.inactiveroster import InactiveRoster
 from ...model.league import League
 from ...model.player import Player
+from ...model.player import PlayerEncoder
 from ...model.seasonscore import SeasonScore
 from ...model.team import Team
 from ...model.trade import Trade
@@ -38,13 +42,20 @@ from ...model.transaction import Transaction
 from ...model.user import User
 from ...model.weeklyscore import WeeklyScore
 
+# Directory is relative to the directory where script is run
+PLAYER_DATA_FILE_PATH = "./data/sleeper_player_data"
+
+# Sleeper recommendation is a 24-hour refresh
+PLAYER_DATA_REFRESH_INTERVAL_SECONDS = 24 * 60 * 60
+
 
 class Sleeper(Platform):
-    def __init__(self):
+    def __init__(self, force_player_data_refresh: bool = False):
         # Rather than do this lookup the first time we need it, just
         # proactively retrieve all player data up front
-        self._player_id_to_player: Dict[
-            str, Player] = self._initialize_player_data()
+        self._player_id_to_player: Dict[str,
+                                        Player] = self._initialize_player_data(
+                                            force_player_data_refresh)
         self._owner_id_to_user: Dict[str, User] = {}
         self._league_id_to_roster_num_to_user: Dict[str, Dict[int, User]] = {}
 
@@ -395,22 +406,66 @@ class Sleeper(Platform):
         self._league_id_to_roster_num_to_user[
             league.league_id] = roster_num_to_user
 
-    def _initialize_player_data(self) -> Dict[str, Player]:
+    def _initialize_player_data(self,
+                                force_refresh: bool) -> Dict[str, Player]:
+        if force_refresh or self._should_refresh_player_data():
+            return self._retrieve_player_data_from_api()
+
+        return self._retrieve_player_data_from_file()
+
+
+    def _should_refresh_player_data(self) -> bool:
+        if not os.path.exists(PLAYER_DATA_FILE_PATH):
+            return True
+
+        time_last_modified = int(os.path.getmtime(PLAYER_DATA_FILE_PATH))
+        time_now = int(time.time())
+
+        return time_now - time_last_modified > PLAYER_DATA_REFRESH_INTERVAL_SECONDS
+
+
+    def _retrieve_player_data_from_api(self) -> Dict[str, Player]:
+        # This should be happening infrequently enough that we don't see this log often.
+        # If we see this more than expected, investigate
+        print("Retrieving player data from the Sleeper API")
         player_id_to_player = {}
 
         raw_player_map = api.get_all_players()
 
         for player_id in raw_player_map:
             raw_player = raw_player_map[player_id]
-            player_name = "{first} {last}".format(
-                first=raw_player["first_name"], last=raw_player["last_name"])
+            player_name = "{first} {last}".format(first=raw_player["first_name"],
+                                                  last=raw_player["last_name"])
 
-            player_id_to_player[player_id] = Player(
-                player_id, player_name, raw_player["team"],
-                raw_player["position"], raw_player["injury_status"])
+            player_id_to_player[player_id] = Player(player_id, player_name,
+                                                    raw_player["team"],
+                                                    raw_player["position"],
+                                                    raw_player["injury_status"])
 
         # Insert a dummy missing player at ID 0
-        player_id_to_player["0"] = Player("0", "Missing", "None", "None",
-                                          "None")
+        player_id_to_player["0"] = Player("0", "Missing", "None", "None", "None")
+
+        # Every time we pull data from the API, write it out to the file
+        self._write_player_data_to_file(player_id_to_player)
 
         return player_id_to_player
+
+    def _retrieve_player_data_from_file(self) -> Dict[str, Player]:
+        # The assumption is made that if we get here, the file exists
+        data = {}
+        with open(PLAYER_DATA_FILE_PATH, 'r') as file:
+            raw_data = json.load(file)
+
+            for player_id, player_raw_data in raw_data.items():
+                data[player_id] = Player(player_raw_data["player_id"],
+                                         player_raw_data["name"],
+                                         player_raw_data["team"],
+                                         player_raw_data["position"],
+                                         player_raw_data["status"])
+
+        return data
+
+            
+    def _write_player_data_to_file(self, player_data: Dict[str, Player]):
+        with open(PLAYER_DATA_FILE_PATH, 'w') as file:
+            file.write(json.dumps(player_data, cls=PlayerEncoder))
