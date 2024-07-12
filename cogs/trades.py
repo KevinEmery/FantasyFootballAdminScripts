@@ -130,7 +130,8 @@ class TradesCog(commands.Cog):
     # FTA Trade Commands/Tasks
     @app_commands.command(name="start_posting_fta_trades",
                           description="Starts the recurring trade loop")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def start_posting_fta_trades(self, interaction: discord.Interaction):
         cogCommon.print_descriptive_log("start_posting_fta_trades")
         self._write_trade_posting_status_to_file(FTA_TRADE_POSTING_STATUS_PATH,
@@ -143,7 +144,8 @@ class TradesCog(commands.Cog):
 
     @app_commands.command(name="stop_posting_fta_trades",
                           description="Stops the recurring trade loop")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def stop_posting_fta_trades(self, interaction: discord.Interaction):
         cogCommon.print_descriptive_log("stop_posting_fta_trades")
         self._write_trade_posting_status_to_file(FTA_TRADE_POSTING_STATUS_PATH,
@@ -157,7 +159,8 @@ class TradesCog(commands.Cog):
     @app_commands.command(
         name="set_fta_trades_channel",
         description="Sets the channel where FTA trades will be posted")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def set_fta_trades_channel(self, interaction: discord.Interaction,
                                      channel: discord.TextChannel):
         cogCommon.print_descriptive_log("set_fta_trades_channel",
@@ -203,7 +206,8 @@ class TradesCog(commands.Cog):
     # NarFFL Trade Commands/Tasks
     @app_commands.command(name="start_posting_narffl_trades",
                           description="Starts the recurring trade loop")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def start_posting_narffl_trades(self,
                                           interaction: discord.Interaction):
         cogCommon.print_descriptive_log("start_posting_narffl_trades")
@@ -217,7 +221,8 @@ class TradesCog(commands.Cog):
 
     @app_commands.command(name="stop_posting_narffl_trades",
                           description="Stops the recurring trade loop")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def stop_posting_narffl_trades(self,
                                          interaction: discord.Interaction):
         cogCommon.print_descriptive_log("stop_posting_narffl_trades")
@@ -232,7 +237,8 @@ class TradesCog(commands.Cog):
     @app_commands.command(
         name="set_narffl_trades_channel",
         description="Sets the channel where NarFFL trades will be posted")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def set_narffl_trades_channel(self, interaction: discord.Interaction,
                                         channel: discord.TextChannel):
         cogCommon.print_descriptive_log("set_narffl_trades_channel",
@@ -280,7 +286,8 @@ class TradesCog(commands.Cog):
     # FF Discord Commands/Tasks
     @app_commands.command(name="start_posting_ff_discord_trades",
                           description="Starts the recurring trade loop")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def start_posting_ff_discord_trades(
             self, interaction: discord.Interaction):
         cogCommon.print_descriptive_log("start_posting_ff_discord_trades")
@@ -294,7 +301,8 @@ class TradesCog(commands.Cog):
 
     @app_commands.command(name="stop_posting_ff_discord_trades",
                           description="Stops the recurring trade loop")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def stop_posting_ff_discord_trades(self,
                                              interaction: discord.Interaction):
         cogCommon.print_descriptive_log("stop_posting_ff_discord_trades")
@@ -309,7 +317,8 @@ class TradesCog(commands.Cog):
     @app_commands.command(
         name="set_ff_discord_trades_channel",
         description="Sets the channel where FF Discord trades will be posted")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def set_ff_discord_trades_channel(self,
                                             interaction: discord.Interaction,
                                             channel: discord.TextChannel):

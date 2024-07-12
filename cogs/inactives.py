@@ -51,7 +51,9 @@ class InactivesCog(commands.Cog):
     @app_commands.command(
         name="register_sleeper_username",
         description="Connect your Discord and Sleeper usernames for the bot")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def register_sleeper_username(self, interaction: discord.Interaction,
                                         sleeper_username: str):
         await interaction.response.defer()
@@ -72,7 +74,9 @@ class InactivesCog(commands.Cog):
         name="check_sleeper_registration",
         description=
         "Check the Sleeper username(s) registered to you Discord account")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def check_sleeper_registration(self,
                                          interaction: discord.Interaction):
         await interaction.response.defer()
@@ -96,7 +100,9 @@ class InactivesCog(commands.Cog):
     @app_commands.command(
         name="delete_sleeper_registration",
         description="Delete any Sleeper usernames registered to your account")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def delete_sleeper_registration(self,
                                           interaction: discord.Interaction):
         await interaction.response.defer()
@@ -116,7 +122,8 @@ class InactivesCog(commands.Cog):
         name="register_fleaflicker_username",
         description="Connect your Discord and Fleaflicker usernames for the bot"
     )
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def register_fleaflicker_username(self,
                                             interaction: discord.Interaction,
                                             fleaflicker_username: str):
@@ -139,7 +146,8 @@ class InactivesCog(commands.Cog):
         name="check_fleaflicker_registration",
         description=
         "Check the Fleaflicker username(s) registered to you Discord account")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def check_fleaflicker_registration(self,
                                              interaction: discord.Interaction):
         await interaction.response.defer()
@@ -165,7 +173,8 @@ class InactivesCog(commands.Cog):
         name="delete_fleaflicker_registration",
         description="Delete any Fleaflicker usernames registered to your account"
     )
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def delete_fleaflicker_registration(
             self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -216,7 +225,8 @@ class InactivesCog(commands.Cog):
         "Posts FTA rosters with inactive starters from the specified teams")
     @app_commands.describe(
         select_teams="Comma-separated list of NFL team abbreviations")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def fta_inactives_for_select(self, interaction: discord.Interaction,
                                        week: int, select_teams: str):
         cogCommon.print_descriptive_log("fta_inactives_for_select")
@@ -264,7 +274,8 @@ class InactivesCog(commands.Cog):
     )
     @app_commands.describe(
         excluded_teams="Comma-separated list of NFL team abbreviations")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def fta_inactives_excluding(self, interaction: discord.Interaction,
                                       week: int, excluded_teams: str):
         cogCommon.print_descriptive_log("fta_inactives_excluding")
@@ -310,7 +321,8 @@ class InactivesCog(commands.Cog):
         description="Posts all inactives from FTA rosters to the linked forum")
     @app_commands.describe(
         player_names_to_ignore="Comma-separated list of player names")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def fta_inactives_to_forum(self,
                                      interaction: discord.Interaction,
                                      week: int,
@@ -353,7 +365,8 @@ class InactivesCog(commands.Cog):
         name="fta_league_channel_mapping",
         description="Maps league names to their match league channel in Discord"
     )
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def fta_league_channel_mapping(self,
                                          interaction: discord.Interaction,
                                          league_name: str,
@@ -373,7 +386,8 @@ class InactivesCog(commands.Cog):
         "Posts NarFFL rosters with inactive starters from the specified teams")
     @app_commands.describe(
         select_teams="Comma-separated list of NFL team abbreviations")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def narffl_inactives_for_select(self,
                                           interaction: discord.Interaction,
                                           week: int, select_teams: str):
@@ -425,7 +439,8 @@ class InactivesCog(commands.Cog):
     )
     @app_commands.describe(
         excluded_teams="Comma-separated list of NFL team abbreviations")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def narffl_inactives_excluding(self,
                                          interaction: discord.Interaction,
                                          week: int, excluded_teams: str):
@@ -474,7 +489,8 @@ class InactivesCog(commands.Cog):
         name="narffl_league_channel_mapping",
         description="Maps league names to their match league channel in Discord"
     )
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def narffl_league_channel_mapping(self,
                                             interaction: discord.Interaction,
                                             league_name: str,
@@ -495,7 +511,8 @@ class InactivesCog(commands.Cog):
     )
     @app_commands.describe(
         select_teams="Comma-separated list of NFL team abbreviations")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def ff_discord_inactives_for_select(self,
                                               interaction: discord.Interaction,
                                               week: int, select_teams: str):
@@ -546,7 +563,8 @@ class InactivesCog(commands.Cog):
     )
     @app_commands.describe(
         excluded_teams="Comma-separated list of NFL team abbreviations")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def ff_discord_inactives_excluding(self,
                                              interaction: discord.Interaction,
                                              week: int, excluded_teams: str):
@@ -596,7 +614,8 @@ class InactivesCog(commands.Cog):
         "Posts all inactives from FF Discord rosters to the linked forum")
     @app_commands.describe(
         player_names_to_ignore="Comma-separated list of player names")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def ff_discord_inactives_to_forum(self,
                                             interaction: discord.Interaction,
                                             week: int,
@@ -639,7 +658,8 @@ class InactivesCog(commands.Cog):
         name="ff_disc_league_channel_mapping",
         description="Maps league names to their match league channel in Discord"
     )
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def ff_disc_league_channel_mapping(self,
                                              interaction: discord.Interaction,
                                              league_name: str,

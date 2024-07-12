@@ -42,7 +42,8 @@ class LeaderboardsCog(commands.Cog):
         description=
         "Posts the combined FTA leaderboard with a top summary and then expanded info in the thread"
     )
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_fta_leaderboard(self, interaction: discord.Interaction,
                                    end_week: int, forum: discord.ForumChannel):
         cogCommon.print_descriptive_log("post_fta_leaderboard")
@@ -102,7 +103,8 @@ class LeaderboardsCog(commands.Cog):
     # NarFFL Commands
     @app_commands.command(name="send_all_narffl_leaderboards",
                           description="Posts each of the NarFFL leaderboards")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def send_all_narffl_leaderboards(self,
                                            interaction: discord.Interaction,
                                            end_week: int,
@@ -141,7 +143,8 @@ class LeaderboardsCog(commands.Cog):
         name="post_narffl_top_farm_scores",
         description=
         "Posts the leaderboard for the top weekly score in each Farm league")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_top_farm_scores(self,
                                           interaction: discord.Interaction,
                                           end_week: int,
@@ -180,7 +183,8 @@ class LeaderboardsCog(commands.Cog):
 
     @app_commands.command(name="post_narffl_minors_leaderboard",
                           description="Posts the weekly Minors leaderboard")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_minors_leaderboard(self,
                                              interaction: discord.Interaction,
                                              end_week: int,
@@ -222,7 +226,8 @@ class LeaderboardsCog(commands.Cog):
 
     @app_commands.command(name="post_narffl_premier_leaderboard",
                           description="Posts the weekly Premier leaderboard")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_premier_leaderboard(self,
                                               interaction: discord.Interaction,
                                               end_week: int,
@@ -245,7 +250,8 @@ class LeaderboardsCog(commands.Cog):
     @app_commands.command(
         name="post_narffl_overall_leaderboard",
         description="Posts the weekly leaderboard across all NarFFL leagues")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.NARFFL_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_narffl_overall_leaderboard(self,
                                               interaction: discord.Interaction,
                                               end_week: int,
@@ -267,7 +273,8 @@ class LeaderboardsCog(commands.Cog):
         name="post_ff_discord_leaderboard",
         description="Posts the FF Discord leaderboard with a link to the website"
     )
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.DEV_SERVER_GUILD_ID)
     async def post_ff_discord_leaderboard(self,
                                           interaction: discord.Interaction,
                                           end_week: int,
