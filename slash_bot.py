@@ -34,7 +34,6 @@ class DiscordBot(commands.Bot):
             'cogs.adp',
             'cogs.leaderboards',
             'cogs.inactives',
-            'cogs.test',
             'cogs.trades',
         ]
 

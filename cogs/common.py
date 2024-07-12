@@ -15,6 +15,7 @@
 """
 from datetime import datetime
 
+
 def print_descriptive_log(log_method: str, log_line: str = ""):
     log_template = "{time:<20}{log_method:40.40}\t{log_line}"
     formatted_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
