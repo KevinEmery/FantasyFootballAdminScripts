@@ -34,7 +34,7 @@ class DiscordBot(commands.Bot):
         intents = discord.Intents.default()
         intents.members = True
         intents.message_content = True
-        super().__init__(command_prefix="&", intents=intents)
+        super().__init__(command_prefix="&&&unused", intents=intents)
 
         self.cogs_list = [
             'cogs.adp',
