@@ -33,6 +33,7 @@ class DiscordBot(commands.Bot):
         self.cogs_list = [
             'cogs.adp',
             'cogs.leaderboards',
+            'cogs.inactives',
             'cogs.test',
             'cogs.trades',
         ]
