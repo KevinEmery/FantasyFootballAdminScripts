@@ -56,17 +56,22 @@ class ADPCog(commands.Cog):
                                         "Posting to " + forum.name + " forum")
 
         await interaction.response.defer()
-        await self._post_fta_position_adp(forum, "DEF", "Team Defense",
-                                          DEF_COLOR)
-        await self._post_fta_position_adp(forum, "K", "Kicker", K_COLOR)
-        await self._post_fta_position_adp(forum, "TE", "Tight End", TE_COLOR)
-        await self._post_fta_position_adp(forum, "WR", "Wide Receiver",
-                                          WR_COLOR)
-        await self._post_fta_position_adp(forum, "RB", "Running Back",
-                                          RB_COLOR)
-        await self._post_fta_position_adp(forum, "QB", "Quarterback", QB_COLOR)
-        await self._post_fta_position_adp(forum, adp.INCLUDE_ALL,
-                                          "All Players", ALL_PLAYERS_COLOR)
+        await asyncio.gather(
+            await asyncio.to_thread(self._post_fta_position_adp, forum, "DEF",
+                                    "Team Defense", DEF_COLOR), await
+            asyncio.to_thread(self._post_fta_position_adp, forum, "K",
+                              "Kicker", K_COLOR), await
+            asyncio.to_thread(self._post_fta_position_adp, forum, "TE",
+                              "Tight End", TE_COLOR), await
+            asyncio.to_thread(self._post_fta_position_adp, forum, "WR",
+                              "Wide Receiver", WR_COLOR), await
+            asyncio.to_thread(self._post_fta_position_adp, forum, "RB",
+                              "Running Back", RB_COLOR), await
+            asyncio.to_thread(self._post_fta_position_adp, forum, "QB",
+                              "Quarterback", QB_COLOR), await
+            asyncio.to_thread(self._post_fta_position_adp, forum,
+                              adp.INCLUDE_ALL, "All Players",
+                              ALL_PLAYERS_COLOR))
 
         cogCommon.print_descriptive_log("send_all_fta_adp_posts", "Done")
         await interaction.followup.send("Done!")
@@ -192,19 +197,22 @@ class ADPCog(commands.Cog):
                                         "Posting to " + forum.name + " forum")
 
         await interaction.response.defer()
-        await self._post_narffl_position_adp(forum, "DEF", "Team Defense",
-                                             DEF_COLOR)
-        await self._post_narffl_position_adp(forum, "K", "Kicker", K_COLOR)
-        await self._post_narffl_position_adp(forum, "TE", "Tight End",
-                                             TE_COLOR)
-        await self._post_narffl_position_adp(forum, "WR", "Wide Receiver",
-                                             WR_COLOR)
-        await self._post_narffl_position_adp(forum, "RB", "Running Back",
-                                             RB_COLOR)
-        await self._post_narffl_position_adp(forum, "QB", "Quarterback",
-                                             QB_COLOR)
-        await self._post_narffl_position_adp(forum, adp.INCLUDE_ALL,
-                                             "All Players", ALL_PLAYERS_COLOR)
+        await asyncio.gather(
+            await asyncio.to_thread(self._post_narffl_position_adp, forum,
+                                    "D/ST", "Team Defense", DEF_COLOR), await
+            asyncio.to_thread(self._post_narffl_position_adp, forum, "K",
+                              "Kicker", K_COLOR), await
+            asyncio.to_thread(self._post_narffl_position_adp, forum, "TE",
+                              "Tight End", TE_COLOR), await
+            asyncio.to_thread(self._post_narffl_position_adp, forum, "WR",
+                              "Wide Receiver", WR_COLOR), await
+            asyncio.to_thread(self._post_narffl_position_adp, forum, "RB",
+                              "Running Back", RB_COLOR), await
+            asyncio.to_thread(self._post_narffl_position_adp, forum, "QB",
+                              "Quarterback", QB_COLOR), await
+            asyncio.to_thread(self._post_narffl_position_adp, forum,
+                              adp.INCLUDE_ALL, "All Players",
+                              ALL_PLAYERS_COLOR))
 
         cogCommon.print_descriptive_log("send_all_narffl_adp_posts", "Done")
         await interaction.followup.send("Done!")
