@@ -22,6 +22,12 @@ import cogs.common
 from discord import app_commands
 from discord.ext import commands
 
+GUILD_IDS = [
+    cogs.constants.DEV_SERVER_GUILD_ID,
+    cogs.constants.FTA_SERVER_GUILD_ID,
+    cogs.constants.NARFFL_SERVER_GUILD_ID,
+    cogs.constants.FF_DISCORD_SERVER_GUILD_ID
+]
 
 class DiscordBot(commands.Bot):
     def __init__(self):
@@ -41,8 +47,9 @@ class DiscordBot(commands.Bot):
         for ext in self.cogs_list:
             await self.load_extension(ext)
 
-        await self.tree.sync(guild=discord.Object(
-            id=cogs.constants.DEV_SERVER_GUILD_ID))
+        # Specifically sync the target servers.
+        for guild_id in GUILD_IDS:
+            await self.tree.sync(guild=discord.Object(guild_id))
 
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
