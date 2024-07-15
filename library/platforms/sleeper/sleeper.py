@@ -34,6 +34,7 @@ from ...model.inactiveroster import InactiveRoster
 from ...model.league import League
 from ...model.player import Player
 from ...model.player import PlayerEncoder
+from ...model.roster import Roster
 from ...model.seasonscore import SeasonScore
 from ...model.team import Team
 from ...model.trade import Trade
@@ -66,7 +67,8 @@ class Sleeper(Platform):
                                  user: User,
                                  year: int = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
-                                 store_user_info: bool = True) -> List[League]:
+                                 store_user_info: bool = True,
+                                 include_pre_draft: bool = False) -> List[League]:
         leagues = []
 
         raw_response_json = api.get_all_leagues_for_user(user, str(year))
@@ -80,7 +82,7 @@ class Sleeper(Platform):
             league = League(raw_league["name"], raw_league["total_rosters"],
                             raw_league["league_id"], raw_league["draft_id"])
 
-            if raw_league["status"] != "pre_draft" and name_regex.match(
+            if (raw_league["status"] != "pre_draft" or include_pre_draft) and name_regex.match(
                     league.name):
                 if store_user_info:
                     self._store_roster_and_user_data_for_league(league)
@@ -360,6 +362,33 @@ class Sleeper(Platform):
                 return team
 
         return Team(0, user, self._create_roster_link(league.league_id, 0))
+
+    def get_roster_for_league_and_user(self, league: League, user: User) -> Roster:
+        raw_rosters = api.get_rosters_for_league(league.league_id)
+
+        for raw_roster in raw_rosters:
+            if raw_roster["owner_id"] == user.user_id or raw_roster[
+                    "co_owners"] and user.user_id in raw_roster["co_owners"]:
+                roster_id = raw_roster["roster_id"]
+                starters = []
+                bench = []
+                taxi = []
+                team = Team(roster_id, user,
+                            self._create_roster_link(league.league_id, roster_id))
+
+                for player_id in raw_roster["players"]:
+                    player = self._player_id_to_player[player_id]
+                    if player_id in raw_roster["starters"]:
+                        starters.append(player)
+                    elif player_id in raw_roster["taxi"]:
+                        taxi.append(player)
+                    else:
+                        bench.append(player)
+
+                return Roster(team, starters, bench, taxi)
+
+        return None
+
 
     def _create_draft_from_response(self, raw_draft) -> Draft:
         raw_draft_type = raw_draft["type"]

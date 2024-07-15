@@ -38,7 +38,8 @@ class Platform:
                                  user: User,
                                  year: int = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
-                                 store_user_info: bool = True) -> List[League]:
+                                 store_user_info: bool = True,
+                                 include_pre_draft: bool = False) -> List[League]:
         pass
 
     def get_drafted_players_for_league(

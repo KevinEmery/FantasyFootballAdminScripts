@@ -28,6 +28,12 @@ class Player(object):
     def is_inactive(self):
         return self.status is not None and self.status != "" and self.status != "Questionable"
 
+    def __eq__(self, other):
+        return self.player_id == other.player_id
+
+    def __hash__(self):
+        return hash(self.player_id)
+
 class PlayerEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Player):

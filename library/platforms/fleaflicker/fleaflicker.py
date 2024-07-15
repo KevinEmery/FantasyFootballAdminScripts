@@ -51,7 +51,8 @@ class Fleaflicker(Platform):
                                  user: User,
                                  year: int = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
-                                 store_user_info: bool = True) -> List[League]:
+                                 store_user_info: bool = True,
+                                 include_pre_draft: bool = False) -> List[League]:
         leagues = []
 
         # Even when pulling past data, we can only check the current year's leagues.
