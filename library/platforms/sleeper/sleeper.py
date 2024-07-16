@@ -92,8 +92,21 @@ class Sleeper(Platform):
 
                 roster_counts[position] = roster_counts[position] + 1
 
+            scoring_settings = raw_league["scoring_settings"]
+
+            if "rec" in scoring_settings:
+                ppr = scoring_settings["rec"]
+            else:
+                ppr = 0.0
+
+            if "bonus_rec_te" in scoring_settings:
+                tep = scoring_settings["bonus_rec_te"]
+            else:
+                tep = 0.0
+
             league = League(raw_league["name"], raw_league["total_rosters"],
-                            raw_league["league_id"], roster_counts, raw_league["draft_id"])
+                            raw_league["league_id"], roster_counts, ppr,
+                            tep, raw_league["draft_id"])
 
             if (raw_league["status"] != "pre_draft" or include_pre_draft) and name_regex.match(
                     league.name):

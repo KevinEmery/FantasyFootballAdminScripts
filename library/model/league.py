@@ -17,12 +17,14 @@
 from typing import Dict
 
 class League(object):
-    def __init__(self, name: str, size: int, league_id: str, roster_counts: Dict[str, int], draft_id: str = "0"):
+    def __init__(self, name: str, size: int, league_id: str, roster_counts: Dict[str, int], ppr: float = 0.0, tep: float = 0.0, draft_id: str = "0"):
         self.league_id = league_id
         self.draft_id = draft_id
         self.name = name
         self.size = size
         self.roster_counts = roster_counts
+        self.ppr = ppr
+        self.tep = tep
 
     def get_roster_count_string(self) -> str:
         return_string = ""
@@ -32,3 +34,16 @@ class League(object):
             return_string += template.format(count=count, position=position)
 
         return return_string[:-2]
+
+    def get_league_config_summary_string(self) -> str:
+        return_string = "{count}-Team".format(count=self.size)
+
+        if self.ppr != 0.0:
+            return_string += ", {ppr} PPR".format(ppr=self.ppr)
+
+        if self.tep != 0.0:
+            return_string += ", {tep} TEP".format(tep=self.tep)
+
+        return return_string
+
+
