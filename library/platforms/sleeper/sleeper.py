@@ -380,7 +380,8 @@ class Sleeper(Platform):
                     player = self._player_id_to_player[player_id]
                     if player_id in raw_roster["starters"]:
                         starters.append(player)
-                    elif player_id in raw_roster["taxi"]:
+                    elif raw_roster[
+                            "taxi"] is not None and player_id in raw_roster["taxi"]:
                         taxi.append(player)
                     else:
                         bench.append(player)
