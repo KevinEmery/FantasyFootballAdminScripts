@@ -81,9 +81,11 @@ class Sleeper(Platform):
         for raw_league in raw_response_json:
             roster_counts = {}
             for position in raw_league["roster_positions"]:
-                # Simplify the Flex listings
+                # Simplify the Flex listings to SF, IDP, and Flex
                 if position == "SUPER_FLEX":
                     position = "SF"
+                elif position == "IDP_FLEX":
+                    position = "IDP_FLEX"
                 elif "FLEX" in position:
                     position = "FLEX"
 
