@@ -79,8 +79,21 @@ class Sleeper(Platform):
             return leagues
 
         for raw_league in raw_response_json:
+            roster_counts = {}
+            for position in raw_league["roster_positions"]:
+                # Simplify the Flex listings
+                if position == "SUPER_FLEX":
+                    position = "SF"
+                elif "FLEX" in position:
+                    position = "FLEX"
+
+                if position not in roster_counts:
+                    roster_counts[position] = 0
+
+                roster_counts[position] = roster_counts[position] + 1
+
             league = League(raw_league["name"], raw_league["total_rosters"],
-                            raw_league["league_id"], raw_league["draft_id"])
+                            raw_league["league_id"], roster_counts, raw_league["draft_id"])
 
             if (raw_league["status"] != "pre_draft" or include_pre_draft) and name_regex.match(
                     league.name):

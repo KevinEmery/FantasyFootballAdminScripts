@@ -59,8 +59,12 @@ class Fleaflicker(Platform):
         raw_league_list = api.fetch_user_leagues(user, common.DEFAULT_YEAR)
 
         for raw_league in raw_league_list:
+            roster_counts = {}
+            for position in raw_league["rosterRequirements"]["positions"]:
+                roster_counts[position["label"]] = position["start"]
+
             league = League(raw_league["name"], raw_league["capacity"],
-                            str(raw_league["id"]))
+                            str(raw_league["id"]), roster_counts)
 
             if name_regex.match(league.name):
                 if store_user_info:
