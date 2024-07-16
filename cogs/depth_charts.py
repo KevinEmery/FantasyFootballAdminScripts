@@ -199,6 +199,10 @@ class DepthChartsCog(commands.Cog):
                             roster_link=roster.team.roster_link),
                         inline=False)
 
+        embed.add_field(name="Roster Settings",
+                        value=league.get_roster_count_string(),
+                        inline=False)
+
         sorted_roster = SortedRoster(roster)
 
         for position in sorted_roster.all_positions:
