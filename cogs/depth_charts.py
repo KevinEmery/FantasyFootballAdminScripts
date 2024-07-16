@@ -96,6 +96,10 @@ class DepthChartsCog(commands.Cog):
         "Retrieves the specified team's full roster, organized as a depth-chart sorted by position"
     )
     @app_commands.rename(identifier="username")
+    @app_commands.describe(
+        league_name="Some or all of the league name")
+    @app_commands.describe(
+        identifier="The full Sleeper username of the team owner")
     @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID,
                          cogConstants.FF_DISCORD_SERVER_GUILD_ID)
     async def sleeper_depth_chart(self,
