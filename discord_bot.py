@@ -15,6 +15,7 @@
 """
 
 import discord
+import traceback
 
 import cogs.constants
 import cogs.common
@@ -23,11 +24,11 @@ from discord import app_commands
 from discord.ext import commands
 
 GUILD_IDS = [
-    cogs.constants.DEV_SERVER_GUILD_ID,
-    cogs.constants.FTA_SERVER_GUILD_ID,
+    cogs.constants.DEV_SERVER_GUILD_ID, cogs.constants.FTA_SERVER_GUILD_ID,
     cogs.constants.NARFFL_SERVER_GUILD_ID,
     cogs.constants.FF_DISCORD_SERVER_GUILD_ID
 ]
+
 
 class DiscordBot(commands.Bot):
     def __init__(self):
@@ -82,6 +83,9 @@ async def on_app_command_error(interaction: discord.Interaction,
                                     error=error.original))
     else:
         cogs.common.print_descriptive_log("on_app_command_error", error)
+
+    cogs.common.print_descriptive_log("on_app_command_error",
+                                      traceback.format_exc())
 
 
 bot.run(_retrieve_token())
