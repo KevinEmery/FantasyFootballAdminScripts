@@ -194,13 +194,18 @@ class DepthChartsCog(commands.Cog):
 
         embed = discord.Embed(title="{league} - {username}".format(
             league=league.name, username=user))
-        embed.add_field(name="Roster Link",
-                        value="<{roster_link}>".format(
-                            roster_link=roster.team.roster_link),
+
+        embed.add_field(name="Scoring Settings",
+                        value=league.get_league_config_summary_string(),
                         inline=False)
 
         embed.add_field(name="Roster Settings",
                         value=league.get_roster_count_string(),
+                        inline=False)
+
+        embed.add_field(name="Roster Link",
+                        value="<{roster_link}>".format(
+                            roster_link=roster.team.roster_link),
                         inline=False)
 
         sorted_roster = SortedRoster(roster)
