@@ -136,7 +136,6 @@ class DepthChartsCog(commands.Cog):
                                               year,
                                               name_substring=league_name,
                                               include_pre_draft=True)
-        # matching_leagues = self._get_matching_leagues(all_leagues, league_name)
 
         # Error handling for leagues
         if len(leagues) == 0:
@@ -178,13 +177,6 @@ class DepthChartsCog(commands.Cog):
         await interaction.followup.send(
             embed=self._create_embed_for_roster(roster, identifier, league))
         cogCommon.print_descriptive_log("sleeper_depth_chart", "Done")
-
-    def _get_matching_leagues(self, leagues: List[League],
-                              league_name: str) -> List[League]:
-        return [
-            league for league in leagues
-            if league_name.lower() in league.name.lower()
-        ]
 
     def _create_markdown_list_of_league_names(self,
                                               leagues: List[League]) -> str:
