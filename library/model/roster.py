@@ -19,9 +19,11 @@ from typing import List
 from .team import Team
 from .player import Player
 
+
 class Roster(object):
-   def __init__(self, team: Team, starters: List[Player], bench: List[Player], taxi: List[Player]):
-      self.team = team
-      self.starters = starters
-      self.bench = bench
-      self.taxi = taxi
+    def __init__(self, team: Team, starters: List[Player], bench: List[Player],
+                 taxi: List[Player]):
+        self.team = team
+        self.starters = starters
+        self.bench = bench
+        self.taxi = taxi

@@ -99,8 +99,7 @@ class DepthChartsCog(commands.Cog):
         "Retrieves the specified team's full roster, organized as a depth-chart sorted by position"
     )
     @app_commands.rename(identifier="username")
-    @app_commands.describe(
-        league_name="Some or all of the league name")
+    @app_commands.describe(league_name="Some or all of the league name")
     @app_commands.describe(
         identifier="The full Sleeper username of the team owner")
     @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID,
@@ -132,10 +131,10 @@ class DepthChartsCog(commands.Cog):
             return
 
         leagues = await asyncio.to_thread(sleeper.get_all_leagues_for_user,
-                                              user,
-                                              year,
-                                              name_substring=league_name,
-                                              include_pre_draft=True)
+                                          user,
+                                          year,
+                                          name_substring=league_name,
+                                          include_pre_draft=True)
 
         # Error handling for leagues
         if len(leagues) == 0:

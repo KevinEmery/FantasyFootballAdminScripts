@@ -34,13 +34,14 @@ class Platform:
     def get_admin_user_by_identifier(self, identifier: str) -> User:
         pass
 
-    def get_all_leagues_for_user(self,
-                                 user: User,
-                                 year: int = common.DEFAULT_YEAR,
-                                 name_regex: re.Pattern = re.compile(".*"),
-                                 name_substring: str = "",
-                                 store_user_info: bool = True,
-                                 include_pre_draft: bool = False) -> List[League]:
+    def get_all_leagues_for_user(
+            self,
+            user: User,
+            year: int = common.DEFAULT_YEAR,
+            name_regex: re.Pattern = re.compile(".*"),
+            name_substring: str = "",
+            store_user_info: bool = True,
+            include_pre_draft: bool = False) -> List[League]:
         pass
 
     def get_drafted_players_for_league(
@@ -49,7 +50,8 @@ class Platform:
             year: int = common.DEFAULT_YEAR) -> List[DraftedPlayer]:
         pass
 
-    def get_all_trades_for_league(self, League: League, year: int) -> List[Trade]:
+    def get_all_trades_for_league(self, League: League,
+                                  year: int) -> List[Trade]:
         pass
 
     def get_weekly_scores_for_league_and_week(self, league: League, week: int,
@@ -70,7 +72,7 @@ class Platform:
             week: int,
             year: int,
             teams_to_ignore: List[str] = [],
-            only_teams : List[str] = [],
+            only_teams: List[str] = [],
             player_names_to_ignore: List[str] = []) -> List[InactiveRoster]:
         pass
 

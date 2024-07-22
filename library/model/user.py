@@ -1,5 +1,5 @@
 """
-   Copyright 2022 Kevin Emery
+   Copyright 2024 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+
 
 class User(object):
     def __init__(self, user_id: str, name: str, email: str = ""):

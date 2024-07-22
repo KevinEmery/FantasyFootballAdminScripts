@@ -16,6 +16,7 @@
 
 from json import JSONEncoder
 
+
 class Player(object):
     def __init__(self, player_id: str, name: str, team: str, position: str,
                  status: str):
@@ -33,6 +34,7 @@ class Player(object):
 
     def __hash__(self):
         return hash(self.player_id)
+
 
 class PlayerEncoder(JSONEncoder):
     def default(self, obj):

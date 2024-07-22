@@ -47,13 +47,14 @@ class Fleaflicker(Platform):
         # comprised of their email
         return User("", "Admin User", identifier)
 
-    def get_all_leagues_for_user(self,
-                                 user: User,
-                                 year: int = common.DEFAULT_YEAR,
-                                 name_regex: re.Pattern = re.compile(".*"),
-                                 name_substring: str = "",
-                                 store_user_info: bool = True,
-                                 include_pre_draft: bool = False) -> List[League]:
+    def get_all_leagues_for_user(
+            self,
+            user: User,
+            year: int = common.DEFAULT_YEAR,
+            name_regex: re.Pattern = re.compile(".*"),
+            name_substring: str = "",
+            store_user_info: bool = True,
+            include_pre_draft: bool = False) -> List[League]:
         leagues = []
 
         # Even when pulling past data, we can only check the current year's leagues.
@@ -67,7 +68,8 @@ class Fleaflicker(Platform):
             league = League(raw_league["name"], raw_league["capacity"],
                             str(raw_league["id"]), roster_counts)
 
-            if self._league_name_matches(league.name, name_substring, name_regex):
+            if self._league_name_matches(league.name, name_substring,
+                                         name_regex):
                 if store_user_info:
                     self._store_team_and_user_data_for_league(
                         league.league_id, year)
@@ -77,7 +79,8 @@ class Fleaflicker(Platform):
 
     def _league_name_matches(self, league_name: str, name_substring: str,
                              name_regex: re.Pattern) -> bool:
-        return name_substring.lower() in league_name.lower() and name_regex.match(league_name)
+        return name_substring.lower() in league_name.lower(
+        ) and name_regex.match(league_name)
 
     def get_drafted_players_for_league(
             self,
@@ -104,10 +107,12 @@ class Fleaflicker(Platform):
                 drafted_player = self._build_drafted_player(selection)
                 if drafted_player is not None:
                     drafted_players.append(drafted_player)
-        
+
         # Some other format is out there, quit
         else:
-            raise Exception("Draft board for {league} missing required field".format(league.name))
+            raise Exception(
+                "Draft board for {league} missing required field".format(
+                    league.name))
 
         return drafted_players
 
@@ -121,13 +126,16 @@ class Fleaflicker(Platform):
             elif "slot" in raw_data:
                 draft_position = raw_data["slot"]["overall"]
             else:
-                raise Exception("Draft Slot information not available for player\n{data}".format(raw_data))
+                raise Exception(
+                    "Draft Slot information not available for player\n{data}".
+                    format(raw_data))
 
             return DraftedPlayer(player, draft_position)
 
         return None
 
-    def get_all_trades_for_league(self, league: League, year: int) -> List[Trade]:
+    def get_all_trades_for_league(self, league: League,
+                                  year: int) -> List[Trade]:
         all_trades = []
 
         team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
@@ -179,7 +187,8 @@ class Fleaflicker(Platform):
 
                 trade_details.append(trade_detail)
 
-            all_trades.append(Trade(trade_id, league, trade_time, trade_details))
+            all_trades.append(
+                Trade(trade_id, league, trade_time, trade_details))
 
         return all_trades
 
@@ -311,17 +320,22 @@ class Fleaflicker(Platform):
 
         # Each game is a matchup home/away.
         for game_id in game_ids:
-            raw_box_score = api.fetch_league_box_score(league.league_id, week, game_id)
+            raw_box_score = api.fetch_league_box_score(league.league_id, week,
+                                                       game_id)
 
             game = raw_box_score["game"]
 
             home_id = str(game["home"]["id"])
             home_inactives = []
-            home_team = Team(home_id, team_id_to_user[home_id], self._build_roster_link(league.league_id, home_id))
+            home_team = Team(
+                home_id, team_id_to_user[home_id],
+                self._build_roster_link(league.league_id, home_id))
 
             away_id = str(game["away"]["id"])
             away_inactives = []
-            away_team = Team(away_id, team_id_to_user[away_id], self._build_roster_link(league.league_id, away_id))
+            away_team = Team(
+                away_id, team_id_to_user[away_id],
+                self._build_roster_link(league.league_id, away_id))
 
             for grouping in raw_box_score["lineups"]:
                 # Starters has a definite group, assume all else is just... not starters.
@@ -335,33 +349,44 @@ class Fleaflicker(Platform):
                     if group == "START":
                         # If there isn't a starter in the spot, then "home"/"away" just aren't there
                         if "home" in slot:
-                            home_player = self._build_player_from_pro_player(slot["home"]["proPlayer"])
+                            home_player = self._build_player_from_pro_player(
+                                slot["home"]["proPlayer"])
                         else:
-                            home_player = Player("0", "Missing", "None", slot["position"]["label"], "Missing")
+                            home_player = Player("0", "Missing", "None",
+                                                 slot["position"]["label"],
+                                                 "Missing")
 
                         if "away" in slot:
-                            away_player = self._build_player_from_pro_player(slot["away"]["proPlayer"])
+                            away_player = self._build_player_from_pro_player(
+                                slot["away"]["proPlayer"])
                         else:
-                            away_player = Player("0", "Missing", "None", slot["position"]["label"], "Missing")
+                            away_player = Player("0", "Missing", "None",
+                                                 slot["position"]["label"],
+                                                 "Missing")
 
-                        if self._should_player_be_reported_as_inactive(home_player, teams_to_ignore, only_teams, player_names_to_ignore, teams_on_bye):
+                        if self._should_player_be_reported_as_inactive(
+                                home_player, teams_to_ignore, only_teams,
+                                player_names_to_ignore, teams_on_bye):
                             home_inactives.append(home_player)
 
-                        if self._should_player_be_reported_as_inactive(away_player, teams_to_ignore, only_teams, player_names_to_ignore, teams_on_bye):
+                        if self._should_player_be_reported_as_inactive(
+                                away_player, teams_to_ignore, only_teams,
+                                player_names_to_ignore, teams_on_bye):
                             away_inactives.append(away_player)
 
             if home_inactives:
-                inactive_rosters.append(InactiveRoster(home_team, home_inactives))
+                inactive_rosters.append(
+                    InactiveRoster(home_team, home_inactives))
             if away_inactives:
-                inactive_rosters.append(InactiveRoster(away_team, away_inactives))
+                inactive_rosters.append(
+                    InactiveRoster(away_team, away_inactives))
 
         return inactive_rosters
 
-    def _should_player_be_reported_as_inactive(self, player: Player,
-                                               teams_to_ignore: List[str],
-                                               only_teams: List[str],
-                                               player_names_to_ignore: List[str],
-                                               teams_on_bye: List[str]) -> bool:
+    def _should_player_be_reported_as_inactive(
+            self, player: Player, teams_to_ignore: List[str],
+            only_teams: List[str], player_names_to_ignore: List[str],
+            teams_on_bye: List[str]) -> bool:
         if player.name in player_names_to_ignore:
             return False
 
@@ -406,7 +431,9 @@ class Fleaflicker(Platform):
 
         # Sometimes the API returns bad data. Attempt a retry here
         if "divisions" not in raw_league_data:
-            print("Fleaflicker standings did not have divisions, retrying request")
+            print(
+                "Fleaflicker standings did not have divisions, retrying request"
+            )
             raw_league_data = api.fetch_league_standings(league_id, year)
 
         team_id_to_user = {}

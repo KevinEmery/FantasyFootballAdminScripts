@@ -63,13 +63,14 @@ class Sleeper(Platform):
     def get_admin_user_by_identifier(self, identifier: str) -> User:
         return api.get_user_from_identifier(identifier)
 
-    def get_all_leagues_for_user(self,
-                                 user: User,
-                                 year: int = common.DEFAULT_YEAR,
-                                 name_regex: re.Pattern = re.compile(".*"),
-                                 name_substring: str = "",
-                                 store_user_info: bool = True,
-                                 include_pre_draft: bool = False) -> List[League]:
+    def get_all_leagues_for_user(
+            self,
+            user: User,
+            year: int = common.DEFAULT_YEAR,
+            name_regex: re.Pattern = re.compile(".*"),
+            name_substring: str = "",
+            store_user_info: bool = True,
+            include_pre_draft: bool = False) -> List[League]:
         leagues = []
 
         raw_response_json = api.get_all_leagues_for_user(user, str(year))
@@ -120,10 +121,10 @@ class Sleeper(Platform):
 
         return leagues
 
-
     def _league_name_matches(self, league_name: str, name_substring: str,
                              name_regex: re.Pattern) -> bool:
-        return name_substring.lower() in league_name.lower() and name_regex.match(league_name)
+        return name_substring.lower() in league_name.lower(
+        ) and name_regex.match(league_name)
 
     def get_drafted_players_for_league(
             self,
@@ -141,7 +142,8 @@ class Sleeper(Platform):
 
         return drafted_players
 
-    def get_all_trades_for_league(self, league: League, year: int) -> List[Trade]:
+    def get_all_trades_for_league(self, league: League,
+                                  year: int) -> List[Trade]:
         all_trades = []
         roster_num_to_user = self._league_id_to_roster_num_to_user[
             league.league_id]
@@ -231,7 +233,8 @@ class Sleeper(Platform):
                 transaction_time = datetime.fromtimestamp(
                     transaction["status_updated"] / 1000)
                 trade_id = transaction["transaction_id"]
-                all_trades.append(Trade(trade_id, league, transaction_time, all_details))
+                all_trades.append(
+                    Trade(trade_id, league, transaction_time, all_details))
 
         return all_trades
 
@@ -336,7 +339,7 @@ class Sleeper(Platform):
             week: int,
             year: int,
             teams_to_ignore: List[str] = [],
-            only_teams : List[str] = [],
+            only_teams: List[str] = [],
             player_names_to_ignore: List[str] = []) -> List[InactiveRoster]:
         inactive_rosters = []
         roster_num_to_user = self._league_id_to_roster_num_to_user[
@@ -364,10 +367,10 @@ class Sleeper(Platform):
 
                 if player.name in player_names_to_ignore:
                     continue
-                
+
                 if player.team in teams_to_ignore:
                     continue
-                
+
                 if only_teams and player.team not in only_teams:
                     continue
 
@@ -398,7 +401,8 @@ class Sleeper(Platform):
 
         return Team(0, user, self._create_roster_link(league.league_id, 0))
 
-    def get_roster_for_league_and_user(self, league: League, user: User) -> Roster:
+    def get_roster_for_league_and_user(self, league: League,
+                                       user: User) -> Roster:
         raw_rosters = api.get_rosters_for_league(league.league_id)
 
         for raw_roster in raw_rosters:
@@ -408,15 +412,17 @@ class Sleeper(Platform):
                 starters = []
                 bench = []
                 taxi = []
-                team = Team(roster_id, user,
-                            self._create_roster_link(league.league_id, roster_id))
+                team = Team(
+                    roster_id, user,
+                    self._create_roster_link(league.league_id, roster_id))
 
                 for player_id in raw_roster["players"]:
                     player = self._player_id_to_player[player_id]
                     if player_id in raw_roster["starters"]:
                         starters.append(player)
                     elif raw_roster[
-                            "taxi"] is not None and player_id in raw_roster["taxi"]:
+                            "taxi"] is not None and player_id in raw_roster[
+                                "taxi"]:
                         taxi.append(player)
                     else:
                         bench.append(player)
@@ -424,7 +430,6 @@ class Sleeper(Platform):
                 return Roster(team, starters, bench, taxi)
 
         return None
-
 
     def _create_draft_from_response(self, raw_draft) -> Draft:
         raw_draft_type = raw_draft["type"]
@@ -478,7 +483,6 @@ class Sleeper(Platform):
 
         return self._retrieve_player_data_from_file()
 
-
     def _should_refresh_player_data(self) -> bool:
         if not os.path.exists(PLAYER_DATA_FILE_PATH):
             return True
@@ -487,7 +491,6 @@ class Sleeper(Platform):
         time_now = int(time.time())
 
         return time_now - time_last_modified > PLAYER_DATA_REFRESH_INTERVAL_SECONDS
-
 
     def _retrieve_player_data_from_api(self) -> Dict[str, Player]:
         # This should be happening infrequently enough that we don't see this log often.
@@ -499,8 +502,8 @@ class Sleeper(Platform):
 
         for player_id in raw_player_map:
             raw_player = raw_player_map[player_id]
-            player_name = "{first} {last}".format(first=raw_player["first_name"],
-                                                  last=raw_player["last_name"])
+            player_name = "{first} {last}".format(
+                first=raw_player["first_name"], last=raw_player["last_name"])
 
             # Most players have one position. Most common dual-position is LB/DL, who
             # should really just all be treated as DL.
@@ -515,13 +518,13 @@ class Sleeper(Platform):
                 else:
                     position = fantasy_positions[0]
 
-            player_id_to_player[player_id] = Player(player_id, player_name,
-                                                    raw_player["team"],
-                                                    position,
-                                                    raw_player["injury_status"])
+            player_id_to_player[player_id] = Player(
+                player_id, player_name, raw_player["team"], position,
+                raw_player["injury_status"])
 
         # Insert a dummy missing player at ID 0
-        player_id_to_player["0"] = Player("0", "Missing", "None", "None", "None")
+        player_id_to_player["0"] = Player("0", "Missing", "None", "None",
+                                          "None")
 
         # Every time we pull data from the API, write it out to the file
         self._write_player_data_to_file(player_id_to_player)
@@ -543,7 +546,6 @@ class Sleeper(Platform):
 
         return data
 
-            
     def _write_player_data_to_file(self, player_data: Dict[str, Player]):
         with open(PLAYER_DATA_FILE_PATH, 'w') as file:
             file.write(json.dumps(player_data, cls=PlayerEncoder))
