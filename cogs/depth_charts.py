@@ -127,14 +127,15 @@ class DepthChartsCog(commands.Cog):
                 .format(username=identifier))
             return
 
-        all_leagues = await asyncio.to_thread(sleeper.get_all_leagues_for_user,
+        leagues = await asyncio.to_thread(sleeper.get_all_leagues_for_user,
                                               user,
                                               year,
+                                              name_substring=league_name,
                                               include_pre_draft=True)
-        matching_leagues = self._get_matching_leagues(all_leagues, league_name)
+        # matching_leagues = self._get_matching_leagues(all_leagues, league_name)
 
         # Error handling for leagues
-        if len(matching_leagues) == 0:
+        if len(leagues) == 0:
             cogCommon.print_descriptive_log(
                 "sleeper_depth_chart",
                 "No leagues matching {league_name} found for {user}".format(
@@ -143,7 +144,7 @@ class DepthChartsCog(commands.Cog):
                 "`{username}` does not have any leagues matching `{league_name}`. Please double-check and try again."
                 .format(username=identifier, league_name=league_name))
             return
-        elif len(matching_leagues) > 1:
+        elif len(leagues) > 1:
             cogCommon.print_descriptive_log(
                 "sleeper_depth_chart",
                 "{user} has more than one league matching {league_name}".
@@ -153,10 +154,10 @@ class DepthChartsCog(commands.Cog):
                 .format(username=identifier,
                         league_name=league_name,
                         league_list=self._create_markdown_list_of_league_names(
-                            matching_leagues)))
+                            leagues)))
             return
 
-        league = matching_leagues[0]
+        league = leagues[0]
         roster = await asyncio.to_thread(
             sleeper.get_roster_for_league_and_user, league, user)
 

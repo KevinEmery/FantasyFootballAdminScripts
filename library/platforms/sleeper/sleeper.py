@@ -67,6 +67,7 @@ class Sleeper(Platform):
                                  user: User,
                                  year: int = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
+                                 name_substring: str = "",
                                  store_user_info: bool = True,
                                  include_pre_draft: bool = False) -> List[League]:
         leagues = []
@@ -107,16 +108,22 @@ class Sleeper(Platform):
                 tep = 0.0
 
             league = League(raw_league["name"], raw_league["total_rosters"],
-                            raw_league["league_id"], roster_counts, ppr,
-                            tep, raw_league["draft_id"])
+                            raw_league["league_id"], roster_counts, ppr, tep,
+                            raw_league["draft_id"])
 
-            if (raw_league["status"] != "pre_draft" or include_pre_draft) and name_regex.match(
-                    league.name):
+            if (raw_league["status"] != "pre_draft"
+                    or include_pre_draft) and self._league_name_matches(
+                        league.name, name_substring, name_regex):
                 if store_user_info:
                     self._store_roster_and_user_data_for_league(league)
                 leagues.append(league)
 
         return leagues
+
+
+    def _league_name_matches(self, league_name: str, name_substring: str,
+                             name_regex: re.Pattern) -> bool:
+        return name_substring in league_name and name_regex.match(league_name)
 
     def get_drafted_players_for_league(
             self,

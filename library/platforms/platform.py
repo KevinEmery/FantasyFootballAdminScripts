@@ -38,6 +38,7 @@ class Platform:
                                  user: User,
                                  year: int = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
+                                 name_substring: str = "",
                                  store_user_info: bool = True,
                                  include_pre_draft: bool = False) -> List[League]:
         pass

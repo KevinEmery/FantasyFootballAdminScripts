@@ -51,6 +51,7 @@ class Fleaflicker(Platform):
                                  user: User,
                                  year: int = common.DEFAULT_YEAR,
                                  name_regex: re.Pattern = re.compile(".*"),
+                                 name_substring: str = "",
                                  store_user_info: bool = True,
                                  include_pre_draft: bool = False) -> List[League]:
         leagues = []
@@ -66,13 +67,17 @@ class Fleaflicker(Platform):
             league = League(raw_league["name"], raw_league["capacity"],
                             str(raw_league["id"]), roster_counts)
 
-            if name_regex.match(league.name):
+            if self._league_name_matches(league.name, name_substring, name_regex):
                 if store_user_info:
                     self._store_team_and_user_data_for_league(
                         league.league_id, year)
                 leagues.append(league)
 
         return leagues
+
+    def _league_name_matches(self, league_name: str, name_substring: str,
+                             name_regex: re.Pattern) -> bool:
+        return name_substring in league_name and name_regex.match(league_name)
 
     def get_drafted_players_for_league(
             self,
