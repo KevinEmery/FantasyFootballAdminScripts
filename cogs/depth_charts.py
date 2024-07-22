@@ -75,7 +75,10 @@ class SortedRoster():
             "WR": 3,
             "TE": 4,
             "K": 5,
-            "DEF": 6
+            "DEF": 6,
+            "DL": 7,
+            "LB": 8,
+            "DB": 9
         }
 
         index1 = forced_position_order[
