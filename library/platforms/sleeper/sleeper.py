@@ -502,9 +502,22 @@ class Sleeper(Platform):
             player_name = "{first} {last}".format(first=raw_player["first_name"],
                                                   last=raw_player["last_name"])
 
+            # Most players have one position. Most common dual-position is LB/DL, who
+            # should really just all be treated as DL.
+            fantasy_positions = raw_player["fantasy_positions"]
+            position = None
+
+            if fantasy_positions is not None:
+                # If DL is in the list, treat them like a DL
+                if "DL" in fantasy_positions:
+                    position = "DL"
+                # Otherwise grab the first, and likely only, position
+                else:
+                    position = fantasy_positions[0]
+
             player_id_to_player[player_id] = Player(player_id, player_name,
                                                     raw_player["team"],
-                                                    raw_player["position"],
+                                                    position,
                                                     raw_player["injury_status"])
 
         # Insert a dummy missing player at ID 0
