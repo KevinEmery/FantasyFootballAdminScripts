@@ -77,7 +77,7 @@ class Fleaflicker(Platform):
 
     def _league_name_matches(self, league_name: str, name_substring: str,
                              name_regex: re.Pattern) -> bool:
-        return name_substring in league_name and name_regex.match(league_name)
+        return name_substring.lower() in league_name.lower() and name_regex.match(league_name)
 
     def get_drafted_players_for_league(
             self,
