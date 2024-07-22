@@ -82,9 +82,9 @@ class SortedRoster():
         }
 
         index1 = forced_position_order[
-            item1] if item1 in forced_position_order else 7
+            item1] if item1 in forced_position_order else 99
         index2 = forced_position_order[
-            item2] if item2 in forced_position_order else 7
+            item2] if item2 in forced_position_order else 99
 
         return index1 - index2
 
