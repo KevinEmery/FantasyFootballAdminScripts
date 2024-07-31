@@ -74,6 +74,13 @@ def get_matchups_for_league_and_week(league_id: str, week: int):
     return common._make_get_request_with_logging(request_url)
 
 
+def get_traded_picks(league_id: str):
+    request_url = BASE_URL + "league/{league_id}/traded_picks".format(
+        league_id=league_id)
+
+    return common._make_get_request_with_logging(request_url)
+
+
 def get_all_players():
     request_url = BASE_URL + "players/nfl"
 

@@ -14,7 +14,14 @@
    limitations under the License.
 """
 
+from enum import Enum
 from typing import Dict
+
+
+class LeagueType(Enum):
+    REDRAFT = 0
+    KEEPER = 1
+    DYNASTY = 2
 
 
 class League(object):
@@ -23,6 +30,7 @@ class League(object):
                  size: int,
                  league_id: str,
                  roster_counts: Dict[str, int],
+                 league_type: LeagueType = LeagueType.REDRAFT,
                  ppr: float = 0.0,
                  tep: float = 0.0,
                  draft_id: str = "0"):
@@ -31,6 +39,7 @@ class League(object):
         self.name = name
         self.size = size
         self.roster_counts = roster_counts
+        self.type = league_type
         self.ppr = ppr
         self.tep = tep
 

@@ -30,8 +30,10 @@ from ... import common
 from ...model.draft import Draft
 from ...model.draft import DraftType
 from ...model.draftedplayer import DraftedPlayer
+from ...model.futuredraftpick import FutureDraftPick
 from ...model.inactiveroster import InactiveRoster
 from ...model.league import League
+from ...model.league import LeagueType
 from ...model.player import Player
 from ...model.player import PlayerEncoder
 from ...model.roster import Roster
@@ -108,9 +110,21 @@ class Sleeper(Platform):
             else:
                 tep = 0.0
 
+            raw_league_type = raw_league["settings"]["type"]
+
+            if raw_league_type == 0:
+                league_type = LeagueType.REDRAFT
+            elif raw_league_type == 1:
+                league_type = LeagueType.KEEPER
+            elif raw_league_type == 2:
+                league_type = LeagueType.DYNASTY
+            else:
+                print("Unknown league type " + str(raw_league_type))
+                league_type = LeagueType.REDRAFT
+
             league = League(raw_league["name"], raw_league["total_rosters"],
-                            raw_league["league_id"], roster_counts, ppr, tep,
-                            raw_league["draft_id"])
+                            raw_league["league_id"], roster_counts,
+                            league_type, ppr, tep, raw_league["draft_id"])
 
             if (raw_league["status"] != "pre_draft"
                     or include_pre_draft) and self._league_name_matches(
@@ -412,6 +426,9 @@ class Sleeper(Platform):
                 starters = []
                 bench = []
                 taxi = []
+                future_picks = self._get_future_draft_picks_for_roster(
+                    league, roster_id)
+
                 team = Team(
                     roster_id, user,
                     self._create_roster_link(league.league_id, roster_id))
@@ -427,9 +444,52 @@ class Sleeper(Platform):
                     else:
                         bench.append(player)
 
-                return Roster(team, starters, bench, taxi)
+                return Roster(team, starters, bench, taxi, future_picks)
 
         return None
+
+    def _get_future_draft_picks_for_roster(
+            self, league: League, roster_id: int) -> List[FutureDraftPick]:
+        if league.type != LeagueType.DYNASTY:
+            return []
+
+        draft_picks = []
+
+        current_draft = api.get_draft(league.draft_id)
+
+        # Initialize the base set of picks for a team
+        starting_year = int(current_draft["season"])
+
+        if current_draft["status"] == "complete":
+            starting_year += 1
+
+        draft_rounds = current_draft["settings"]["rounds"]
+
+        for year in range(starting_year, starting_year + 3):
+            for round in range(1, draft_rounds + 1):
+                draft_picks.append(FutureDraftPick(year, round))
+
+        # Parse through all of the pick trades
+        all_traded_picks = api.get_traded_picks(league.league_id)
+
+        for pick in all_traded_picks:
+            year = int(pick["season"])
+            pick_round = pick["round"]
+            if year < starting_year:
+                continue
+
+            traded_pick = FutureDraftPick(year, pick_round)
+
+            # They traded for a pick
+            if pick["owner_id"] == roster_id:
+                draft_picks.append(traded_pick)
+
+            # Their pick was traded, and they're not the owner of it
+            if pick["roster_id"] == roster_id and pick["owner_id"] != roster_id:
+                draft_picks.remove(traded_pick)
+
+        draft_picks.sort()
+        return draft_picks
 
     def _create_draft_from_response(self, raw_draft) -> Draft:
         raw_draft_type = raw_draft["type"]

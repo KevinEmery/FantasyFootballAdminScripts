@@ -28,6 +28,7 @@ from discord.ext import commands
 from typing import List
 
 from library.model.league import League
+from library.model.futuredraftpick import FutureDraftPick
 from library.model.roster import Roster
 from library.model.user import User
 from library.platforms.sleeper.sleeper import Sleeper
@@ -233,7 +234,34 @@ class DepthChartsCog(commands.Cog):
 
             embed.add_field(name=position, value=player_list, inline=False)
 
+        if roster.future_picks:
+            embed.add_field(name="Future Picks",
+                            value=self._format_future_picks(
+                                roster.future_picks),
+                            inline=False)
+
         return embed
+
+    def _format_future_picks(self, picks: List[FutureDraftPick]) -> str:
+        year_template = "{year}: "
+        formatted_string = ""
+        year_to_round_list = {}
+
+        for pick in picks:
+            if pick.year not in year_to_round_list:
+                year_to_round_list[pick.year] = []
+
+            year_to_round_list[pick.year].append(pick.get_round_with_suffix())
+
+        for year, rounds in year_to_round_list.items():
+            formatted_string += year_template.format(year=str(year))
+
+            for item in rounds:
+                formatted_string += item + ", "
+
+            formatted_string = formatted_string[:-2] + "\n"
+
+        return formatted_string
 
 
 async def setup(bot):

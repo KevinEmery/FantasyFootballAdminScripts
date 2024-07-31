@@ -16,14 +16,16 @@
 
 from typing import List
 
+from .futuredraftpick import FutureDraftPick
 from .team import Team
 from .player import Player
 
 
 class Roster(object):
     def __init__(self, team: Team, starters: List[Player], bench: List[Player],
-                 taxi: List[Player]):
+                 taxi: List[Player], future_picks: List[FutureDraftPick]):
         self.team = team
         self.starters = starters
         self.bench = bench
         self.taxi = taxi
+        self.future_picks = future_picks
