@@ -456,6 +456,7 @@ class Sleeper(Platform):
         draft_picks = []
 
         current_draft = api.get_draft(league.draft_id)
+        raw_league = api.get_league(league.league_id)
 
         # Initialize the base set of picks for a team
         starting_year = int(current_draft["season"])
@@ -463,7 +464,7 @@ class Sleeper(Platform):
         if current_draft["status"] == "complete":
             starting_year += 1
 
-        draft_rounds = current_draft["settings"]["rounds"]
+        draft_rounds = raw_league["settings"]["draft_rounds"]
 
         for year in range(starting_year, starting_year + 3):
             for round in range(1, draft_rounds + 1):

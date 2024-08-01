@@ -40,6 +40,10 @@ def get_all_leagues_for_user(user: User, year: int):
 
     return common._make_get_request_with_logging(request_url)
 
+def get_league(league_id: str):
+    request_url = request_url = BASE_URL + "league/{league_id}".format(league_id=league_id)
+
+    return common._make_get_request_with_logging(request_url)
 
 def get_all_picks_for_draft(draft_id: str):
     request_url = BASE_URL + "draft/{draft_id}/picks".format(draft_id=draft_id)
