@@ -181,8 +181,7 @@ class TradesCog(commands.Cog):
             try:
                 all_trades = await asyncio.to_thread(
                     trades.fetch_and_filter_trades,
-                    account_identifier=cogConstants.FTAFFL_USER,
-                    league_regex_string=cogConstants.FTAFFL_LEAGUE_REGEX)
+                    account_identifier=cogConstants.FTAFFL_USER)
             except:
                 # Because this is a periodic task, if there's an intermittent error we can just rely on the
                 # next task loop. But to make sure, let's log
