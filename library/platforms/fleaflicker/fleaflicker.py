@@ -63,7 +63,11 @@ class Fleaflicker(Platform):
         for raw_league in raw_league_list:
             roster_counts = {}
             for position in raw_league["rosterRequirements"]["positions"]:
-                roster_counts[position["label"]] = position["start"]
+                if "start" in position:
+                    roster_counts[position["label"]] = position["start"]
+                else:
+                    # For positions like bench or IR
+                    roster_counts[position["label"]] = position["max"]
 
             league = League(raw_league["name"], raw_league["capacity"],
                             str(raw_league["id"]), roster_counts)
