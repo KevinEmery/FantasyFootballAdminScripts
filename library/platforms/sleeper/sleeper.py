@@ -433,16 +433,17 @@ class Sleeper(Platform):
                     roster_id, user,
                     self._create_roster_link(league.league_id, roster_id))
 
-                for player_id in raw_roster["players"]:
-                    player = self._player_id_to_player[player_id]
-                    if player_id in raw_roster["starters"]:
-                        starters.append(player)
-                    elif raw_roster[
-                            "taxi"] is not None and player_id in raw_roster[
-                                "taxi"]:
-                        taxi.append(player)
-                    else:
-                        bench.append(player)
+                if raw_roster["players"]:
+                    for player_id in raw_roster["players"]:
+                        player = self._player_id_to_player[player_id]
+                        if player_id in raw_roster["starters"]:
+                            starters.append(player)
+                        elif raw_roster[
+                                "taxi"] is not None and player_id in raw_roster[
+                                    "taxi"]:
+                            taxi.append(player)
+                        else:
+                            bench.append(player)
 
                 return Roster(team, starters, bench, taxi, future_picks)
 

@@ -174,6 +174,13 @@ class DepthChartsCog(commands.Cog):
                     user=identifier, league_name=league.name))
             return
 
+        # If there are no starters, assume that we are mid-draft
+        if not roster.starters:
+            cogCommon.print_descriptive_log("sleeper_depth_chart", "Roster for {user} in {league_name} has no starters".format(
+                    user=identifier, league_name=league.name))
+            await interaction.followup.send("Looking up a depth chart for leagues in their first draft is not supported")
+            return
+
         await interaction.followup.send(
             embed=self._create_embed_for_roster(roster, identifier, league))
         cogCommon.print_descriptive_log("sleeper_depth_chart", "Done")
