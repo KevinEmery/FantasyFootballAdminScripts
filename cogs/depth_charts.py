@@ -163,6 +163,7 @@ class DepthChartsCog(commands.Cog):
         league = leagues[0]
         roster = await asyncio.to_thread(
             sleeper.get_roster_for_league_and_user, league, user)
+        from_draft = False
 
         if roster is None:
             cogCommon.print_descriptive_log(
@@ -174,15 +175,23 @@ class DepthChartsCog(commands.Cog):
                     user=identifier, league_name=league.name))
             return
 
-        # If there are no starters, assume that we are mid-draft
+        # If there are no starters, attempt to retrieve the roster from draft picks
         if not roster.starters:
-            cogCommon.print_descriptive_log("sleeper_depth_chart", "Roster for {user} in {league_name} has no starters".format(
+            roster = await asyncio.to_thread(sleeper.get_roster_from_draft, league, user)
+            from_draft = True
+
+        if roster is None:
+            cogCommon.print_descriptive_log(
+                "sleeper_depth_chart",
+                "Error retrieving draft roster for {user} in {league_name}".format(
                     user=identifier, league_name=league.name))
-            await interaction.followup.send("Looking up a depth chart for leagues in their first draft is not supported")
+            await interaction.followup.send(
+                "No roster found for `{user}` in `{league_name}`.".format(
+                    user=identifier, league_name=league.name))
             return
 
         await interaction.followup.send(
-            embed=self._create_embed_for_roster(roster, identifier, league))
+            embed=self._create_embed_for_roster(roster, identifier, league, from_draft))
         cogCommon.print_descriptive_log("sleeper_depth_chart", "Done")
 
     def _create_markdown_list_of_league_names(self,
@@ -196,7 +205,7 @@ class DepthChartsCog(commands.Cog):
         return league_list
 
     def _create_embed_for_roster(self, roster: Roster, user: str,
-                                 league: League) -> discord.Embed:
+                                 league: League, use_draft_url: bool) -> discord.Embed:
         starter_template = "**{player_name}**"
         taxi_template = "__*{player_name}*__"
 
@@ -211,10 +220,17 @@ class DepthChartsCog(commands.Cog):
                         value=league.get_roster_count_string(),
                         inline=False)
 
-        embed.add_field(name="Roster Link",
-                        value="<{roster_link}>".format(
-                            roster_link=roster.team.roster_link),
-                        inline=False)
+        if use_draft_url:
+            embed.add_field(name="Draft Link",
+                value="<{draft_link}>".format(
+                    draft_link="https://sleeper.com/draft/nfl/{draft_id}".format(
+                        draft_id=league.draft_id)),
+                inline=False) 
+        else:
+            embed.add_field(name="Roster Link",
+                            value="<{roster_link}>".format(
+                                roster_link=roster.team.roster_link),
+                            inline=False)
 
         sorted_roster = SortedRoster(roster)
 

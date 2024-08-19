@@ -449,6 +449,28 @@ class Sleeper(Platform):
 
         return None
 
+    def get_roster_from_draft(self, league: League, user: User) -> Roster:
+        raw_draft_data = api.get_all_picks_for_draft(league.draft_id)
+
+        roster_id = 0
+        starters = []
+        bench = []
+        taxi = []
+        future_picks = self._get_future_draft_picks_for_roster(
+            league, roster_id)
+
+        for raw_draft_pick in raw_draft_data:
+            if raw_draft_pick["picked_by"] == user.user_id:
+                player = self._player_id_to_player[raw_draft_pick["player_id"]]
+                roster_id = raw_draft_pick["roster_id"]
+                starters.append(player)
+
+        team = Team(
+            roster_id, user,
+            self._create_roster_link(league.league_id, roster_id))
+
+        return Roster(team, starters, bench, taxi, future_picks)
+
     def _get_future_draft_picks_for_roster(
             self, league: League, roster_id: int) -> List[FutureDraftPick]:
         if league.type != LeagueType.DYNASTY:
