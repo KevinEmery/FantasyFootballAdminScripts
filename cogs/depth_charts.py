@@ -105,7 +105,8 @@ class DepthChartsCog(commands.Cog):
         identifier="The full Sleeper username of the team owner")
     @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID,
                          cogConstants.FF_DISCORD_SERVER_GUILD_ID,
-                         cogConstants.FTA_SERVER_GUILD_ID)
+                         cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.NARFFL_SERVER_GUILD_ID)
     async def sleeper_depth_chart(self,
                                   interaction: discord.Interaction,
                                   league_name: str,
