@@ -27,7 +27,7 @@ class Player(object):
         self.status = status
 
     def is_inactive(self):
-        return self.status is not None and self.status != "" and self.status != "Questionable"
+        return self.status is not None and self.status not in ["Active", "Questionable", ""]
 
     def __eq__(self, other):
         return self.player_id == other.player_id
