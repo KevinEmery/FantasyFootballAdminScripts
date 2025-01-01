@@ -478,20 +478,27 @@ class Sleeper(Platform):
 
         draft_picks = []
 
-        current_draft = api.get_draft(league.draft_id)
+        raw_draft = api.get_draft(league.draft_id)
         raw_league = api.get_league(league.league_id)
+        current_draft = self._create_draft_from_response(raw_draft)
 
         # Initialize the base set of picks for a team
-        starting_year = int(current_draft["season"])
+        current_year = int(current_draft.year)
+        starting_year = current_year
 
-        if current_draft["status"] == "complete":
+        if raw_draft["status"] == "complete":
             starting_year += 1
 
         draft_rounds = raw_league["settings"]["draft_rounds"]
 
         for year in range(starting_year, starting_year + 3):
             for round in range(1, draft_rounds + 1):
-                draft_picks.append(FutureDraftPick(year, round))
+                if year == current_year:
+                    draft_picks.append(FutureDraftPick(year, 
+                                                      round,
+                                                      current_draft.get_pick_num_within_round(roster_id, round)))
+                else:  
+                    draft_picks.append(FutureDraftPick(year, round))
 
         # Parse through all of the pick trades
         all_traded_picks = api.get_traded_picks(league.league_id)
@@ -502,7 +509,12 @@ class Sleeper(Platform):
             if year < starting_year:
                 continue
 
-            traded_pick = FutureDraftPick(year, pick_round)
+            if year == current_year:
+                traded_pick = FutureDraftPick(year, 
+                                              pick_round,
+                                              current_draft.get_pick_num_within_round(pick["roster_id"], pick_round))
+            else:
+                traded_pick = FutureDraftPick(year, pick_round)
 
             # They traded for a pick
             if pick["owner_id"] == roster_id:

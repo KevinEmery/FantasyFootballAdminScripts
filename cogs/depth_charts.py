@@ -275,7 +275,7 @@ class DepthChartsCog(commands.Cog):
             if pick.year not in year_to_round_list:
                 year_to_round_list[pick.year] = []
 
-            year_to_round_list[pick.year].append(pick.get_round_with_suffix())
+            year_to_round_list[pick.year].append(pick.get_pick_text_without_year())
 
         for year, rounds in year_to_round_list.items():
             formatted_string += year_template.format(year=str(year))
