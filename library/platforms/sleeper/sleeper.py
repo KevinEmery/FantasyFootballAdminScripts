@@ -451,8 +451,15 @@ class Sleeper(Platform):
 
     def get_roster_from_draft(self, league: League, user: User) -> Roster:
         raw_draft_data = api.get_all_picks_for_draft(league.draft_id)
+        raw_rosters = api.get_rosters_for_league(league.league_id)
 
         roster_id = 0
+        for raw_roster in raw_rosters:
+            if raw_roster["owner_id"] == user.user_id or raw_roster[
+                    "co_owners"] and user.user_id in raw_roster["co_owners"]:
+                    roster_id = raw_roster["roster_id"]
+                    break
+
         starters = []
         bench = []
         taxi = []
@@ -489,15 +496,17 @@ class Sleeper(Platform):
         if raw_draft["status"] == "complete":
             starting_year += 1
 
-        draft_rounds = raw_league["settings"]["draft_rounds"]
+        current_year_draft_rounds = raw_draft["settings"]["rounds"]
+        future_year_draft_rounds = raw_league["settings"]["draft_rounds"]
 
         for year in range(starting_year, starting_year + 3):
-            for round in range(1, draft_rounds + 1):
-                if year == current_year:
+            if year == current_year:
+                for round in range(1, current_year_draft_rounds + 1):
                     draft_picks.append(FutureDraftPick(year, 
                                                       round,
                                                       current_draft.get_pick_num_within_round(roster_id, round)))
-                else:  
+            else:
+                for round in range(1, future_year_draft_rounds + 1): 
                     draft_picks.append(FutureDraftPick(year, round))
 
         # Parse through all of the pick trades
@@ -522,7 +531,11 @@ class Sleeper(Platform):
 
             # Their pick was traded, and they're not the owner of it
             if pick["roster_id"] == roster_id and pick["owner_id"] != roster_id:
-                draft_picks.remove(traded_pick)
+                try:
+                    draft_picks.remove(traded_pick)
+                except Exception as e:
+                    print("Error removing pick " + str(traded_pick) + " from team.")
+                
 
         draft_picks.sort()
         return draft_picks
