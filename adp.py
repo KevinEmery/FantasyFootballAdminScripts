@@ -1,5 +1,5 @@
 """
-   Copyright 2024 Kevin Emery
+   Copyright 2025 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -173,7 +173,7 @@ def _parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument(
         "-y",
         "--year",
-        help="The year to run the analysis on, defaults to 2024",
+        help="The year to run the analysis on, defaults to " + str(libCommon.DEFAULT_YEAR),
         type=int,
         default=libCommon.DEFAULT_YEAR)
     parser.add_argument(
@@ -203,7 +203,7 @@ def _parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument(
         "-c",
         "--minimum_times_drafted",
-        help="Minimum number of times a player needs to be drafted (default: 1)",
+        help="Minimum number of times a player needs to be drafted (default: " + DEFAULT_MIN_TIMES_DRAFTED + ")",
         type=int,
         default=DEFAULT_MIN_TIMES_DRAFTED)
     parser.add_argument("-s",

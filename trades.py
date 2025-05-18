@@ -1,5 +1,5 @@
 """
-   Copyright 2024 Kevin Emery
+   Copyright 2025 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -233,7 +233,7 @@ def _parse_user_provided_flags() -> argparse.Namespace:
     arg_parser.add_argument(
         "-y",
         "--year",
-        help="The year to run the analysis on, defaults to 2024",
+        help="The year to run the analysis on, defaults to " + str(libCommon.DEFAULT_YEAR),
         type=int,
         default=libCommon.DEFAULT_YEAR)
     arg_parser.add_argument(
