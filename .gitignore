@@ -136,3 +136,6 @@ data/
 
 # Local-only data files for the bot
 bot_data/
+
+# Log files
+logs/
