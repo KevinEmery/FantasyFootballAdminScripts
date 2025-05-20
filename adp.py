@@ -203,7 +203,7 @@ def _parse_user_provided_flags() -> argparse.Namespace:
     parser.add_argument(
         "-c",
         "--minimum_times_drafted",
-        help="Minimum number of times a player needs to be drafted (default: " + DEFAULT_MIN_TIMES_DRAFTED + ")",
+        help="Minimum number of times a player needs to be drafted (default: " + str(DEFAULT_MIN_TIMES_DRAFTED) + ")",
         type=int,
         default=DEFAULT_MIN_TIMES_DRAFTED)
     parser.add_argument("-s",
