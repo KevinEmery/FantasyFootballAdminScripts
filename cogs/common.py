@@ -13,7 +13,13 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+
 from datetime import datetime
+from typing import List, Tuple
+
+from library.model.league import League
+from library.model.user import User
+from library.platforms.sleeper.sleeper import Sleeper
 
 LOG_DIRECTORY_NAME = "./logs/"
 LOG_PREFIX = "log_"
@@ -38,4 +44,53 @@ def print_descriptive_log(log_method: str, log_line: str = "", write_to_file: bo
             # This is non-critical infra, just log to console and move on.
             print("Error writing log to file")
             print(e)
+
+
+def get_matching_sleeper_league(sleeper: Sleeper, league_name: str, identifier: str, year: int) -> Tuple[League, User, str]:
+    user = sleeper.get_admin_user_by_identifier(identifier)
+
+    # Error handling for user
+    if user.user_id == "Error":
+        print_descriptive_log(
+            "get_matching_sleeper_league",
+            "No user found for {username}".format(username=identifier))
+        return None, None, "Sleeper account `{username}` not found. Please double-check and try again.".format(username=identifier)
+
+    leagues = sleeper.get_all_leagues_for_user(
+                                      user,
+                                      year,
+                                      name_substring=league_name,
+                                      include_pre_draft=True)
+
+    # Error handling for leagues
+    if len(leagues) == 0:
+        print_descriptive_log(
+            "get_matching_sleeper_league",
+            "No leagues matching {league_name} found for {user}".format(
+                league_name=league_name, user=identifier))
+        return (None,
+                None,
+                "`{username}` does not have any leagues matching `{league_name}`. Please double-check and try again.".format(username=identifier,
+                                                                                                                             league_name=league_name))
+    elif len(leagues) > 1:
+        print_descriptive_log(
+            "get_matching_sleeper_league",
+            "{user} has more than one league matching {league_name}".
+            format(league_name=league_name, user=identifier))
+        return (None,
+                None,
+                "`{username}` has more than one league matching `{league_name}`. Please be more specific.\n\n__Matching Leagues__\n{league_list}".format(username=identifier,
+                                                                                                                                                         league_name=league_name,
+                                                                                                                                                         league_list=_create_markdown_list_of_league_names(leagues)))
+
+    return leagues[0], user, None
+
+def _create_markdown_list_of_league_names(leagues: List[League]) -> str:
+    league_list = ""
+    template = "- {league_name}\n"
+
+    for league in leagues:
+        league_list += template.format(league_name=league.name)
+
+    return league_list
     

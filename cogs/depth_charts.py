@@ -120,48 +120,12 @@ class DepthChartsCog(commands.Cog):
 
         sleeper = Sleeper()
 
-        user = sleeper.get_admin_user_by_identifier(identifier)
+        league, user, err_string = await asyncio.to_thread(cogCommon.get_matching_sleeper_league, sleeper, league_name, identifier, year)
 
-        # Error handling for user
-        if user.user_id == "Error":
-            cogCommon.print_descriptive_log(
-                "sleeper_depth_chart",
-                "No user found for {username}".format(username=identifier))
-            await interaction.followup.send(
-                "Sleeper account `{username}` not found. Please double-check and try again."
-                .format(username=identifier))
+        if err_string is not None:
+            await interaction.followup.send(err_string)
             return
 
-        leagues = await asyncio.to_thread(sleeper.get_all_leagues_for_user,
-                                          user,
-                                          year,
-                                          name_substring=league_name,
-                                          include_pre_draft=True)
-
-        # Error handling for leagues
-        if len(leagues) == 0:
-            cogCommon.print_descriptive_log(
-                "sleeper_depth_chart",
-                "No leagues matching {league_name} found for {user}".format(
-                    league_name=league_name, user=identifier))
-            await interaction.followup.send(
-                "`{username}` does not have any leagues matching `{league_name}`. Please double-check and try again."
-                .format(username=identifier, league_name=league_name))
-            return
-        elif len(leagues) > 1:
-            cogCommon.print_descriptive_log(
-                "sleeper_depth_chart",
-                "{user} has more than one league matching {league_name}".
-                format(league_name=league_name, user=identifier))
-            await interaction.followup.send(
-                "`{username}` has more than one league matching `{league_name}`. Please be more specific.\n\n__Matching Leagues__\n{league_list}"
-                .format(username=identifier,
-                        league_name=league_name,
-                        league_list=self._create_markdown_list_of_league_names(
-                            leagues)))
-            return
-
-        league = leagues[0]
         roster = await asyncio.to_thread(
             sleeper.get_roster_for_league_and_user, league, user)
         from_draft = False
