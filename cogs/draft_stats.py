@@ -124,7 +124,7 @@ class DraftStatsCog(commands.Cog):
         cogCommon.print_descriptive_log("list_tracked_drafts", "Starting")
         await interaction.response.defer()
 
-        list_item_template = " * [{league_name}](<https://sleeper.com/draft/nfl/{draft_id}>)\n"
+        list_item_template = "* [{league_name}](<https://sleeper.com/draft/nfl/{draft_id}>)\n"
         response_list = []
 
         with open(TRACKED_DRAFTS_LIST_FILE, "r") as file:
