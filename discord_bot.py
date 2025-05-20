@@ -40,6 +40,7 @@ class DiscordBot(commands.Bot):
         self.cogs_list = [
             'cogs.adp',
             'cogs.depth_charts',
+            'cogs.draft_stats',
             'cogs.leaderboards',
             'cogs.inactives',
             'cogs.trades',
