@@ -52,7 +52,10 @@ class DiscordBot(commands.Bot):
 
         # Specifically sync the target servers.
         for guild_id in GUILD_IDS:
-            await self.tree.sync(guild=discord.Object(guild_id))
+            try:
+                await self.tree.sync(guild=discord.Object(guild_id))
+            except Exception:
+                print("Couldn't sync to server " + str(guild_id))
 
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
