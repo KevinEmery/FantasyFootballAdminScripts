@@ -301,15 +301,11 @@ class DraftStatsCog(commands.Cog):
                     username_to_average[username] = average_hours
                     username_to_pick_count[username] = pick_count
 
-        response = "__Summary for {league}__\n".format(league=league.name)
-        no_pick_template = "* {user} has made no picks\n"
-        pick_template = "* {user} averages **{hours:0.2f} hour{plural}**\n"
+        response = "__Average Time OTC in {league}__\n".format(league=league.name)
+        pick_template = "* `{user:<20}{hours:6.2f} hour{plural}`\n"
         for user in sorted(username_to_average, key=username_to_average.get, reverse=True):
-            if username_to_pick_count[user] == 0:
-                response += no_pick_template.format(user=user)
-            else:
-                time = username_to_average[user]
-                response += pick_template.format(user=user, hours=time, plural=self._format_pluralization(time))
+            time = username_to_average[user]
+            response += pick_template.format(user=user, hours=time, plural=self._format_pluralization(time))
 
         cogCommon.print_descriptive_log("get_stats_for_draft", "Done")
         await interaction.followup.send(response)
