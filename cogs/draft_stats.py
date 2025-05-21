@@ -33,10 +33,10 @@ from library.platforms.sleeper.sleeper import Sleeper
 # File format
 # Leagues file
 #   Path: ./bot_data/draft_stats_list
-#   league_id,draft_id,league_name
-# TODO - add an "is_active" bool to the line above
+#   league_id,draft_id,league_name,is_active
 # Draft per league file
 #   Path: ./bot_data/drafts/<draft_id>/draft_data
+#   Line at the top for last pick info (number and time)
 #   Per person: idenfifier,name,mins_on_clock,pick_count
 
 TRACKED_DRAFTS_LIST_FILE = "./bot_data/draft_stats_league_list"
@@ -91,7 +91,7 @@ class DraftStatsCog(commands.Cog):
     @app_commands.describe(
         identifier="The full Sleeper username of the team owner")
     @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
-    async def stop_tracking_draft(self, interaction: discord.Interaction, league_name: str, identifier: str, year: int = libCommon.DEFAULT_YEAR):
+    async def stop_tracking_draft(self, interaction: discord.Interaction, league_name: str, identifier: str, delete_data: bool = True, year: int = libCommon.DEFAULT_YEAR):
         cogCommon.print_descriptive_log(
             "stop_tracking_draft",
             "league_name={league_name}, user={username}, year={year}".format(
@@ -110,7 +110,7 @@ class DraftStatsCog(commands.Cog):
             await interaction.followup.send("{league_name} wasn't being tracked.".format(league_name=league.name))
             return
 
-        self._remove_league_from_tracking(league)
+        self._remove_league_from_tracking(league, delete_data)
 
         cogCommon.print_descriptive_log("stop_tracking_draft", "Done - tracking ended for {league_name}".format(league_name=league.name))
         await interaction.followup.send("No longer tracking the draft for {league_name}.".format(league_name=league.name))
@@ -141,7 +141,22 @@ class DraftStatsCog(commands.Cog):
         cogCommon.print_descriptive_log("list_tracked_drafts", "Done - Tracking {count} drafts".format(count=str(len(response_list))))
         await interaction.followup.send(response)
 
-    # TODO the actual loop task to monitor and update the draft data
+    # @tasks.loop(minutes=5)
+    async def update_draft_stats(self):
+        print("cats")
+        # Pull the drafts from file
+        # Loop through and see which ones need querying based on raw draft query
+        #   Active False, Status Drafting -> Active True
+        #   Active True, Status ____ -> Active False, but process once more
+        # For each league that needs action
+        #   Parse the draft data from file
+        #       Storing in a bunch of maps from user identifier -> value
+        #   Get all draft picks query
+        #   No new picks? Done
+        #   New Picks?
+        #       Who made the N+1 pick? Increment their time otc with the difference betweeen prev and now
+        #       Incremement pick count for each new pick
+        #       Write everything back to file
 
     async def get_stats_for_draft(self, interaction: discord.Interaction, league_name: str, identifier: str, year: int = libCommon.DEFAULT_YEAR):
         print("Unimplemented")
@@ -170,7 +185,7 @@ class DraftStatsCog(commands.Cog):
         with open(TRACKED_DRAFTS_LIST_FILE, "a+") as file:
             file.write(self._format_tracked_draft_entry(league))
 
-    def _remove_league_from_tracking(self, league: League):
+    def _remove_league_from_tracking(self, league: League, delete_data: bool):
         if not self._is_draft_being_tracked(league):
             return
 
@@ -183,8 +198,9 @@ class DraftStatsCog(commands.Cog):
                     file.write(line)
 
         # Remove the draft directory
-        os.remove(self._get_file_path_for_league(league))
-        os.rmdir(self._get_dir_path_for_league(league))
+        if delete_data:
+            os.remove(self._get_file_path_for_league(league))
+            os.rmdir(self._get_dir_path_for_league(league))
 
     def _get_file_path_for_league(self, league: League) -> str:
         return DRAFT_FILE_PATH_TEMPLATE.format(draft_id=league.draft_id)
