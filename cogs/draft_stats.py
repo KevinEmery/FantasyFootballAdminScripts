@@ -232,7 +232,10 @@ class DraftStatsCog(commands.Cog):
                 previous_otc = raw_draft_picks[last_pick_num]["picked_by"]
 
                 # Debug logging, remove later
-                logString = "{mins} minutes computed before pick by {otc}".format(mins=time_elapsed, otc=user_id_to_name[previous_otc])
+                logString = "{mins} minutes computed before pick by {otc}. Previous {last}, Latest {latest}".format(mins=time_elapsed,
+                                                                                                                    otc=user_id_to_name[previous_otc],
+                                                                                                                    last=last_pick_time,
+                                                                                                                    latest=latest_pick_time)
                 cogCommon.print_descriptive_log("update_draft_stats", logString)
                 user_id_to_mins_on_clock[previous_otc] = user_id_to_mins_on_clock[previous_otc] + time_elapsed
 
