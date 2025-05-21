@@ -17,36 +17,36 @@
 import asyncio
 import discord
 import os
+import time
 
 import cogs.common as cogCommon
 import cogs.constants as cogConstants
 import library.common as libCommon
+import library.platforms.sleeper.api as sleeperApi
 
 from discord import app_commands
-from discord.ext import commands
-from typing import List
+from discord.ext import commands, tasks
 
 from library.model.league import League
-from library.model.user import User
 from library.platforms.sleeper.sleeper import Sleeper
-
-# File format
-# Leagues file
-#   Path: ./bot_data/draft_stats_list
-#   league_id,draft_id,league_name,is_active
-# Draft per league file
-#   Path: ./bot_data/drafts/<draft_id>/draft_data
-#   Line at the top for last pick info (number and time)
-#   Per person: idenfifier,name,mins_on_clock,pick_count
 
 TRACKED_DRAFTS_LIST_FILE = "./bot_data/draft_stats_league_list"
 DRAFT_FILE_PATH_TEMPLATE = "./bot_data/drafts/{draft_id}/draft_data"
 ALL_DRAFT_DATA_DIRECTORY_PATH = "./bot_data/drafts"
 SPECIFIC_DRAFT_DIRECTORY_PATH_TEMPLATE = "./bot_data/drafts/{draft_id}"
 
+# Pulled from existing drafts in Sleeper
+PRE_DRAFT_STATUS = "pre_draft"
+DRAFTING_STATUS = "drafting"
+POST_DRAFT_STATUS = "complete"
+
 class DraftStatsCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.update_draft_stats.start()
+
+    def cog_unload(self):
+        self.update_draft_stats.cancel()
 
     @app_commands.command(
         name="start_tracking_draft",
@@ -141,25 +141,122 @@ class DraftStatsCog(commands.Cog):
         cogCommon.print_descriptive_log("list_tracked_drafts", "Done - Tracking {count} drafts".format(count=str(len(response_list))))
         await interaction.followup.send(response)
 
-    # @tasks.loop(minutes=5)
+    @tasks.loop(minutes=6)
     async def update_draft_stats(self):
-        print("cats")
-        # Pull the drafts from file
-        # Loop through and see which ones need querying based on raw draft query
-        #   Active False, Status Drafting -> Active True
-        #   Active True, Status ____ -> Active False, but process once more
-        # For each league that needs action
-        #   Parse the draft data from file
-        #       Storing in a bunch of maps from user identifier -> value
-        #   Get all draft picks query
-        #   No new picks? Done
-        #   New Picks?
-        #       Who made the N+1 pick? Increment their time otc with the difference betweeen prev and now
-        #       Incremement pick count for each new pick
-        #       Write everything back to file
+        cogCommon.print_descriptive_log("update_draft_stats", "Starting")
+
+        # List to store the active drafts that need to be processed
+        drafts_to_process = []
+
+        # Read out all of the tracked drafts so we have them saved.
+        # We'll write them back in the next file I/O block
+        with open(TRACKED_DRAFTS_LIST_FILE, "r") as file:
+            file_lines = file.readlines()
+
+        with open(TRACKED_DRAFTS_LIST_FILE, "w") as file:
+            # Iterate over each tracked league to determine if we need to process.
+            for draft_metadata in file_lines:
+                split = draft_metadata.split(',')
+                league_id=split[0]
+                draft_id=split[1]
+                league_name=split[2]
+                is_active=(True if split[3].strip() == "True" else False)
+
+                raw_draft = sleeperApi.get_draft(draft_id)
+                draft_status = raw_draft["status"]
+
+                if not is_active and draft_status == DRAFTING_STATUS:
+                    # League has started drafting, mark as active
+                    is_active = True
+                    drafts_to_process.append(draft_id)
+                elif is_active and draft_status == POST_DRAFT_STATUS:
+                    # League has stopped drafting, mark as inactive but we need
+                    # to look at it one last time
+                    is_active = False
+                    drafts_to_process.append(draft_id)
+                elif is_active:
+                    # Draft is running, process normally
+                    drafts_to_process.append(draft_id)
+
+                file.write(self._format_tracked_draft_entry(league_id, draft_id, league_name, is_active))
+
+        logString = "{count} active draft{plural}.".format(count=str(len(drafts_to_process)), 
+                                                           plural=self._format_pluralization(len(drafts_to_process)))
+        cogCommon.print_descriptive_log("update_draft_stats", logString)
+
+        for draft_id in drafts_to_process:
+            user_ids = []
+            user_id_to_name = {}
+            user_id_to_mins_on_clock = {}
+            user_id_to_pick_count = {}
+
+            with open(self._get_file_path_for_draft_id(draft_id), "r") as file:
+                file_lines = file.readlines()
+
+            # Make the API calls up front
+            raw_draft = sleeperApi.get_draft(draft_id)
+            raw_draft_picks = sleeperApi.get_all_picks_for_draft(draft_id)
+
+            # Handle new-file/new-league logic
+            if len(file_lines) == 0:
+                now_mins = self._convert_time_to_minutes(time.time())
+                file_lines.append(self._format_last_pick_info(now_mins, 0))
+                user_to_draft_spot = raw_draft["draft_order"]
+                for user_id, spot in user_to_draft_spot.items():
+                    user = sleeperApi.get_user_from_identifier(user_id)
+                    file_lines.append(self._format_user_info_for_draft(user_id, user.name, 0, 0))
+
+            # Initialize content lists/maps from the file contents
+            split = file_lines[0].split(',')
+            last_pick_time = int(split[0])
+            last_pick_num = int(split[1])
+            for line in file_lines[1:]:
+                raw_stat_info = line.split(',')
+                user_id = raw_stat_info[0]
+                user_ids.append(user_id)
+                user_id_to_name[user_id] = raw_stat_info[1]
+                user_id_to_mins_on_clock[user_id] = int(raw_stat_info[2])
+                user_id_to_pick_count[user_id] = int(raw_stat_info[3])
+
+            # This means a new pick came in! Time to process some things
+            if len(raw_draft_picks) != last_pick_num:
+                new_count = len(raw_draft_picks) - last_pick_num
+                logString = "{count} new pick{plural} in {league}".format(count=str(new_count), 
+                                                                          plural=self._format_pluralization(new_count),
+                                                                          league = raw_draft["metadata"]["name"])
+                cogCommon.print_descriptive_log("update_draft_stats", logString)
+
+                # Attribute the time spent otc to the right person
+                latest_pick_time = self._convert_time_to_minutes(raw_draft["last_picked"])
+                time_elapsed = latest_pick_time - last_pick_time
+                previous_otc = raw_draft_picks[last_pick_num]["picked_by"]
+                user_id_to_mins_on_clock[previous_otc] = user_id_to_mins_on_clock[previous_otc] + time_elapsed
+
+                # Iterate through all new picks to attribute pick counts
+                for pick in raw_draft_picks[last_pick_num:]:
+                    picking_user = pick["picked_by"]
+                    user_id_to_pick_count[picking_user] = user_id_to_pick_count[picking_user] + 1
+
+                # Save the new "last pick" information
+                last_pick_num = len(raw_draft_picks)
+                last_pick_time = latest_pick_time
+
+            # Write everything out to the file
+            with open(self._get_file_path_for_draft_id(draft_id), "w") as file:
+                file.write(self._format_last_pick_info(last_pick_time, last_pick_num))
+                for user_id in user_ids:
+                    file.write(self._format_user_info_for_draft(user_id,
+                                                                user_id_to_name[user_id],
+                                                                user_id_to_mins_on_clock[user_id],
+                                                                user_id_to_pick_count[user_id]))
+
+        cogCommon.print_descriptive_log("update_draft_stats", "Done")
 
     async def get_stats_for_draft(self, interaction: discord.Interaction, league_name: str, identifier: str, year: int = libCommon.DEFAULT_YEAR):
         print("Unimplemented")
+
+    def _convert_time_to_minutes(self, epochtime: int) -> int:
+        return int(epochtime / 60)
 
     def _is_draft_being_tracked(self, league: League) -> bool:
         if not os.path.exists(TRACKED_DRAFTS_LIST_FILE):
@@ -183,7 +280,7 @@ class DraftStatsCog(commands.Cog):
         open(self._get_file_path_for_league(league), 'a').close()
 
         with open(TRACKED_DRAFTS_LIST_FILE, "a+") as file:
-            file.write(self._format_tracked_draft_entry(league))
+            file.write(self._create_tracked_draft_entry_from_league(league))
 
     def _remove_league_from_tracking(self, league: League, delete_data: bool):
         if not self._is_draft_being_tracked(league):
@@ -203,15 +300,31 @@ class DraftStatsCog(commands.Cog):
             os.rmdir(self._get_dir_path_for_league(league))
 
     def _get_file_path_for_league(self, league: League) -> str:
-        return DRAFT_FILE_PATH_TEMPLATE.format(draft_id=league.draft_id)
+        return self._get_file_path_for_draft_id(league.draft_id)
+
+    def _get_file_path_for_draft_id(self, draft_id: int) -> str:
+        return DRAFT_FILE_PATH_TEMPLATE.format(draft_id=str(draft_id))
 
     def _get_dir_path_for_league(self, league: League) -> str:
         return SPECIFIC_DRAFT_DIRECTORY_PATH_TEMPLATE.format(draft_id=league.draft_id)
 
-    def _format_tracked_draft_entry(self, league: League) -> str:
-        template = "{league_id},{draft_id},{league_name}\n"
-        return template.format(league_id=league.league_id, draft_id=league.draft_id,league_name=league.name)
+    def _create_tracked_draft_entry_from_league(self, league: League) -> str:
+        return self._format_tracked_draft_entry(league.league_id, league.draft_id, league.name)
 
+    def _format_tracked_draft_entry(self, league_id: int, draft_id: int, league_name: str, is_active: bool = False) -> str:
+        template = "{league_id},{draft_id},{league_name},{is_active}\n"
+        return template.format(league_id=league_id, draft_id=draft_id,league_name=league_name,is_active=is_active)
+
+    def _format_last_pick_info(self, timestamp: int, pick_num: int) -> str:
+        template = "{timestamp},{pick_num}\n"
+        return template.format(timestamp=str(timestamp), pick_num=str(pick_num))
+
+    def _format_user_info_for_draft(self, user_id: str, username: str, mins_on_clock: int, pick_count: int) -> str:
+        template = "{user_id},{username},{mins_on_clock},{pick_count}\n"
+        return template.format(user_id=user_id,username=username,mins_on_clock=mins_on_clock,pick_count=pick_count)
+
+    def _format_pluralization(self, count: int) -> str:
+        return ("s" if count != 1 else "")
 
 async def setup(bot):
     await bot.add_cog(DraftStatsCog(bot))
