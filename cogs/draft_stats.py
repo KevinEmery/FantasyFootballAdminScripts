@@ -55,7 +55,7 @@ class DraftStatsCog(commands.Cog):
     @app_commands.rename(identifier="username")
     @app_commands.describe(league_name="Some or all of the league name")
     @app_commands.describe(
-        identifier="The full Sleeper username of the team owner")
+        identifier="The full Sleeper username of a league member")
     @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
     async def start_tracking_draft(self, interaction: discord.Interaction, league_name: str, identifier: str, year: int = libCommon.DEFAULT_YEAR):
         cogCommon.print_descriptive_log(
@@ -89,7 +89,7 @@ class DraftStatsCog(commands.Cog):
     @app_commands.rename(identifier="username")
     @app_commands.describe(league_name="Some or all of the league name")
     @app_commands.describe(
-        identifier="The full Sleeper username of the team owner")
+        identifier="The full Sleeper username of a league member")
     @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
     async def stop_tracking_draft(self, interaction: discord.Interaction, league_name: str, identifier: str, delete_data: bool = True, year: int = libCommon.DEFAULT_YEAR):
         cogCommon.print_descriptive_log(
@@ -252,8 +252,64 @@ class DraftStatsCog(commands.Cog):
 
         cogCommon.print_descriptive_log("update_draft_stats", "Done")
 
+    @app_commands.command(
+        name="get_stats_for_draft",
+        description="Retrieves stats for the specified league's draft"
+    )
+    @app_commands.rename(identifier="username")
+    @app_commands.describe(league_name="Some or all of the league name")
+    @app_commands.describe(
+        identifier="The full Sleeper username of a league member")
+    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
     async def get_stats_for_draft(self, interaction: discord.Interaction, league_name: str, identifier: str, year: int = libCommon.DEFAULT_YEAR):
-        print("Unimplemented")
+        cogCommon.print_descriptive_log(
+            "get_stats_for_draft",
+            "league_name={league_name}, user={username}, year={year}".format(
+                league_name=league_name, username=identifier, year=year))
+        await interaction.response.defer()
+
+        sleeper = Sleeper()
+        league, user, err_string = await asyncio.to_thread(cogCommon.get_matching_sleeper_league, sleeper, league_name, identifier, year)
+
+        if err_string is not None:
+            await interaction.followup.send(err_string)
+            return
+
+        if not self._is_draft_being_tracked(league):
+            cogCommon.print_descriptive_log("get_stats_for_draft", "Untracked draft for {league_name} requested".format(league_name=league.name))
+            await interaction.followup.send("{league_name} isn't being tracked.".format(league_name=league.name))
+            return
+
+        username_to_average = {}
+        username_to_pick_count = {}
+        with open(self._get_file_path_for_league(league), "r") as file:
+            for line in file.readlines()[1:]:
+                raw_stat_info = line.split(',')
+                username = raw_stat_info[1]
+                time_on_clock = int(raw_stat_info[2])
+                pick_count = int(raw_stat_info[3])
+
+                if pick_count == 0:
+                    username_to_average[username] = 0
+                    username_to_pick_count[username] = 0
+                else:
+                    average_hours = (time_on_clock / pick_count) / 60.0
+                    username_to_average[username] = average_hours
+                    username_to_pick_count[username] = pick_count
+
+        response = "__Summary for {league}__\n".format(league=league.name)
+        no_pick_template = "* {user} has made no picks\n"
+        pick_template = "* {user} averages **{hours:0.2f} hour{plural}**\n"
+        for user in sorted(username_to_average, key=username_to_average.get, reverse=True):
+            if username_to_pick_count[user] == 0:
+                response += no_pick_template.format(user=user)
+            else:
+                time = username_to_average[user]
+                response += pick_template.format(user=user, hours=time, plural=self._format_pluralization(time))
+
+        cogCommon.print_descriptive_log("get_stats_for_draft", "Done")
+        await interaction.followup.send(response)
+
 
     def _convert_time_to_minutes(self, epochtime: int) -> int:
         return int(epochtime / 60)
@@ -323,7 +379,7 @@ class DraftStatsCog(commands.Cog):
         template = "{user_id},{username},{mins_on_clock},{pick_count}\n"
         return template.format(user_id=user_id,username=username,mins_on_clock=mins_on_clock,pick_count=pick_count)
 
-    def _format_pluralization(self, count: int) -> str:
+    def _format_pluralization(self, count: float) -> str:
         return ("s" if count != 1 else "")
 
 async def setup(bot):
