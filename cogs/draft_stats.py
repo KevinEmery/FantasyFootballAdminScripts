@@ -141,7 +141,7 @@ class DraftStatsCog(commands.Cog):
         cogCommon.print_descriptive_log("list_tracked_drafts", "Done - Tracking {count} drafts".format(count=str(len(response_list))))
         await interaction.followup.send(response)
 
-    @tasks.loop(minutes=6)
+    @tasks.loop(minutes=2)
     async def update_draft_stats(self):
         cogCommon.print_descriptive_log("update_draft_stats", "Starting")
 
