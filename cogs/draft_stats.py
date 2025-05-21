@@ -227,9 +227,13 @@ class DraftStatsCog(commands.Cog):
                 cogCommon.print_descriptive_log("update_draft_stats", logString)
 
                 # Attribute the time spent otc to the right person
-                latest_pick_time = self._convert_time_to_minutes(raw_draft["last_picked"])
+                latest_pick_time = self._convert_sleeper_time_to_minutes(raw_draft["last_picked"])
                 time_elapsed = latest_pick_time - last_pick_time
                 previous_otc = raw_draft_picks[last_pick_num]["picked_by"]
+
+                # Debug logging, remove later
+                logString = "{mins} minutes computed before pick by {otc}".format(mins=time_elapsed, otc=user_id_to_name[previous_otc])
+                cogCommon.print_descriptive_log("update_draft_stats", logString)
                 user_id_to_mins_on_clock[previous_otc] = user_id_to_mins_on_clock[previous_otc] + time_elapsed
 
                 # Iterate through all new picks to attribute pick counts
@@ -313,6 +317,9 @@ class DraftStatsCog(commands.Cog):
 
     def _convert_time_to_minutes(self, epochtime: int) -> int:
         return int(epochtime / 60)
+
+    def _convert_sleeper_time_to_minutes(self, sleepertime: int) -> int:
+        return int (sleepertime / 60 / 1000)
 
     def _is_draft_being_tracked(self, league: League) -> bool:
         if not os.path.exists(TRACKED_DRAFTS_LIST_FILE):
