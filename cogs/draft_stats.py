@@ -141,7 +141,7 @@ class DraftStatsCog(commands.Cog):
         cogCommon.print_descriptive_log("list_tracked_drafts", "Done - Tracking {count} drafts".format(count=str(len(response_list))))
         await interaction.followup.send(response)
 
-    @tasks.loop(minutes=2)
+    @tasks.loop(minutes=5)
     async def update_draft_stats(self):
         cogCommon.print_descriptive_log("update_draft_stats", "Starting")
 
@@ -226,9 +226,13 @@ class DraftStatsCog(commands.Cog):
                                                                           league = raw_draft["metadata"]["name"])
                 cogCommon.print_descriptive_log("update_draft_stats", logString)
 
-                # Attribute the time spent otc to the right person
-                latest_pick_time = self._convert_sleeper_time_to_minutes(raw_draft["last_picked"])
+                # The raw_draft API incloudes the last pick time, but it doesn't appear to update at
+                # the same cadence a the raw_draft_picks API, leading to inconsistencies. For now
+                # just say the latest pick happened "now""
+                latest_pick_time = self._convert_time_to_minutes(time.time())
                 time_elapsed = latest_pick_time - last_pick_time
+
+                # Attribute the time spent otc to the right person
                 previous_otc = raw_draft_picks[last_pick_num]["picked_by"]
 
                 # Debug logging, remove later
