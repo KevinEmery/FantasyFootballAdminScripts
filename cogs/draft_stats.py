@@ -169,8 +169,6 @@ class DraftStatsCog(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def update_draft_stats(self):
-        cogCommon.print_descriptive_log("update_draft_stats", "Starting")
-
         # List to store the active drafts that need to be processed
         drafts_to_process = []
 
@@ -205,10 +203,6 @@ class DraftStatsCog(commands.Cog):
                     drafts_to_process.append(draft_id)
 
                 file.write(self._format_tracked_draft_entry(league_id, draft_id, league_name, is_active))
-
-        logString = "{count} active draft{plural}.".format(count=str(len(drafts_to_process)), 
-                                                           plural=self._format_pluralization(len(drafts_to_process)))
-        cogCommon.print_descriptive_log("update_draft_stats", logString)
 
         for draft_id in drafts_to_process:
             user_ids = []
@@ -286,8 +280,6 @@ class DraftStatsCog(commands.Cog):
                                                                 user_id_to_name[user_id],
                                                                 user_id_to_mins_on_clock[user_id],
                                                                 user_id_to_pick_count[user_id]))
-
-        cogCommon.print_descriptive_log("update_draft_stats", "Done")
 
     @app_commands.command(
         name="get_stats_for_draft",
