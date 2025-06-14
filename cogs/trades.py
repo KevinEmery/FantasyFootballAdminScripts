@@ -175,8 +175,6 @@ class TradesCog(commands.Cog):
             FTA_TRADE_CHANNEL_PATH)
 
         if trade_channel is not None:
-            cogCommon.print_descriptive_log("post_fta_trades",
-                                            "Posting to " + trade_channel.name)
             try:
                 all_trades = await asyncio.to_thread(
                     trades.fetch_and_filter_trades,
@@ -194,8 +192,6 @@ class TradesCog(commands.Cog):
         else:
             cogCommon.print_descriptive_log("post_fta_trades",
                                             "No trade channel avaialble")
-
-        cogCommon.print_descriptive_log("post_fta_trades", "Done")
 
     @post_fta_trades.before_loop
     async def before_post_fta_trades(self):
@@ -252,9 +248,6 @@ class TradesCog(commands.Cog):
             NARFFL_TRADE_CHANNEL_PATH)
 
         if trade_channel is not None:
-            cogCommon.print_descriptive_log("post_narffl_trades",
-                                            "Posting to " + trade_channel.name)
-
             try:
                 all_trades = await asyncio.to_thread(
                     trades.fetch_and_filter_trades,
@@ -274,8 +267,6 @@ class TradesCog(commands.Cog):
         else:
             cogCommon.print_descriptive_log("post_narffl_trades",
                                             "No trade channel avaialble")
-
-        cogCommon.print_descriptive_log("post_narffl_trades", "Done")
 
     @post_narffl_trades.before_loop
     async def before_post_narffl_trades(self):
@@ -334,9 +325,6 @@ class TradesCog(commands.Cog):
             FF_DISCORD_TRADE_CHANNEL_PATH)
 
         if trade_channel is not None:
-            cogCommon.print_descriptive_log("post_ff_discord_trades",
-                                            "Posting to " + trade_channel.name)
-
             try:
                 all_trades = await asyncio.to_thread(
                     trades.fetch_and_filter_trades,
@@ -356,7 +344,6 @@ class TradesCog(commands.Cog):
             cogCommon.print_descriptive_log("post_ff_discord_trades",
                                             "No trade channel avaialble")
 
-        cogCommon.print_descriptive_log("post_ff_discord_trades", "Done")
 
     @post_ff_discord_trades.before_loop
     async def before_post_ff_discord_trades(self):
