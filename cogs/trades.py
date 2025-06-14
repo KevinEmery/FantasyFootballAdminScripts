@@ -102,8 +102,7 @@ class TradesCog(commands.Cog):
         elif next_ff_discord_trade is not None:
             now = datetime.now(tz=next_ff_discord_trade.tzinfo)
         else:
-            cogCommon.print_descriptive_log("trade_task_checker",
-                                            "No trade tasks running.")
+            # No tasks running, return
             return
 
         if next_fta_trade is not None and next_fta_trade < now:

@@ -61,8 +61,7 @@ class DraftStatsCog(commands.Cog):
         if next_iteration is not None:
             now = datetime.now(tz=next_iteration.tzinfo)
         else:
-            cogCommon.print_descriptive_log("update_draft_stats_checker",
-                                            "No draft stats tasks running.")
+            # No loops runnning, return
             return
 
         if next_iteration is not None and next_iteration < now:
