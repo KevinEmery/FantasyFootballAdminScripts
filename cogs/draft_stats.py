@@ -49,7 +49,7 @@ class DraftStatsCog(commands.Cog):
 
     def cog_unload(self):
         self.update_draft_stats.cancel()
-        self.update_draft_stats_checker.start()
+        self.update_draft_stats_checker.cancel()
 
     # Verifies that the task is still running, and restarts them if next scheduled
     # is before now. Handles the occassional crash, but should not happen consistently.
@@ -145,26 +145,47 @@ class DraftStatsCog(commands.Cog):
         name="list_tracked_drafts",
         description="Lists out all of the drafts being tracked"
     )
+    @app_commands.describe(include_inactive_drafts="Should the response include non-active drafts?")
     @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
-    async def list_tracked_drafts(self, interaction: discord.Interaction):
+    async def list_tracked_drafts(self, interaction: discord.Interaction, include_inactive_drafts: bool = True):
         cogCommon.print_descriptive_log("list_tracked_drafts", "Starting")
         await interaction.response.defer()
 
         list_item_template = "* [{league_name}](<https://sleeper.com/draft/nfl/{draft_id}>)\n"
-        response_list = []
+        active_drafts_list = []
+        inactive_drafts_list = []
 
         with open(TRACKED_DRAFTS_LIST_FILE, "r") as file:
             for line in file:
                 split = line.split(',')
-                response_list.append(list_item_template.format(league_name=split[2].strip(), draft_id=split[1]))
+                is_active=(True if split[3].strip() == "True" else False)
+                rendered_text=list_item_template.format(league_name=split[2].strip(), draft_id=split[1])
+                if is_active:
+                    active_drafts_list.append(rendered_text)
+                else:
+                    inactive_drafts_list.append(rendered_text)
 
 
-        response = "__Drafts Being Tracked__\n"
-        response_list = sorted(response_list)
-        for item in response_list:
-            response += item
+        response = ""
 
-        cogCommon.print_descriptive_log("list_tracked_drafts", "Done - Tracking {count} drafts".format(count=str(len(response_list))))
+        if len(active_drafts_list) > 0:
+            response += "__Active Drafts Being Tracked__\n"
+            response_list = sorted(active_drafts_list)
+            for item in active_drafts_list:
+                response += item
+
+        if include_inactive_drafts and len(inactive_drafts_list) > 0:
+            response += "\n__Inactive Drafts Being Tracked__\n"
+            response_list = sorted(inactive_drafts_list)
+            for item in response_list:
+                response += item
+
+        if response == "" and include_inactive_drafts:
+            response = "There are no tracked drafts."
+        elif response == "" and not include_inactive_drafts:
+            response = "There are no active tracked drafts."
+
+        cogCommon.print_descriptive_log("list_tracked_drafts", "Done")
         await interaction.followup.send(response)
 
     @tasks.loop(minutes=5)
