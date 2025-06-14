@@ -73,10 +73,6 @@ class DraftStatsCog(commands.Cog):
     async def before_update_draft_stats_checker(self):
         await self.bot.wait_until_ready()
 
-    @update_draft_stats.before_loop
-    async def before_update_draft_stats(self):
-        await self.bot.wait_until_ready()
-
 
     @app_commands.command(
         name="start_tracking_draft",
@@ -284,6 +280,10 @@ class DraftStatsCog(commands.Cog):
                                                                 user_id_to_name[user_id],
                                                                 user_id_to_mins_on_clock[user_id],
                                                                 user_id_to_pick_count[user_id]))
+
+    @update_draft_stats.before_loop
+    async def before_update_draft_stats(self):
+        await self.bot.wait_until_ready()
 
     @app_commands.command(
         name="get_stats_for_draft",
