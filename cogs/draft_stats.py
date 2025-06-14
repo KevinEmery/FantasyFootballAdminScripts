@@ -73,6 +73,10 @@ class DraftStatsCog(commands.Cog):
     async def before_update_draft_stats_checker(self):
         await self.bot.wait_until_ready()
 
+    @update_draft_stats.before_loop
+    async def before_update_draft_stats(self):
+        await self.bot.wait_until_ready()
+
 
     @app_commands.command(
         name="start_tracking_draft",
