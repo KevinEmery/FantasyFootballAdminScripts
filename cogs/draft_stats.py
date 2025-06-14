@@ -24,6 +24,7 @@ import cogs.constants as cogConstants
 import library.common as libCommon
 import library.platforms.sleeper.api as sleeperApi
 
+from datetime import datetime
 from discord import app_commands
 from discord.ext import commands, tasks
 
@@ -44,9 +45,35 @@ class DraftStatsCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.update_draft_stats.start()
+        self.update_draft_stats_checker.start()
 
     def cog_unload(self):
         self.update_draft_stats.cancel()
+        self.update_draft_stats_checker.start()
+
+    # Verifies that the task is still running, and restarts them if next scheduled
+    # is before now. Handles the occassional crash, but should not happen consistently.
+    @tasks.loop(minutes=8)
+    async def update_draft_stats_checker(self):
+
+        next_iteration = self.update_draft_stats.next_iteration
+
+        if next_iteration is not None:
+            now = datetime.now(tz=next_iteration.tzinfo)
+        else:
+            cogCommon.print_descriptive_log("update_draft_stats_checker",
+                                            "No draft stats tasks running.")
+            return
+
+        if next_iteration is not None and next_iteration < now:
+            cogCommon.print_descriptive_log(
+                "update_draft_stats_checker", "Update Draft Stats task is delayed, restarting")
+            self.update_draft_stats.restart()
+
+    @update_draft_stats_checker.before_loop
+    async def before_update_draft_stats_checker(self):
+        await self.bot.wait_until_ready()
+
 
     @app_commands.command(
         name="start_tracking_draft",
