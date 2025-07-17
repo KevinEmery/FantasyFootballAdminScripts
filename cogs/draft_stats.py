@@ -267,6 +267,7 @@ class DraftStatsCog(commands.Cog):
                     user = sleeperApi.get_user_from_identifier(user_id)
                     logString = "Adding new user {name} to {league}".format(name=user.name, league=league_name)
                     cogCommon.print_descriptive_log("update_draft_stats", logString)
+                    user_ids.append(user_id)
                     user_id_to_name[user_id] = user.name
                     user_id_to_mins_on_clock[user_id] = int(0)
                     user_id_to_pick_count[user_id] = int(0)
