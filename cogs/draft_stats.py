@@ -237,12 +237,13 @@ class DraftStatsCog(commands.Cog):
             # Make the API calls up front
             raw_draft = sleeperApi.get_draft(draft_id)
             raw_draft_picks = sleeperApi.get_all_picks_for_draft(draft_id)
+            user_to_draft_spot = raw_draft["draft_order"]
+            league_name = raw_draft["metadata"]["name"]
 
             # Handle new-file/new-league logic
             if len(file_lines) == 0:
                 now_mins = self._convert_time_to_minutes(time.time())
                 file_lines.append(self._format_last_pick_info(now_mins, 0))
-                user_to_draft_spot = raw_draft["draft_order"]
                 for user_id, spot in user_to_draft_spot.items():
                     user = sleeperApi.get_user_from_identifier(user_id)
                     file_lines.append(self._format_user_info_for_draft(user_id, user.name, 0, 0))
@@ -259,12 +260,23 @@ class DraftStatsCog(commands.Cog):
                 user_id_to_mins_on_clock[user_id] = int(raw_stat_info[2])
                 user_id_to_pick_count[user_id] = int(raw_stat_info[3])
 
+            # If someone was added to the draft, they're not yet in the file and we need to manually
+            # add them before parsing picks
+            for user_id, spot in user_to_draft_spot.items():
+                if user_id not in user_id_to_name:
+                    user = sleeperApi.get_user_from_identifier(user_id)
+                    logString = "Adding new user {name} to {league}".format(name=user.name, league=league_name)
+                    cogCommon.print_descriptive_log("update_draft_stats", logString)
+                    user_id_to_name[user_id] = user.name
+                    user_id_to_mins_on_clock[user_id] = int(0)
+                    user_id_to_pick_count[user_id] = int(0)
+
             # This means a new pick came in! Time to process some things
             if len(raw_draft_picks) != last_pick_num:
                 new_count = len(raw_draft_picks) - last_pick_num
                 logString = "{count} new pick{plural} in {league}".format(count=str(new_count), 
                                                                           plural=self._format_pluralization(new_count),
-                                                                          league = raw_draft["metadata"]["name"])
+                                                                          league = league_name)
                 cogCommon.print_descriptive_log("update_draft_stats", logString)
 
                 # The raw_draft API incloudes the last pick time, but it doesn't appear to update at
