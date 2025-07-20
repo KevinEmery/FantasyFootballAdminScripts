@@ -327,7 +327,8 @@ class DraftStatsCog(commands.Cog):
     @app_commands.describe(league_name="Some or all of the league name")
     @app_commands.describe(
         identifier="The full Sleeper username of a league member")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID,
+                         cogConstants.FTA_SERVER_GUILD_ID)
     async def get_stats_for_draft(self, interaction: discord.Interaction, league_name: str, identifier: str, year: int = libCommon.DEFAULT_YEAR):
         cogCommon.print_descriptive_log(
             "get_stats_for_draft",
