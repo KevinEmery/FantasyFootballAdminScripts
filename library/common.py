@@ -20,22 +20,22 @@ import time
 DEC_31_1999_SECONDS = 946684800
 DEFAULT_YEAR = 2025
 
-# Byes are currently listed for 2024
+# Byes are currently listed for 2025
 TEAMS_ON_BYE = {
     1: [],
     2: [],
     3: [],
     4: [],
-    5: ["DET", "LAC", "PHI", "TEN"],
-    6: ["KC", "LAR", "MIA", "MIN"],
-    7: ["CHI", "DAL"],
-    8: [],
-    9: ["PIT", "SF"],
-    10: ["CLE", "GB", "LV", "SEA"],
-    11: ["ARI", "CAR", "NYG", "TB"],
-    12: ["ATL", "BUF", "CIN", "JAX", "NO", "NYJ"],
+    5: ["PIT", "CHI", "GB", "ATL"],
+    6: ["HOU", "MIN"],
+    7: ["BAL", "BUF"],
+    8: ["JAX", "LV", "DET", "ARI", "LAR", "SEA"],
+    9: ["CLE", "NYJ", "PHI", "TB"],
+    10: ["TEN", "CIN", "KC", "DAL"],
+    11: ["NO", "IND"],
+    12: ["MIA", "DEN", "LAC", "WAS"],
     13: [],
-    14: ["BAL", "DEN", "HOU", "IND", "NE", "WAS"],
+    14: ["NE", "NYG", "CAR", "SF"],
     15: [],
     16: [],
     17: [],
