@@ -41,6 +41,9 @@ PRE_DRAFT_STATUS = "pre_draft"
 DRAFTING_STATUS = "drafting"
 POST_DRAFT_STATUS = "complete"
 
+# Trying to keep this well clear of the 2000 character limit
+TRACKED_DRAFT_OUTPUT_LIMIT = 1500
+
 class DraftStatsCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -173,6 +176,14 @@ class DraftStatsCog(commands.Cog):
             response_list = sorted(active_drafts_list)
             for item in active_drafts_list:
                 response += item
+                if len(response) > TRACKED_DRAFT_OUTPUT_LIMIT:
+                    await interaction.channel.send(response)
+                    response = ""
+
+            # Clear out the response before moving forward
+            await interaction.channel.send(response)
+            response = ""
+
 
         if include_inactive_drafts and len(inactive_drafts_list) > 0:
             response += "\n__Inactive Drafts Being Tracked__\n"
@@ -180,13 +191,24 @@ class DraftStatsCog(commands.Cog):
             for item in response_list:
                 response += item
 
-        if response == "" and include_inactive_drafts:
-            response = "There are no tracked drafts."
-        elif response == "" and not include_inactive_drafts:
-            response = "There are no active tracked drafts."
+                # Send if we're over our limit
+                if len(response) > TRACKED_DRAFT_OUTPUT_LIMIT:
+                    await interaction.channel.send(response)
+                    response = ""
+
+            # Clear out the response before moving forward
+            await interaction.channel.send(response)
+            response = ""
+
+        if len(active_drafts_list) == 0 and len(inactive_drafts_list) == 0 and include_inactive_drafts:
+            int_response = "There are no tracked drafts."
+        elif len(active_drafts_list) == 0 and not include_inactive_drafts:
+            int_response = "There are no active tracked drafts."
+        else:
+            int_response = "Done!"
 
         cogCommon.print_descriptive_log("list_tracked_drafts", "Done")
-        await interaction.followup.send(response)
+        await interaction.followup.send(int_response)
 
     @tasks.loop(minutes=5)
     async def update_draft_stats(self):
