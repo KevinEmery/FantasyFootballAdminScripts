@@ -307,6 +307,10 @@ class DraftStatsCog(commands.Cog):
                 # Special case the instance where a draft is rolled back. Reset the last pick backwards
                 # appropriately, set last_pick_time to now.
                 if new_count < 0:
+                    logString = "{league} draft rolled back by {count} pick{plural}.".format(league = league_name,
+                                                                                             count = str(-1 * new_count),
+                                                                                             plural = self._format_pluralization(-1 * new_count))
+                    cogCommon.print_descriptive_log("update_draft_stats", logString)
                     last_pick_num = len(raw_draft_picks)
                     last_pick_time = latest_pick_time
                 else:
