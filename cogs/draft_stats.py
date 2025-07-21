@@ -297,36 +297,43 @@ class DraftStatsCog(commands.Cog):
             # This means a new pick came in! Time to process some things
             if len(raw_draft_picks) != last_pick_num:
                 new_count = len(raw_draft_picks) - last_pick_num
-                logString = "{count} new pick{plural} in {league}".format(count=str(new_count), 
-                                                                          plural=self._format_pluralization(new_count),
-                                                                          league = league_name)
-                cogCommon.print_descriptive_log("update_draft_stats", logString)
 
-                # The raw_draft API incloudes the last pick time, but it doesn't appear to update at
+                # The raw_draft API includes the last pick time, but it doesn't appear to update at
                 # the same cadence a the raw_draft_picks API, leading to inconsistencies. For now
                 # just say the latest pick happened "now""
                 latest_pick_time = self._convert_time_to_minutes(time.time())
                 time_elapsed = latest_pick_time - last_pick_time
+                
+                # Special case the instance where a draft is rolled back. Reset the last pick backwards
+                # appropriately, set last_pick_time to now.
+                if new_count < 0:
+                    last_pick_num = len(raw_draft_picks)
+                    last_pick_time = latest_pick_time
+                else:
+                    logString = "{count} new pick{plural} in {league}".format(count=str(new_count), 
+                                                                              plural=self._format_pluralization(new_count),
+                                                                              league = league_name)
+                    cogCommon.print_descriptive_log("update_draft_stats", logString)
 
-                # Attribute the time spent otc to the right person
-                previous_otc = raw_draft_picks[last_pick_num]["picked_by"]
+                    # Attribute the time spent otc to the right person
+                    previous_otc = raw_draft_picks[last_pick_num]["picked_by"]
 
-                # Debug logging, remove later
-                logString = "{mins} minutes computed before pick by {otc}. Previous {last}, Latest {latest}".format(mins=time_elapsed,
-                                                                                                                    otc=user_id_to_name[previous_otc],
-                                                                                                                    last=last_pick_time,
-                                                                                                                    latest=latest_pick_time)
-                cogCommon.print_descriptive_log("update_draft_stats", logString)
-                user_id_to_mins_on_clock[previous_otc] = user_id_to_mins_on_clock[previous_otc] + time_elapsed
+                    # Debug logging, remove later
+                    logString = "{mins} minutes computed before pick by {otc}. Previous {last}, Latest {latest}".format(mins=time_elapsed,
+                                                                                                                        otc=user_id_to_name[previous_otc],
+                                                                                                                        last=last_pick_time,
+                                                                                                                        latest=latest_pick_time)
+                    cogCommon.print_descriptive_log("update_draft_stats", logString)
+                    user_id_to_mins_on_clock[previous_otc] = user_id_to_mins_on_clock[previous_otc] + time_elapsed
 
-                # Iterate through all new picks to attribute pick counts
-                for pick in raw_draft_picks[last_pick_num:]:
-                    picking_user = pick["picked_by"]
-                    user_id_to_pick_count[picking_user] = user_id_to_pick_count[picking_user] + 1
+                    # Iterate through all new picks to attribute pick counts
+                    for pick in raw_draft_picks[last_pick_num:]:
+                        picking_user = pick["picked_by"]
+                        user_id_to_pick_count[picking_user] = user_id_to_pick_count[picking_user] + 1
 
-                # Save the new "last pick" information
-                last_pick_num = len(raw_draft_picks)
-                last_pick_time = latest_pick_time
+                    # Save the new "last pick" information
+                    last_pick_num = len(raw_draft_picks)
+                    last_pick_time = latest_pick_time
 
             # Write everything out to the file
             with open(self._get_file_path_for_draft_id(draft_id), "w") as file:
