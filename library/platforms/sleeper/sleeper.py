@@ -620,9 +620,14 @@ class Sleeper(Platform):
             position = None
 
             if fantasy_positions is not None:
-                # If DL is in the list, treat them like a DL
+                # If DL is in the list, treat them like a DL (as opposed to DT/Edge/DE or DL/LB)
                 if "DL" in fantasy_positions:
                     position = "DL"
+
+                # If WR is in the list, treat them like a WR (Travis Hunter)
+                if "WR" in fantasy_positions:
+                    position = "WR"
+
                 # Otherwise grab the first, and likely only, position
                 else:
                     position = fantasy_positions[0]
