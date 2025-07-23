@@ -30,6 +30,8 @@ from typing import List
 
 # Actual limit is 25, we want to steer clear in case we add fields on top of the iteration
 EMBED_FIELD_LIMIT = 20
+# Actual limit is 2000
+MESSAGE_LENGTH_LIMIT = 1800
 
 # These colors mirror the Sleeper draft board
 ALL_PLAYERS_COLOR = discord.Colour.dark_blue()
@@ -51,7 +53,8 @@ class ADPCog(commands.Cog):
     @app_commands.guilds(cogConstants.FTA_SERVER_GUILD_ID,
                          cogConstants.DEV_SERVER_GUILD_ID)
     async def send_all_fta_adp_posts(self, interaction: discord.Interaction,
-                                     forum: discord.ForumChannel):
+                                     forum: discord.ForumChannel,
+                                     channel: discord.TextChannel = None):
         cogCommon.print_descriptive_log("send_all_fta_adp_posts",
                                         "Posting to " + forum.name + " forum")
 
@@ -72,6 +75,9 @@ class ADPCog(commands.Cog):
             asyncio.to_thread(self._post_fta_position_adp, forum,
                               adp.INCLUDE_ALL, "All Players",
                               ALL_PLAYERS_COLOR))
+
+        if channel is not None:
+            await self._post_fta_raw_csv_data(channel)
 
         cogCommon.print_descriptive_log("send_all_fta_adp_posts", "Done")
         await interaction.followup.send("Done!")
@@ -333,14 +339,14 @@ class ADPCog(commands.Cog):
                                       adp_data: List[str], position_long: str,
                                       embed_color: discord.Colour,
                                       thread_content: str):
-        messages = self._break_adp_content_into_messages(adp_data, embed_color)
+        messages = self._break_adp_content_into_embed_messages(adp_data, embed_color)
         thread_title = self._get_formatted_date() + ": " + position_long
         thread = (await forum.create_thread(name=thread_title,
                                             content=thread_content))[0]
         for message in messages:
             await thread.send(embed=message)
 
-    def _break_adp_content_into_messages(
+    def _break_adp_content_into_embed_messages(
             self, content: List[str],
             embed_color: discord.Colour) -> List[discord.Embed]:
         split_content = []
@@ -356,6 +362,29 @@ class ADPCog(commands.Cog):
             split_content.append(current_embed)
 
         return split_content
+
+    async def _post_raw_adp_data(self, channel: discord.TextChannel,
+                           adp_data: List[str]):
+        messages = self._break_adp_content_into_raw_messages(adp_data)
+
+        for message in messages:
+            await channel.send(message)
+
+    def _break_adp_content_into_raw_messages(self, adp_data: List[str]) -> List[str]:
+        messages = []
+        current_message = ""
+
+        for line in adp_data:
+            if current_message == "":
+                current_message += self._get_formatted_date() + "\n\n"
+            current_message += line + "\n"
+            if len(current_message) > MESSAGE_LENGTH_LIMIT:
+                messages.append(current_message)
+                current_message = ""
+
+        messages.append(current_message)
+
+        return messages
 
     def _convert_adp_csv_to_embed_field(self, content: str,
                                         embed: discord.Embed):
@@ -400,6 +429,17 @@ class ADPCog(commands.Cog):
         await self._post_position_adp_data(
             forum, adp_data, position_long, embed_color,
             strings.NARFFL_ADP_THREAD_CONTENT + strings.ADP_GLOSSARY)
+
+    async def _post_fta_raw_csv_data(self, channel: discord.TextChannel):
+        adp_data = await asyncio.to_thread(
+            adp.aggregate_adp_data,
+            account_identifier=cogConstants.FTAFFL_USER,
+            league_size=14,
+            position=adp.INCLUDE_ALL,
+            league_regex_string=cogConstants.FTAFFL_LEAGUE_REGEX,
+            output_format=adp.OutputFormat.CSV)
+
+        await self._post_raw_adp_data(channel, adp_data)
 
 
 async def setup(bot):

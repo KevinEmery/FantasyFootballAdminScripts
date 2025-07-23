@@ -139,12 +139,13 @@ def _convert_raw_adp_to_round_and_pick(raw_adp: float, league_size: int) -> str:
 
 
 def _create_csv_output_for_player(player: AggregatedPlayerData) -> str:
-    template = "{player_name},{n},{adp},{min},{max}"
+    template = "{player_name},{n},{adp},{min},{max},{pos}"
     return template.format(player_name=player.player.name,
-                           adp=player.average_draft_position,
+                           adp=round(player.average_draft_position, 2),
                            min=player.min_draft_position,
                            max=player.max_draft_position,
-                           n=player.times_drafted)
+                           n=player.times_drafted,
+                           pos=player.player.position)
 
 
 def _create_formatted_csv_output_for_player(player: AggregatedPlayerData, league_size: int) -> str:
