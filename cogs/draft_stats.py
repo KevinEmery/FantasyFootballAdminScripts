@@ -181,8 +181,9 @@ class DraftStatsCog(commands.Cog):
                     response = ""
 
             # Clear out the response before moving forward
-            await interaction.channel.send(response)
-            response = ""
+            if response != "":
+                await interaction.channel.send(response)
+                response = ""
 
 
         if include_inactive_drafts and len(inactive_drafts_list) > 0:
@@ -197,8 +198,9 @@ class DraftStatsCog(commands.Cog):
                     response = ""
 
             # Clear out the response before moving forward
-            await interaction.channel.send(response)
-            response = ""
+            if response != "":
+                await interaction.channel.send(response)
+                response = ""
 
         if len(active_drafts_list) == 0 and len(inactive_drafts_list) == 0 and include_inactive_drafts:
             int_response = "There are no tracked drafts."
