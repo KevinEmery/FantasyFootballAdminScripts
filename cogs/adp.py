@@ -382,7 +382,8 @@ class ADPCog(commands.Cog):
                 messages.append(current_message)
                 current_message = ""
 
-        messages.append(current_message)
+        if current_message != "":
+            messages.append(current_message)
 
         return messages
 
