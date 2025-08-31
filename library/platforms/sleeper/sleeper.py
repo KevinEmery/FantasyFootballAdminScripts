@@ -65,6 +65,59 @@ class Sleeper(Platform):
     def get_admin_user_by_identifier(self, identifier: str) -> User:
         return api.get_user_from_identifier(identifier)
 
+    
+    def _create_league_from_raw_league(self, raw_league) -> League:
+        roster_counts = {}
+        for position in raw_league["roster_positions"]:
+            # Simplify the Flex listings to SF, IDP, and Flex
+            if position == "SUPER_FLEX":
+                position = "SF"
+            elif position == "IDP_FLEX":
+                position = "IDP_FLEX"
+            elif "FLEX" in position:
+                position = "FLEX"
+
+            if position not in roster_counts:
+                roster_counts[position] = 0
+
+            roster_counts[position] = roster_counts[position] + 1
+
+        scoring_settings = raw_league["scoring_settings"]
+
+        if "rec" in scoring_settings:
+            ppr = scoring_settings["rec"]
+        else:
+            ppr = 0.0
+
+        if "bonus_rec_te" in scoring_settings:
+            tep = scoring_settings["bonus_rec_te"]
+        else:
+            tep = 0.0
+
+        raw_league_type = raw_league["settings"]["type"]
+
+        if raw_league_type == 0:
+            league_type = LeagueType.REDRAFT
+        elif raw_league_type == 1:
+            league_type = LeagueType.KEEPER
+        elif raw_league_type == 2:
+            league_type = LeagueType.DYNASTY
+        else:
+            print("Unknown league type " + str(raw_league_type))
+            league_type = LeagueType.REDRAFT
+
+        league = League(raw_league["name"], raw_league["total_rosters"],
+                        raw_league["league_id"], roster_counts,
+                        league_type, ppr, tep, raw_league["draft_id"])
+
+        return league
+
+
+    def get_league(self, league_id: str) -> League:
+        raw_league = api.get_league(league_id)
+
+        return self._create_league_from_raw_league(raw_league)
+
     def get_all_leagues_for_user(
             self,
             user: User,
@@ -83,48 +136,7 @@ class Sleeper(Platform):
             return leagues
 
         for raw_league in raw_response_json:
-            roster_counts = {}
-            for position in raw_league["roster_positions"]:
-                # Simplify the Flex listings to SF, IDP, and Flex
-                if position == "SUPER_FLEX":
-                    position = "SF"
-                elif position == "IDP_FLEX":
-                    position = "IDP_FLEX"
-                elif "FLEX" in position:
-                    position = "FLEX"
-
-                if position not in roster_counts:
-                    roster_counts[position] = 0
-
-                roster_counts[position] = roster_counts[position] + 1
-
-            scoring_settings = raw_league["scoring_settings"]
-
-            if "rec" in scoring_settings:
-                ppr = scoring_settings["rec"]
-            else:
-                ppr = 0.0
-
-            if "bonus_rec_te" in scoring_settings:
-                tep = scoring_settings["bonus_rec_te"]
-            else:
-                tep = 0.0
-
-            raw_league_type = raw_league["settings"]["type"]
-
-            if raw_league_type == 0:
-                league_type = LeagueType.REDRAFT
-            elif raw_league_type == 1:
-                league_type = LeagueType.KEEPER
-            elif raw_league_type == 2:
-                league_type = LeagueType.DYNASTY
-            else:
-                print("Unknown league type " + str(raw_league_type))
-                league_type = LeagueType.REDRAFT
-
-            league = League(raw_league["name"], raw_league["total_rosters"],
-                            raw_league["league_id"], roster_counts,
-                            league_type, ppr, tep, raw_league["draft_id"])
+            league = self._create_league_from_raw_league(raw_league)
 
             if (raw_league["status"] != "pre_draft"
                     or include_pre_draft) and self._league_name_matches(
@@ -415,6 +427,7 @@ class Sleeper(Platform):
 
         return Team(0, user, self._create_roster_link(league.league_id, 0))
 
+
     def get_roster_for_league_and_user(self, league: League,
                                        user: User) -> Roster:
         raw_rosters = api.get_rosters_for_league(league.league_id)
@@ -422,32 +435,49 @@ class Sleeper(Platform):
         for raw_roster in raw_rosters:
             if raw_roster["owner_id"] == user.user_id or raw_roster[
                     "co_owners"] and user.user_id in raw_roster["co_owners"]:
-                roster_id = raw_roster["roster_id"]
-                starters = []
-                bench = []
-                taxi = []
-                future_picks = self._get_future_draft_picks_for_roster(
-                    league, roster_id)
-
-                team = Team(
-                    roster_id, user,
-                    self._create_roster_link(league.league_id, roster_id))
-
-                if raw_roster["players"]:
-                    for player_id in raw_roster["players"]:
-                        player = self._player_id_to_player[player_id]
-                        if player_id in raw_roster["starters"]:
-                            starters.append(player)
-                        elif raw_roster[
-                                "taxi"] is not None and player_id in raw_roster[
-                                    "taxi"]:
-                            taxi.append(player)
-                        else:
-                            bench.append(player)
-
-                return Roster(team, starters, bench, taxi, future_picks)
+                return self._creater_roster_from_raw_roster(raw_roster, league.league_id)
 
         return None
+
+
+    def get_roster_for_league_id_and_roster_id(self, league_id: str, roster_id: str) -> Roster:
+        raw_rosters = api.get_rosters_for_league(league_id)
+        league = self.get_league(league_id)
+
+        for raw_roster in raw_rosters:
+            if raw_roster["roster_id"] == int(roster_id):
+                return self._creater_roster_from_raw_roster(raw_roster, league_id)
+
+        return None
+
+
+    def _creater_roster_from_raw_roster(self, raw_roster, league_id: str) -> Roster:
+        league = self.get_league(league_id)
+        roster_id = raw_roster["roster_id"]
+        starters = []
+        bench = []
+        taxi = []
+        future_picks = self._get_future_draft_picks_for_roster(
+            league, roster_id)
+
+        team = Team(
+            roster_id, User("0", "John Smith"),
+            self._create_roster_link(league_id, roster_id))
+
+        if raw_roster["players"]:
+            for player_id in raw_roster["players"]:
+                player = self._player_id_to_player[player_id]
+                if player_id in raw_roster["starters"]:
+                    starters.append(player)
+                elif raw_roster[
+                        "taxi"] is not None and player_id in raw_roster[
+                            "taxi"]:
+                    taxi.append(player)
+                else:
+                    bench.append(player)
+
+        return Roster(team, starters, bench, taxi, future_picks)
+
 
     def get_roster_from_draft(self, league: League, user: User) -> Roster:
         raw_draft_data = api.get_all_picks_for_draft(league.draft_id)

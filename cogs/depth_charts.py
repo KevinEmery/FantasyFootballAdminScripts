@@ -159,6 +159,44 @@ class DepthChartsCog(commands.Cog):
             embed=self._create_embed_for_roster(roster, identifier, league, from_draft))
         cogCommon.print_descriptive_log("sleeper_depth_chart", "Done")
 
+    @app_commands.command(
+        name="sleeper_unowned_depth_chart",
+        description=
+        "TODO"
+    )
+    @app_commands.describe(league_id="Full league number")
+    @app_commands.describe(team_number="Team index within the league (may need to get from share URL)")
+    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID,)
+    async def sleeper_unowned_depth_chart(self, 
+                                          interaction: discord.Interaction,
+                                          league_id: str,
+                                          team_number: str):
+        cogCommon.print_descriptive_log(
+            "sleeper_unowned_depth_chart",
+            "league_id={league_id}, team_number={team_number}".format(
+                league_id=league_id, team_number=team_number))
+        await interaction.response.defer()
+
+        sleeper = Sleeper()
+
+        roster = await asyncio.to_thread(sleeper.get_roster_for_league_id_and_roster_id, league_id, team_number)
+        league = await asyncio.to_thread(sleeper.get_league, league_id)
+
+        if roster is None:
+            cogCommon.print_descriptive_log(
+                "sleeper_unowned_depth_chart",
+                "Error retrieving roster for team {number} in {league_id}".format(
+                    number=team_number, league_id=league_id))
+            await interaction.followup.send(
+                "Error retrieving roster for team {number} in {league_id}".format(
+                    number=team_number, league_id=league_id))
+            return
+
+        await interaction.followup.send(
+            embed=self._create_embed_for_roster(roster, "Unowned", league, False))
+        cogCommon.print_descriptive_log("sleeper_unowned_depth_chart", "Done")
+
+
     def _create_markdown_list_of_league_names(self,
                                               leagues: List[League]) -> str:
         league_list = ""
