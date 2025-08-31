@@ -162,11 +162,14 @@ class DepthChartsCog(commands.Cog):
     @app_commands.command(
         name="sleeper_unowned_depth_chart",
         description=
-        "TODO"
+        "Retrieve the depth chart of an unowned Sleeper team"
     )
     @app_commands.describe(league_id="Full league number")
     @app_commands.describe(team_number="Team index within the league (may need to get from share URL)")
-    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID,)
+    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID,
+                         cogConstants.FF_DISCORD_SERVER_GUILD_ID,
+                         cogConstants.FTA_SERVER_GUILD_ID,
+                         cogConstants.NARFFL_SERVER_GUILD_ID)
     async def sleeper_unowned_depth_chart(self, 
                                           interaction: discord.Interaction,
                                           league_id: str,
