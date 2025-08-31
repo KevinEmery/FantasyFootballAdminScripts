@@ -47,16 +47,16 @@ TRACKED_DRAFT_OUTPUT_LIMIT = 1500
 class DraftStatsCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.update_draft_stats.start()
-        self.update_draft_stats_checker.start()
+        # self.update_draft_stats.start()
+        # self.update_draft_stats_checker.start()
 
-    def cog_unload(self):
-        self.update_draft_stats.cancel()
-        self.update_draft_stats_checker.cancel()
+    # def cog_unload(self):
+        # self.update_draft_stats.cancel()
+        # self.update_draft_stats_checker.cancel()
 
     # Verifies that the task is still running, and restarts them if next scheduled
     # is before now. Handles the occassional crash, but should not happen consistently.
-    @tasks.loop(minutes=8)
+    # @tasks.loop(minutes=8)
     async def update_draft_stats_checker(self):
 
         next_iteration = self.update_draft_stats.next_iteration
@@ -72,9 +72,9 @@ class DraftStatsCog(commands.Cog):
                 "update_draft_stats_checker", "Update Draft Stats task is delayed, restarting")
             self.update_draft_stats.restart()
 
-    @update_draft_stats_checker.before_loop
-    async def before_update_draft_stats_checker(self):
-        await self.bot.wait_until_ready()
+    # @update_draft_stats_checker.before_loop
+    # async def before_update_draft_stats_checker(self):
+    #     await self.bot.wait_until_ready()
 
 
     @app_commands.command(
@@ -212,7 +212,7 @@ class DraftStatsCog(commands.Cog):
         cogCommon.print_descriptive_log("list_tracked_drafts", "Done")
         await interaction.followup.send(int_response)
 
-    @tasks.loop(minutes=5)
+    # @tasks.loop(minutes=5)
     async def update_draft_stats(self):
         # List to store the active drafts that need to be processed
         drafts_to_process = []
@@ -350,9 +350,9 @@ class DraftStatsCog(commands.Cog):
                                                                 user_id_to_mins_on_clock[user_id],
                                                                 user_id_to_pick_count[user_id]))
 
-    @update_draft_stats.before_loop
-    async def before_update_draft_stats(self):
-        await self.bot.wait_until_ready()
+    # @update_draft_stats.before_loop
+    # async def before_update_draft_stats(self):
+    #     await self.bot.wait_until_ready()
 
     @app_commands.command(
         name="get_stats_for_draft",
