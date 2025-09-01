@@ -42,6 +42,7 @@ class DiscordBot(commands.Bot):
             'cogs.depth_charts',
             'cogs.draft_stats',
             'cogs.leaderboards',
+            'cogs.leagues',
             'cogs.inactives',
             'cogs.trades',
         ]

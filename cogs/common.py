@@ -94,3 +94,6 @@ def _create_markdown_list_of_league_names(leagues: List[League]) -> str:
 
     return league_list
     
+def create_sleeper_draft_url_from_id(id: int) -> str:
+    template = "https://sleeper.com/draft/nfl/{id}"
+    return template.format(id=id)
