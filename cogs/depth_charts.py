@@ -140,8 +140,8 @@ class DepthChartsCog(commands.Cog):
                     user=identifier, league_name=league.name))
             return
 
-        # If there are no starters, attempt to retrieve the roster from draft picks
-        if not roster.starters:
+        # If there are no players, attempt to retrieve the roster from draft picks
+        if not roster.starters and not roster.bench and not roster.taxi:
             roster = await asyncio.to_thread(sleeper.get_roster_from_draft, league, user)
             from_draft = True
 
