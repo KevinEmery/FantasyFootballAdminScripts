@@ -43,7 +43,7 @@ class LeaguesCog(commands.Cog):
     @app_commands.command(
         name="sleeper_list_all_leagues",
         description=
-        "Retrieves the specified team's full roster, organized as a depth-chart sorted by position"
+        "Prints out summary info for all of a user's leagues"
     )
     @app_commands.rename(identifier="username")
     @app_commands.describe(identifier="The full Sleeper username of the team owner")
@@ -56,6 +56,7 @@ class LeaguesCog(commands.Cog):
             "sleeper_list_all_leagues",
             "user={username}".format(username=identifier, year=year))
         await interaction.response.defer()
+        response = ""
 
         sleeper = Sleeper()
 
