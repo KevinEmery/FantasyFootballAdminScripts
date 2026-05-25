@@ -61,7 +61,7 @@ class LeaguesCog(commands.Cog):
         sleeper = Sleeper()
 
         user = sleeper.get_admin_user_by_identifier(identifier)
-        leagues = sleeper.get_all_leagues_for_user(user, year)
+        leagues = sleeper.get_all_leagues_for_user(user, year, include_pre_draft=True)
         cogCommon.print_descriptive_log("sleeper_list_all_leagues", "Found {count} leagues".format(count=len(leagues)))
 
         league_format = "**{league_name}**\nDraft: <{draft_link}>\nTeam: <{team_link}>\n"
