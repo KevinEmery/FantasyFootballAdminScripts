@@ -64,6 +64,8 @@ class TradesCog(commands.Cog):
 
     def cog_unload(self):
         self.post_fta_trades.cancel()
+        self.post_narffl_trades.cancel()
+        self.post_ff_discord_trades.cancel()
         self.trade_task_checker.cancel()
 
     # General Task Diagnostics
