@@ -20,6 +20,7 @@ import os
 
 import cogs.common as cogCommon
 import cogs.constants as cogConstants
+import library.common as libCommon
 import common
 import trades
 
@@ -29,6 +30,7 @@ from discord.ext import commands, tasks
 from typing import List
 
 from library.model.trade import Trade
+from library.platforms.sleeper.sleeper import Sleeper
 
 FTA_TRADE_CHANNEL_PATH = "./bot_data/fta_trade_channel"
 FTA_POSTED_TRADES_PATH = "./bot_data/fta_posted_trades"
@@ -348,6 +350,46 @@ class TradesCog(commands.Cog):
     @post_ff_discord_trades.before_loop
     async def before_post_ff_discord_trades(self):
         await self.bot.wait_until_ready()
+
+    # General Trade Commands
+    @app_commands.command(
+        name="sleeper_list_all_trades",
+        description="Retrieves all of the recent trades")
+    @app_commands.guilds(cogConstants.DEV_SERVER_GUILD_ID)
+    async def sleeper_list_all_trades(self, 
+                                      interaction: discord.Interaction,
+                                      identifier: str,
+                                      league_name: str,
+                                      limit: int = 10,
+                                      year: int = libCommon.DEFAULT_YEAR):
+        cogCommon.print_descriptive_log(
+            "sleeper_list_all_trades_for_league",
+            "user={username} league_name={league_name} limit={limit} year={year}".format(username=identifier, league_name=league_name, limit=limit, year=year))
+        await interaction.response.defer()
+
+        sleeper = Sleeper()
+        league, user, err_string = await asyncio.to_thread(cogCommon.get_matching_sleeper_league, sleeper, league_name, identifier, year)
+
+        if err_string is not None:
+            await interaction.followup.send(err_string)
+            return
+
+        all_trades = sleeper.get_all_trades_for_league(league, year)
+
+        # Sort the trades old -> new, and then reverse the list
+        all_trades.sort()
+        all_trades.reverse()
+
+        trade_count = 0
+        for trade in all_trades:
+            message = await interaction.channel.send(
+                    content=trades.format_trades([trade]))
+            trade_count += 1
+            if trade_count >= limit:
+                break
+
+        await interaction.followup.send("Printed {count} of {total} trades.".format(count=trade_count, total=len(all_trades)))
+
 
     # General Helpers
     def _create_file_string_for_trade(self, trade: Trade) -> str:
