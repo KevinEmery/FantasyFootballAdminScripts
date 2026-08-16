@@ -18,6 +18,7 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 import re
+import time
 
 from . import api
 
@@ -144,6 +145,12 @@ class Fleaflicker(Platform):
 
         team_id_to_user = self._league_id_to_team_id_to_user[league.league_id]
         raw_trades = api.fetch_trades(league.league_id)
+
+        # 2026 preseason, trade requests started failing with rate limiting. This adds
+        # an additional 30-second backoff and retry cycle.
+        if raw_trades == []:
+            time.sleep(30)
+            raw_trades = api.fetch_trades(league.league_id)
 
         for trade_data in raw_trades:
             trade_time = datetime.fromtimestamp(
