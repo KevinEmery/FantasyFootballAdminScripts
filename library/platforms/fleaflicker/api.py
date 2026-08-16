@@ -53,7 +53,13 @@ def fetch_trades(league_id: str):
     request_url = BASE_URL + "FetchTrades?sport=NFL&league_id={league_id}&filter=TRADES_COMPLETED".format(
         league_id=league_id)
 
-    return common._make_get_request_with_logging(request_url)["trades"]
+    trade_response = common._make_get_request_with_logging(request_url)
+
+    # Less than ideal, but better to return empty than to crash
+    if trade_response is not None: 
+        return trade_response["trades"]
+    else:
+        return []
 
 
 def fetch_league_transactions(league_id: str, result_offset: int = 0):
