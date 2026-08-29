@@ -100,6 +100,10 @@ class Fleaflicker(Platform):
         if raw_draft_board == []:
             raw_draft_board = api.fetch_league_draft_board(league.league_id, year)
 
+        # If it's still empty, abort gracefully
+        if raw_draft_board == []:
+            return drafted_players
+
         # Most drafts look like this
         if "rosters" in raw_draft_board:
             raw_rosters = raw_draft_board["rosters"]
