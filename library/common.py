@@ -43,7 +43,7 @@ TEAMS_ON_BYE = {
 }
 
 
-def _make_get_request_with_logging(request_url: str, should_retry: bool = True):
+def _make_get_request_with_logging(request_url: str, should_retry: bool = True, retry_wait_seconds: int = 15):
     try:
         response = requests.get(request_url)
         if response.json() is None:
@@ -56,5 +56,5 @@ def _make_get_request_with_logging(request_url: str, should_retry: bool = True):
         # Give another go for the failed request, in hopes that it's transient
         if should_retry:
             print("Retrying failed request")
-            time.sleep(15)
-            return _make_get_request_with_logging(request_url, False)
+            time.sleep(retry_wait_seconds)
+            return _make_get_request_with_logging(request_url, False, retry_wait_seconds)

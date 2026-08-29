@@ -32,28 +32,28 @@ def fetch_user_leagues(user: User, year: int):
         raise Exception("User {user} must have either id or email set".format(
             user.name))
 
-    return common._make_get_request_with_logging(request_url)["leagues"]
+    return _make_fleaflicker_get_request(request_url)["leagues"]
 
 
 def fetch_league_standings(league_id: str, year: int):
     request_url = BASE_URL + "FetchLeagueStandings?sport=NFL&league_id={league_id}&season={year}".format(
         league_id=league_id, year=str(year))
 
-    return common._make_get_request_with_logging(request_url)
+    return _make_fleaflicker_get_request(request_url)
 
 
 def fetch_league_draft_board(league_id: str, year: int):
     request_url = BASE_URL + "FetchLeagueDraftBoard?sport=NFL&season={year}&league_id={league_id}".format(
         year=str(year), league_id=league_id)
 
-    return common._make_get_request_with_logging(request_url)
+    return _make_fleaflicker_get_request(request_url)
 
 
 def fetch_trades(league_id: str):
     request_url = BASE_URL + "FetchTrades?sport=NFL&league_id={league_id}&filter=TRADES_COMPLETED".format(
         league_id=league_id)
 
-    trade_response = common._make_get_request_with_logging(request_url)
+    trade_response = _make_fleaflicker_get_request(request_url)
 
     # Less than ideal, but better to return empty than to crash
     if trade_response is not None: 
@@ -66,7 +66,7 @@ def fetch_league_transactions(league_id: str, result_offset: int = 0):
     request_url = BASE_URL + "FetchLeagueTransactions?league_id={league_id}&result_offset={result_offset}".format(
         league_id=league_id, result_offset=result_offset)
 
-    return common._make_get_request_with_logging(request_url)
+    return _make_fleaflicker_get_request(request_url)
 
 
 def fetch_league_transactions_for_team(league_id: str,
@@ -75,18 +75,23 @@ def fetch_league_transactions_for_team(league_id: str,
     request_url = BASE_URL + "FetchLeagueTransactions?league_id={league_id}&team_id={team_id}&result_offset={result_offset}".format(
         league_id=league_id, team_id=team_id, result_offset=result_offset)
 
-    return common._make_get_request_with_logging(request_url)
+    return _make_fleaflicker_get_request(request_url)
 
 
 def fetch_league_scoreboard(league_id: str, week: int, year: int):
     request_url = BASE_URL + "FetchLeagueScoreboard?sport=NFL&league_id={league_id}&scoring_period={week}&season={year}".format(
         league_id=league_id, week=str(week), year=str(year))
 
-    return common._make_get_request_with_logging(request_url)
+    return _make_fleaflicker_get_request(request_url)
 
 
 def fetch_league_box_score(league_id: str, week: int, game_id: str):
     request_url = BASE_URL + "FetchLeagueBoxscore?sport=NFL&league_id={league_id}&scoring_period={week}&fantasy_game_id={game_id}".format(
         league_id=league_id, week=str(week), game_id=game_id)
 
-    return common._make_get_request_with_logging(request_url, False)
+    return _make_fleaflicker_get_request(request_url, False)
+
+# Small wrapper to increase the fleaflicker retry timer to 60 seconds to avoid
+# needing to embed additional rate-limit handling elsewhere
+def _make_fleaflicker_get_request(request_url: str, should_retry: bool = True):
+    return common._make_get_request_with_logging(request_url, should_retry, 60)
