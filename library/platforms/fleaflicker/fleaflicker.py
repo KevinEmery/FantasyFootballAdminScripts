@@ -95,6 +95,11 @@ class Fleaflicker(Platform):
 
         raw_draft_board = api.fetch_league_draft_board(league.league_id, year)
 
+        # If failed, try again. This operation is generally more of a one-off
+        # and so we should try to be a little more resilient
+        if raw_draft_board == []:
+            raw_draft_board = api.fetch_league_draft_board(league.league_id, year)
+
         # Most drafts look like this
         if "rosters" in raw_draft_board:
             raw_rosters = raw_draft_board["rosters"]
