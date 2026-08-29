@@ -97,11 +97,11 @@ class Fleaflicker(Platform):
 
         # If failed, try again. This operation is generally more of a one-off
         # and so we should try to be a little more resilient
-        if raw_draft_board == []:
+        if raw_draft_board == None:
             raw_draft_board = api.fetch_league_draft_board(league.league_id, year)
 
         # If it's still empty, abort gracefully
-        if raw_draft_board == []:
+        if raw_draft_board == None:
             return drafted_players
 
         # Most drafts look like this
