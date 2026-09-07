@@ -20,7 +20,7 @@ import time
 DEC_31_1999_SECONDS = 946684800
 DEFAULT_YEAR = 2026
 
-# Byes are currently listed for 2025
+# Byes are currently listed for 2026
 TEAMS_ON_BYE = {
     1: [],
     2: [],
