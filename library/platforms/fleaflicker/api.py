@@ -89,7 +89,8 @@ def fetch_league_box_score(league_id: str, week: int, game_id: str):
     request_url = BASE_URL + "FetchLeagueBoxscore?sport=NFL&league_id={league_id}&scoring_period={week}&fantasy_game_id={game_id}".format(
         league_id=league_id, week=str(week), game_id=game_id)
 
-    return _make_fleaflicker_get_request(request_url, False)
+    return _make_fleaflicker_get_request(request_url)
+
 
 # Small wrapper to increase the fleaflicker retry timer to 60 seconds to avoid
 # needing to embed additional rate-limit handling elsewhere
