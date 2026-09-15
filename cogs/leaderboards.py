@@ -1,5 +1,5 @@
 """
-   Copyright 2025 Kevin Emery
+   Copyright 2026 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import cogs.constants as cogConstants
 import cogs.strings as strings
 import common
 import leaguescoring
+import library.common as libCommon
 import topleaguescore
 
 from discord import app_commands
@@ -305,7 +306,8 @@ class LeaderboardsCog(commands.Cog):
             "__Top {count} Week {week} Scores__\n".format(
                 count=leaderboard_length, week=end_week)) + "\n"
 
-        post_content += "Full standings at https://www.flexspotff.com/leagues/leaderboard/2025/{week}".format(
+        post_content += "Full standings at https://www.flexspotff.com/leagues/leaderboard/{year}/{week}".format(
+            year=libCommon.DEFAULT_YEAR,
             week=end_week)
 
         await channel.send(content=post_content)
