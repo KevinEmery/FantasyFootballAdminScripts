@@ -226,9 +226,10 @@ In order to run this scripts, in addition to the base packages that come with Py
  - [requests](https://pypi.org/project/requests/), which is used for all HTTP request handling
  - [python-dateutil](https://pypi.org/project/python-dateutil/), which is used to parse user input into a manageable `datetime` object
 
- Separately, if you're looking to run the bot contained in `discord_bot.py`, you will need the following library
+ Separately, if you're looking to run the bot contained in `discord_bot.py`, you will need the following libraries
 
  - [discord.py](https://discordpy.readthedocs.io/en/stable/), used to handle the registration and interactions with Discord
+ - [curl_cffi](https://pypi.org/project/curl-cffi/), used as a wrapper around requests to better impersonate browsers
 
 ## License
 

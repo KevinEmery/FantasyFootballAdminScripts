@@ -1,5 +1,5 @@
 """
-   Copyright 2024 Kevin Emery
+   Copyright 2026 Kevin Emery
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
    limitations under the License.
 """
 
-import requests
+# Thin wrapper that allows for browswer impersonation to avoid
+# request blocks. Moved away from basic "requests" due to
+# Fleaflicker suddenly blocking requests in Late September 2026
+from curl_cffi import requests
 import time
 
 DEC_31_1999_SECONDS = 946684800
@@ -45,7 +48,7 @@ TEAMS_ON_BYE = {
 
 def _make_get_request_with_logging(request_url: str, should_retry: bool = True, retry_wait_seconds: int = 15):
     try:
-        response = requests.get(request_url)
+        response = requests.get(request_url, impersonate="chrome110")
         if response.json() is None:
             raise Exception("Request to {url} came back with an empty response. Failing".format(url=request_url))
         return response.json()
