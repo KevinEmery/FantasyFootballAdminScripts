@@ -22,6 +22,7 @@ class LeagueType(Enum):
     REDRAFT = 0
     KEEPER = 1
     DYNASTY = 2
+    CHOPPED = 3
 
 
 class League(object):
