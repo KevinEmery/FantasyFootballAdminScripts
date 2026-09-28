@@ -246,7 +246,7 @@ class TradesCog(commands.Cog):
             "NarFFL trade channel set to <#{channel_id}>".format(
                 channel_id=channel.id))
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=60)
     async def post_narffl_trades(self):
         trade_channel = self._get_trade_channel_from_file(
             NARFFL_TRADE_CHANNEL_PATH)
