@@ -95,7 +95,6 @@ class Sleeper(Platform):
             tep = 0.0
 
         raw_league_type = raw_league["settings"]["type"]
-        print(raw_league["name"])
         if raw_league_type == 0:
             league_type = LeagueType.REDRAFT
         elif raw_league_type == 1:
